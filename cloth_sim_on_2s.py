@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Stepped Cloth Sim Interpolation",
     "author": "Joseph Hansen",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (3, 6, 5),
     "location": "Properties > Physics > Cloth > Bake",
     "description": "Convert a cloth simulation to stepped interpolation on 2s",
@@ -12,9 +12,9 @@ import bpy
 import os
 
 class OBJECT_OT_interpolate_bake(bpy.types.Operator):
-    """Convert a cloth simulation to stepped interpolation on 2s"""
+    """Convert cloth simulations to stepped interpolation on 2s"""
     bl_idname = "object.interpolate_bake"
-    bl_label = "Interpolate bake on 2s"
+    bl_label = "Interpolate All Bakes on 2s"
 
     def execute(self, context):
         blend_file_path = bpy.data.filepath
@@ -29,24 +29,34 @@ class OBJECT_OT_interpolate_bake(bpy.types.Operator):
         if not os.path.exists(directory):
             self.report({'ERROR'}, f"Directory '{directory}' not found.")
             return {'CANCELLED'}
-
+        
+        suffixes = []
+        
         for filename in os.listdir(directory):
             if filename.endswith('.bphys'):
-                file_number = int(filename.split('_')[1])
-                if file_number % 2 == 0:
-                    print(file_number)
-                    prev_file_number = file_number - 1
-                    prev_filename = f"{filename.split('_')[0]}_{prev_file_number:06d}_01.bphys"
-                    with open(os.path.join(directory, prev_filename), 'rb') as prev_file:
-                        content = prev_file.read()
-                    with open(os.path.join(directory, filename), 'wb') as current_file:
-                        current_file.write(content)
+                suffixes.append(filename.split('_')[2].split(".")[0])
+                
+        print(suffixes)
+        
+        for cache in suffixes:
+            for filename in os.listdir(directory):
+                if filename.endswith('.bphys') and filename.split('_')[2].split(".")[0] == cache:
+                    file_number = int(filename.split('_')[1])
+                    if file_number % 2 == 0:
+                        print(file_number)
+                        prev_file_number = file_number - 1
+                        prev_filename = f"{filename.split('_')[0]}_{prev_file_number:06d}_{cache}.bphys"
+                        with open(os.path.join(directory, prev_filename), 'rb') as prev_file:
+                            content = prev_file.read()
+                        with open(os.path.join(directory, filename), 'wb') as current_file:
+                            current_file.write(content)
+                            
         return {'FINISHED'}
 
 
 def draw_func(self, context):
     layout = self.layout
-    layout.operator("object.interpolate_bake", text="Interpolate bake on 2s")
+    layout.operator("object.interpolate_bake", text="Interpolate All Bakes On 2s")
 
 
 classes = (

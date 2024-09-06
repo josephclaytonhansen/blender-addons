@@ -2,7 +2,7 @@ bl_info = {
     "name": "Multikey",
     "description": "Change shape keys on multiple objects and keyframe them",
     "author": "Joseph Hansen",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (3, 6, 0),
     "location": "3D View > Animation",
     "category": "Animation",

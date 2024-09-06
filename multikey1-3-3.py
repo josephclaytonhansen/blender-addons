@@ -2,7 +2,7 @@ bl_info = {
     "name": "Multikey",
     "description": "Change shape keys on multiple objects and keyframe them",
     "author": "Joseph Hansen",
-    "version": (1, 3, 2),
+    "version": (1, 3, 3),
     "blender": (3, 6, 0),
     "location": "3D View > Animation",
     "category": "Animation",
@@ -54,6 +54,7 @@ class MultiKeyProperties(PropertyGroup):
         default=6,
         min=1,
         max=10,
+        update=lambda self, context: self.update_key_count(context),
     )
     
     key_data: CollectionProperty(type=KeyData)
@@ -138,7 +139,9 @@ class WM_OT_ToggleIcons(Operator):
     bl_label = "Toggle icons"
     bl_idname = "wm.mk_toggle_icons"
     def execute(self, context):
-        context.scene.show_icons = not context.scene.get("show_icons", True)
+        if "show_icons" not in context.scene:
+            context.scene["show_icons"] = True
+        context.scene["show_icons"] = not context.scene["show_icons"]
         return {'FINISHED'}
 
 # ------------------------------------------------------------------------

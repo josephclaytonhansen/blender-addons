@@ -1,3 +1,11 @@
+bl_info = {
+    "name": "Searchable Vertex Group Panel",
+    "author": "Joseph Hansen",
+    "version": (0,0,1),
+    "blender": (4,1,0),
+    "category":"Object",
+}
+
 import bpy
 from bpy.types import Panel, Operator, PropertyGroup
 from bpy.props import StringProperty

@@ -1,12 +1,22 @@
 bl_info = {
     "name": "A2F Import Weights",
     "blender": (3, 6, 0),
-    "version": (1,2,5)
+    "version": (1,2,6)
 }
 
 import bpy
-from bpy.props import StringProperty
-import json
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       IntProperty,
+                       FloatProperty,
+                       EnumProperty,
+                       PointerProperty,
+                       )
+from bpy.types import (Panel,
+                       Operator,
+                       PropertyGroup,
+                       )
+import json 
 
 class createAnimation(bpy.types.Operator):
     bl_label = "Create Animation"
@@ -15,7 +25,6 @@ class createAnimation(bpy.types.Operator):
     filepath: StringProperty(name="JSON file", description="JSON blendshape file from Audio2Face", subtype="FILE_PATH")
     
     def execute(self, context):
-        # Open JSON file and parse data
         with open(self.filepath) as f:
             json_animate = json.load(f)
                 
@@ -28,12 +37,11 @@ class createAnimation(bpy.types.Operator):
 
             filename = bpy.path.basename(self.filepath)
             
-            # Find the Rig object in the selected objects
             selected_objects = bpy.context.selected_objects
             rig_object = None
             
             for obj in selected_objects:
-                if obj.type == 'ARMATURE':  # Assuming the rig is an armature
+                if obj.type == 'ARMATURE':
                     rig_object = obj
                     break
             
@@ -41,27 +49,22 @@ class createAnimation(bpy.types.Operator):
                 self.report({'ERROR'}, "No rig (armature) object found in the selected objects.")
                 return {'CANCELLED'}
             
-            # Create action on the rig to store keyframes
             action = bpy.data.actions.new(name=filename)
             rig_object.animation_data_create()
             rig_object.animation_data.action = action
 
-            # Create custom properties on the rig for each blendshape name
             for bs_name in bs_names:
                 if bs_name not in rig_object.keys():
                     rig_object[bs_name] = 0.0
-                    rig_object["_RNA_UI"] = {bs_name: {"min": 0.0, "max": 1.0}}  # Optional UI limits
+                    rig_object["_RNA_UI"] = {bs_name: {"min": 0.0, "max": 1.0}}
                 
-            # Create drivers on shape keys for all non-rig selected objects
             for obj in selected_objects:
                 if obj != rig_object and obj.data.shape_keys:
                     shape_key_data = obj.data.shape_keys
 
                     for j, bs_name in enumerate(bs_names):
-                        # Find the corresponding shape key index
                         index = shape_key_data.key_blocks.find(bs_name)
                         if index > -1:
-                            # Add a driver for this shape key driven by the custom property on the rig
                             shape_key = shape_key_data.key_blocks[index]
                             driver = shape_key.driver_add("value").driver
                             driver.type = 'SCRIPTED'
@@ -72,13 +75,11 @@ class createAnimation(bpy.types.Operator):
                             var.targets[0].data_path = f'["{bs_name}"]'
                             driver.expression = var.name
             
-            # Insert keyframes for the custom properties on the rig
             for i in range(bs_frame_count):
                 for j, bs_name in enumerate(bs_names):
                     rig_object[bs_name] = bs_animation[i][j]
                     rig_object.keyframe_insert(data_path=f'["{bs_name}"]', frame=i)
             
-            # Add the imported file to the scene property
             imported_file = bpy.context.scene.imported_files.add()
             imported_file.name = self.filepath
 
@@ -88,11 +89,39 @@ class createAnimation(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class JSONimportPanel(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_label = "Import A2F Blendshapes"
+    bl_idname = "OBJECT_PT_hello"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Animation'
+
+    def draw(self, context):
+        layout = self.layout
+        
+        obj = context.object
+        
+        row = layout.row()
+        row.label(text="Select Object with face Blendshapes")
+
+        row = layout.row()
+        row.label(text="Active object is: " + obj.name)
+                        
+        row = layout.row()
+        row.operator("object.blendshape_animation_operator")
+        
+
 def register():
+    #bpy.utils.register_class(JSONimportPanelProps)
+    bpy.utils.register_class(JSONimportPanel)
     bpy.utils.register_class(createAnimation)
 
 def unregister():
+    #bpy.utils.unregister_class(JSONimportPanelProps)
+    bpy.utils.unregister_class(JSONimportPanel)
     bpy.utils.unregister_class(createAnimation)
+
 
 if __name__ == "__main__":
     register()

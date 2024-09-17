@@ -1,96 +1,99 @@
 bl_info = {
     "name": "A2F Import Weights",
     "blender": (3, 6, 0),
-    "version": (1,2,8)
+    "version": (1, 2, 8)
 }
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       EnumProperty,
-                       PointerProperty,
-                       )
-from bpy.types import (Panel,
-                       Operator,
-                       PropertyGroup,
-                       )
-import json 
+from bpy.props import StringProperty
+from bpy.types import Panel, Operator, PropertyGroup
+import json
 
-class createAnimation(bpy.types.Operator):
+class createAnimation(Operator):
     bl_label = "Create Animation"
     bl_idname = 'object.blendshape_animation_operator'
     
     filepath: StringProperty(name="JSON file", description="JSON blendshape file from Audio2Face", subtype="FILE_PATH")
     
     def execute(self, context):
-        with open(self.filepath) as f:
-            json_animate = json.load(f)
-                
-            bs_animation = json_animate['weightMat']
-            bs_pose_count = json_animate['numPoses']
-            bs_frame_count = json_animate['numFrames']
-            bs_names = json_animate['facsNames']
-            bs_offset = 1
-            bs_limit = bs_pose_count
+        # Try to load the JSON file and handle errors
+        try:
+            with open(self.filepath) as f:
+                json_animate = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.report({'ERROR'}, "Failed to load or parse the JSON file.")
+            return {'CANCELLED'}
+        
+        # Extract relevant data from the JSON
+        bs_animation = json_animate['weightMat']
+        bs_pose_count = json_animate['numPoses']
+        bs_frame_count = json_animate['numFrames']
+        bs_names = json_animate['facsNames']
 
-            filename = bpy.path.basename(self.filepath)
-            
-            selected_objects = bpy.context.selected_objects
-            rig_object = None
-            
-            for obj in selected_objects:
-                if obj.type == 'ARMATURE':
-                    rig_object = obj
-                    break
-            
-            if not rig_object:
-                self.report({'ERROR'}, "No rig (armature) object found in the selected objects.")
-                return {'CANCELLED'}
-            
-            action = bpy.data.actions.new(name=filename)
-            rig_object.animation_data_create()
-            rig_object.animation_data.action = action
+        filename = bpy.path.basename(self.filepath)
+        
+        selected_objects = context.selected_objects
+        rig_object = None
+        
+        # Find the rig (armature) in the selected objects
+        for obj in selected_objects:
+            if obj.type == 'ARMATURE':
+                rig_object = obj
+                break
+        
+        if not rig_object:
+            self.report({'ERROR'}, "No rig (armature) object found in the selected objects.")
+            return {'CANCELLED'}
+        
+        # Create a new action for the rig
+        action = bpy.data.actions.new(name=filename)
+        rig_object.animation_data_create()
+        rig_object.animation_data.action = action
 
-            for bs_name in bs_names:
-                if bs_name not in rig_object.keys():
-                    rig_object[bs_name] = 0.0
-                    rig_object["_RNA_UI"] = {bs_name: {"min": 0.0, "max": 1.0}}
-                
-            for obj in selected_objects:
-                try:
-                    if obj != rig_object and obj.data.shape_keys:
-                        shape_key_data = obj.data.shape_keys
+        # Create custom properties on the rig for each blendshape name
+        for bs_name in bs_names:
+            if bs_name not in rig_object.keys():
+                rig_object[bs_name] = 0.0
+                # Modify _RNA_UI instead of overwriting it
+                if "_RNA_UI" not in rig_object:
+                    rig_object["_RNA_UI"] = {}
+                rig_object["_RNA_UI"][bs_name] = {"min": 0.0, "max": 1.0}
 
-                        for j, bs_name in enumerate(bs_names):
-                            index = shape_key_data.key_blocks.find(bs_name)
-                            if index > -1:
-                                shape_key = shape_key_data.key_blocks[index]
-                                driver = shape_key.driver_add("value").driver
-                                driver.type = 'SCRIPTED'
-
-                                var = driver.variables.new()
-                                var.name = "blendshape"
-                                var.targets[0].id = rig_object
-                                var.targets[0].data_path = f'["{bs_name}"]'
-                                driver.expression = var.name
-                    self.report({'INFO'}, f"Drivers set up for {obj.name}")
-                except:
-                    self.report({'ERROR'}, f"Error in setting up drivers for {obj.name}")
-            
+        # Set up drivers for the shape keys on non-rig selected objects
+        for obj in selected_objects:
             try:
-                for i in range(bs_frame_count):
+                if obj != rig_object and obj.data.shape_keys:
+                    shape_key_data = obj.data.shape_keys
+
                     for j, bs_name in enumerate(bs_names):
-                        rig_object[bs_name] = bs_animation[i][j]
-                        rig_object.keyframe_insert(data_path=f'["{bs_name}"]', frame=i)
-            except:
-                self.report({'ERROR'}, "Error in setting keyframes")
-                return {'CANCELLED'}
-                
-            
-            imported_file = bpy.context.scene.imported_files.add()
-            imported_file.name = self.filepath
+                        index = shape_key_data.key_blocks.find(bs_name)
+                        if index > -1:
+                            shape_key = shape_key_data.key_blocks[index]
+                            driver = shape_key.driver_add("value").driver
+                            driver.type = 'SCRIPTED'
+
+                            var = driver.variables.new()
+                            var.name = "blendshape"
+                            var.targets[0].id = rig_object
+                            var.targets[0].data_path = f'["{bs_name}"]'
+                            driver.expression = var.name
+                self.report({'INFO'}, f"Drivers set up for {obj.name}")
+            except Exception as e:
+                self.report({'ERROR'}, f"Error in setting up drivers for {obj.name}: {str(e)}")
+        
+        # Insert keyframes for the custom properties on the rig
+        try:
+            for i in range(bs_frame_count):
+                for j, bs_name in enumerate(bs_names):
+                    rig_object[bs_name] = bs_animation[i][j]
+                    rig_object.keyframe_insert(data_path=f'["{bs_name}"]', frame=i)
+        except Exception as e:
+            self.report({'ERROR'}, f"Error in setting keyframes: {str(e)}")
+            return {'CANCELLED'}
+        
+        # Store the imported file in the scene property
+        imported_file = context.scene.imported_files.add()
+        imported_file.name = self.filepath
 
         return {'FINISHED'}
         
@@ -116,21 +119,33 @@ class JSONimportPanel(Panel):
 
         row = layout.row()
         row.label(text="Active object is: " + obj.name)
+        
+        # UI enhancement: Show imported files if available
+        if "imported_files" in context.scene:
+            row = layout.row()
+            row.label(text="Imported Files:")
+            for file in context.scene.imported_files:
+                row = layout.row()
+                row.label(text=file.name)
                         
         row = layout.row()
         row.operator("object.blendshape_animation_operator")
-        
+
+# Property group for storing imported files
+class ImportedFile(PropertyGroup):
+    name: StringProperty(name="File Name")
 
 def register():
-    #bpy.utils.register_class(JSONimportPanelProps)
+    bpy.utils.register_class(ImportedFile)
+    bpy.types.Scene.imported_files = bpy.props.CollectionProperty(type=ImportedFile)
     bpy.utils.register_class(JSONimportPanel)
     bpy.utils.register_class(createAnimation)
 
 def unregister():
-    #bpy.utils.unregister_class(JSONimportPanelProps)
+    bpy.utils.unregister_class(ImportedFile)
+    del bpy.types.Scene.imported_files
     bpy.utils.unregister_class(JSONimportPanel)
     bpy.utils.unregister_class(createAnimation)
-
 
 if __name__ == "__main__":
     register()

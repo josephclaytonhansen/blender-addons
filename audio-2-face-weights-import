@@ -1,7 +1,7 @@
 bl_info = {
     "name": "A2F Import Weights",
     "blender": (3, 6, 0),
-    "version": (1,2,6)
+    "version": (1,2,8)
 }
 
 import bpy
@@ -59,26 +59,35 @@ class createAnimation(bpy.types.Operator):
                     rig_object["_RNA_UI"] = {bs_name: {"min": 0.0, "max": 1.0}}
                 
             for obj in selected_objects:
-                if obj != rig_object and obj.data.shape_keys:
-                    shape_key_data = obj.data.shape_keys
+                try:
+                    if obj != rig_object and obj.data.shape_keys:
+                        shape_key_data = obj.data.shape_keys
 
-                    for j, bs_name in enumerate(bs_names):
-                        index = shape_key_data.key_blocks.find(bs_name)
-                        if index > -1:
-                            shape_key = shape_key_data.key_blocks[index]
-                            driver = shape_key.driver_add("value").driver
-                            driver.type = 'SCRIPTED'
+                        for j, bs_name in enumerate(bs_names):
+                            index = shape_key_data.key_blocks.find(bs_name)
+                            if index > -1:
+                                shape_key = shape_key_data.key_blocks[index]
+                                driver = shape_key.driver_add("value").driver
+                                driver.type = 'SCRIPTED'
 
-                            var = driver.variables.new()
-                            var.name = "blendshape"
-                            var.targets[0].id = rig_object
-                            var.targets[0].data_path = f'["{bs_name}"]'
-                            driver.expression = var.name
+                                var = driver.variables.new()
+                                var.name = "blendshape"
+                                var.targets[0].id = rig_object
+                                var.targets[0].data_path = f'["{bs_name}"]'
+                                driver.expression = var.name
+                    self.report({'INFO'}, f"Drivers set up for {obj.name}")
+                except:
+                    self.report({'ERROR'}, f"Error in setting up drivers for {obj.name}")
             
-            for i in range(bs_frame_count):
-                for j, bs_name in enumerate(bs_names):
-                    rig_object[bs_name] = bs_animation[i][j]
-                    rig_object.keyframe_insert(data_path=f'["{bs_name}"]', frame=i)
+            try:
+                for i in range(bs_frame_count):
+                    for j, bs_name in enumerate(bs_names):
+                        rig_object[bs_name] = bs_animation[i][j]
+                        rig_object.keyframe_insert(data_path=f'["{bs_name}"]', frame=i)
+            except:
+                self.report({'ERROR'}, "Error in setting keyframes")
+                return {'CANCELLED'}
+                
             
             imported_file = bpy.context.scene.imported_files.add()
             imported_file.name = self.filepath

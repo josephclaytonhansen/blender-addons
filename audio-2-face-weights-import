@@ -1,7 +1,7 @@
 bl_info = {
     "name": "A2F Import Weights",
     "blender": (3, 6, 0),
-    "version": (1, 2, 8)
+    "version": (1, 2, 9)
 }
 
 import bpy
@@ -16,7 +16,6 @@ class createAnimation(Operator):
     filepath: StringProperty(name="JSON file", description="JSON blendshape file from Audio2Face", subtype="FILE_PATH")
     
     def execute(self, context):
-        # Try to load the JSON file and handle errors
         try:
             with open(self.filepath) as f:
                 json_animate = json.load(f)
@@ -24,7 +23,6 @@ class createAnimation(Operator):
             self.report({'ERROR'}, "Failed to load or parse the JSON file.")
             return {'CANCELLED'}
         
-        # Extract relevant data from the JSON
         bs_animation = json_animate['weightMat']
         bs_pose_count = json_animate['numPoses']
         bs_frame_count = json_animate['numFrames']
@@ -35,7 +33,6 @@ class createAnimation(Operator):
         selected_objects = context.selected_objects
         rig_object = None
         
-        # Find the rig (armature) in the selected objects
         for obj in selected_objects:
             if obj.type == 'ARMATURE':
                 rig_object = obj
@@ -45,21 +42,17 @@ class createAnimation(Operator):
             self.report({'ERROR'}, "No rig (armature) object found in the selected objects.")
             return {'CANCELLED'}
         
-        # Create a new action for the rig
         action = bpy.data.actions.new(name=filename)
         rig_object.animation_data_create()
         rig_object.animation_data.action = action
 
-        # Create custom properties on the rig for each blendshape name
         for bs_name in bs_names:
             if bs_name not in rig_object.keys():
                 rig_object[bs_name] = 0.0
-                # Modify _RNA_UI instead of overwriting it
                 if "_RNA_UI" not in rig_object:
                     rig_object["_RNA_UI"] = {}
                 rig_object["_RNA_UI"][bs_name] = {"min": 0.0, "max": 1.0}
 
-        # Set up drivers for the shape keys on non-rig selected objects
         for obj in selected_objects:
             try:
                 if obj != rig_object and obj.data.shape_keys:
@@ -81,7 +74,6 @@ class createAnimation(Operator):
             except Exception as e:
                 self.report({'ERROR'}, f"Error in setting up drivers for {obj.name}: {str(e)}")
         
-        # Insert keyframes for the custom properties on the rig
         try:
             for i in range(bs_frame_count):
                 for j, bs_name in enumerate(bs_names):
@@ -91,7 +83,6 @@ class createAnimation(Operator):
             self.report({'ERROR'}, f"Error in setting keyframes: {str(e)}")
             return {'CANCELLED'}
         
-        # Store the imported file in the scene property
         imported_file = context.scene.imported_files.add()
         imported_file.name = self.filepath
 
@@ -120,7 +111,6 @@ class JSONimportPanel(Panel):
         row = layout.row()
         row.label(text="Active object is: " + obj.name)
         
-        # UI enhancement: Show imported files if available
         if "imported_files" in context.scene:
             row = layout.row()
             row.label(text="Imported Files:")
@@ -131,7 +121,6 @@ class JSONimportPanel(Panel):
         row = layout.row()
         row.operator("object.blendshape_animation_operator")
 
-# Property group for storing imported files
 class ImportedFile(PropertyGroup):
     name: StringProperty(name="File Name")
 

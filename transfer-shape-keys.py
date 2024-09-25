@@ -1,8 +1,8 @@
 bl_info = {
-	"name": "Transfer Shape Keys",
-	"author": "Joseph Hansen",
- 	"blender": (4,2,0),
- 	"version": (1,0,1)
+    "name": "Transfer Shape Keys",
+    "author": "Joseph Hansen",
+    "blender": (4,2,0),
+    "version": (1,0,2)
 }
 
 import bpy
@@ -15,12 +15,10 @@ class TransferShapeKeysOperator(bpy.types.Operator):
     def execute(self, context):
         source = context.active_object
         target = context.selected_objects[1] if context.selected_objects[0] == source else context.selected_objects[0]
-        
+
         if not source or source.type != 'MESH' or not source.data.shape_keys:
             self.report({'ERROR'}, "Source object is not a mesh or has no shape keys.")
             return {'CANCELLED'}
-
-        assert source.data and source.data.shape_keys, "Source object has no shape key data."
 
         blocks = source.data.shape_keys.key_blocks
 
@@ -32,6 +30,8 @@ class TransferShapeKeysOperator(bpy.types.Operator):
         target.select_set(True)
         context.view_layer.objects.active = target
 
+        if "Basis" not in target.data.shape_keys.key_blocks:
+            target.shape_key_add(name="Basis")
         basis = target.data.shape_keys.key_blocks["Basis"]
 
         for block in blocks:

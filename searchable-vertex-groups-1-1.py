@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Searchable Vertex Group Panel",
     "author": "Joseph Hansen",
-    "version": (0,0,1),
+    "version": (1,1,0),
     "blender": (4,1,0),
     "category":"Object",
 }
@@ -27,6 +27,11 @@ class SimplePanel(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
+    
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and obj.type == 'MESH' and len(obj.vertex_groups) > 0
 
     def draw(self, context):
         layout = self.layout
@@ -35,7 +40,7 @@ class SimplePanel(Panel):
 
         layout.prop(mytool, "my_string", text="")
 
-        for i, group in enumerate(bpy.context.object.vertex_groups):
+        for i, group in enumerate(bpy.context.active_object.vertex_groups):
             if mytool.my_string.lower() in group.name.lower():
                 op = layout.operator("object.vertex_group_set_active", text=group.name)
                 op.group = group.name

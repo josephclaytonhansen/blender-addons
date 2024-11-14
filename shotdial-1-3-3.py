@@ -1,3 +1,15 @@
+bl_info = {
+    "name": "ShotDial",
+    "author": "Joseph Hansen",
+    "version": (1, 3, 3),
+    "blender" : (3, 60, 13),
+    "location": "",
+    "warning": "",
+    "wiki_url": "",
+    "tracker_url": "",
+    "category": "3D View"
+}
+
 import bpy
 import random
 import mathutils

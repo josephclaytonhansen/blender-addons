@@ -1,29 +1,15 @@
-bl_info = {
-    "name": "ShotDial",
-    "author": "Joseph Hansen",
-    "version": (1, 3, 1),
-    "blender" : (3, 60, 13),
-    "location": "",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "3D View"
-}
-
 import bpy
 import random
 import mathutils
 from bpy.app.handlers import persistent
+from bpy.props import StringProperty, FloatVectorProperty, CollectionProperty
 
-# Storage for shot data
-class ShotData:
-    def __init__(self, name, camera, color):
-        self.name = name
-        self.camera = camera
-        self.color = color
+# Storage for shot data as a PropertyGroup
+class ShotData(bpy.types.PropertyGroup):
+    name: StringProperty(name="Name", default="Shot")
+    color: FloatVectorProperty(name="Color", subtype='COLOR', min=0, max=1, default=(1.0, 1.0, 1.0))
 
 # List to store all shots
-shots = []
 camera_index = 0
 addon_keymaps = []
 
@@ -41,18 +27,23 @@ class SHOTDIAL_OT_NewShot(bpy.types.Operator):
     bl_label = "New Shot"
 
     def execute(self, context):
-        global shots
-        shot_name = f"Shot {len(shots) + 1}"
+        # Get the active camera or create a new one
+        if context.scene.camera:
+            cam_obj = context.scene.camera
+        else:
+            cam_data = bpy.data.cameras.new(name="Camera")
+            cam_obj = bpy.data.objects.new(name="Camera", object_data=cam_data)
+            context.scene.collection.objects.link(cam_obj)
+            context.scene.camera = cam_obj
+
+        # Generate a unique name and color
+        shot_name = f"Shot {len(context.scene.shotdial_shots) + 1}"
         shot_color = (random.random(), random.random(), random.random())
 
-        # Create and link a new camera for the shot
-        cam_data = bpy.data.cameras.new(name=f"{shot_name}_Camera")
-        cam_obj = bpy.data.objects.new(name=f"{shot_name}_Camera", object_data=cam_data)
-        context.scene.collection.objects.link(cam_obj)
-        context.scene.camera = cam_obj
-
-        new_shot = ShotData(name=shot_name, camera=cam_obj, color=shot_color)
-        shots.append(new_shot)
+        # Create a new shot entry
+        new_shot = context.scene.shotdial_shots.add()
+        new_shot.name = shot_name
+        new_shot.color = shot_color
 
         # Color visible faces only
         for obj in context.scene.objects:
@@ -83,20 +74,16 @@ class SHOTDIAL_PT_ShotPanel(bpy.types.Panel):
         layout = self.layout
         layout.operator("shotdial.new_shot", text="New Shot")
 
-        for shot in shots:
+        for shot in context.scene.shotdial_shots:
             box = layout.box()
-            
-            # Shot name and renaming
             row = box.row()
             row.prop(shot, "name", text="Name")
-
-            # Color picker to change shot color
             row = box.row()
             row.prop(shot, "color", text="Color")
 
-            # Set Active Camera button
             row = box.row()
-            row.operator("shotdial.set_active_camera", text="Set Active").shot_name = shot.name
+            op = row.operator("shotdial.set_active_camera", text="Set Active")
+            op.shot_name = shot.name
 
 # Operator to set active camera by shot
 class SHOTDIAL_OT_SetActiveCamera(bpy.types.Operator):
@@ -104,12 +91,12 @@ class SHOTDIAL_OT_SetActiveCamera(bpy.types.Operator):
     bl_idname = "shotdial.set_active_camera"
     bl_label = "Set Active Camera"
     
-    shot_name: bpy.props.StringProperty()
+    shot_name: StringProperty()
 
     def execute(self, context):
-        shot = next((s for s in shots if s.name == self.shot_name), None)
+        shot = next((s for s in context.scene.shotdial_shots if s.name == self.shot_name), None)
         if shot:
-            context.scene.camera = shot.camera
+            context.scene.camera = bpy.data.objects.get(shot.name)
             self.report({'INFO'}, f"Set '{shot.name}' as active camera")
         else:
             self.report({'ERROR'}, "Shot not found")
@@ -123,12 +110,12 @@ class OBJECT_OT_Spin(bpy.types.Operator):
     
     def execute(self, context):
         global camera_index
-        cameras = [shot.camera for shot in shots]
+        cameras = [shot.name for shot in context.scene.shotdial_shots]
 
         if cameras:
             camera_index = (camera_index + 1) % len(cameras)
-            context.scene.camera = cameras[camera_index]
-            self.report({'INFO'}, f"Switched to {shots[camera_index].name}")
+            context.scene.camera = bpy.data.objects.get(cameras[camera_index])
+            self.report({'INFO'}, f"Switched to {cameras[camera_index]}")
         else:
             self.report({'ERROR'}, "No cameras found")
         return {'FINISHED'}
@@ -141,12 +128,12 @@ class OBJECT_OT_DeSpin(bpy.types.Operator):
     
     def execute(self, context):
         global camera_index
-        cameras = [shot.camera for shot in shots]
+        cameras = [shot.name for shot in context.scene.shotdial_shots]
 
         if cameras:
             camera_index = (camera_index - 1) % len(cameras)
-            context.scene.camera = cameras[camera_index]
-            self.report({'INFO'}, f"Switched to {shots[camera_index].name}")
+            context.scene.camera = bpy.data.objects.get(cameras[camera_index])
+            self.report({'INFO'}, f"Switched to {cameras[camera_index]}")
         else:
             self.report({'ERROR'}, "No cameras found")
         return {'FINISHED'}
@@ -159,15 +146,12 @@ def register_keymaps():
     if kc:
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
         
-        # Forward camera switch (Ctrl + W)
         kmi = km.keymap_items.new(OBJECT_OT_Spin.bl_idname, type='W', value='PRESS', ctrl=True)
         addon_keymaps.append((km, kmi))
         
-        # Backward camera switch (Ctrl + Shift + W)
         kmi = km.keymap_items.new(OBJECT_OT_DeSpin.bl_idname, type='W', value='PRESS', ctrl=True, shift=True)
         addon_keymaps.append((km, kmi))
         
-        # Add marker and bind camera (Alt + M)
         kmi = km.keymap_items.new(SHOTDIAL_OT_NewShot.bl_idname, type='M', value='PRESS', alt=True)
         addon_keymaps.append((km, kmi))
 
@@ -178,6 +162,7 @@ def unregister_keymaps():
 
 # Registration
 classes = [
+    ShotData,
     SHOTDIAL_OT_NewShot,
     SHOTDIAL_PT_ShotPanel,
     SHOTDIAL_OT_SetActiveCamera,
@@ -188,11 +173,13 @@ classes = [
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+    bpy.types.Scene.shotdial_shots = CollectionProperty(type=ShotData)
     register_keymaps()
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.shotdial_shots
     unregister_keymaps()
 
 if __name__ == "__main__":

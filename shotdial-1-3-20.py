@@ -1,7 +1,7 @@
 bl_info = {
     "name": "ShotDial",
     "author": "Joseph Hansen",
-    "version": (1, 3, 19),
+    "version": (1, 3, 20),
     "blender": (3, 60, 13),
     "location": "",
     "warning": "",
@@ -143,9 +143,7 @@ class SHOTDIAL_OT_RenameShot(bpy.types.Operator):
             self.report({'ERROR'}, "Shot not found")
         return {'FINISHED'}
 
-# Panel to list shots and control them
-class SHOTDIAL_PT_ShotPanel(bpy.types.Panel):
-    """Shot control panel"""
+class SHOTDIAL_PT_ShotPanel(Panel):
     bl_label = "ShotDial Panel"
     bl_idname = "SHOTDIAL_PT_shot_panel"
     bl_space_type = 'VIEW_3D'
@@ -154,16 +152,17 @@ class SHOTDIAL_PT_ShotPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
+
         layout.operator("shotdial.new_shot", text="New Shot")
 
-        for shot in context.scene.shotdial_shots:
+        for shot in scene.shotdial_shots:
             box = layout.box()
             row = box.row()
             row.prop(shot, "name", text="")
             row.operator("shotdial.rename_shot", text="Rename").new_name = shot.name
             row = box.row()
             row.prop(shot, "color", text="Color")
-
             row = box.row()
             op = row.operator("shotdial.set_active_camera", text="Set Active")
             op.shot_name = shot.name

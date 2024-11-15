@@ -1,7 +1,7 @@
 bl_info = {
     "name": "ShotDial",
     "author": "Joseph Hansen",
-    "version": (1, 3, 18),
+    "version": (1, 3, 19),
     "blender": (3, 60, 13),
     "location": "",
     "warning": "",
@@ -13,6 +13,8 @@ bl_info = {
 import bpy
 import random
 from bpy.props import StringProperty, FloatVectorProperty, CollectionProperty, BoolProperty
+from mathutils import Vector
+import math
 
 # Storage for shot data as a PropertyGroup
 class ShotData(bpy.types.PropertyGroup):
@@ -24,97 +26,98 @@ class ShotData(bpy.types.PropertyGroup):
 camera_index = 0
 addon_keymaps = []
 
-# Function to check if a point is inside the camera's frustum
-def point_in_frustum(point, planes, camera_location):
-    point_local = point - camera_location
+# Function to construct the camera frustum as a bounding box
+def construct_frustum_bb(cam, scn):
+    cam_data = cam.data
+    box = [[0, 0, 0] for _ in range(8)]
+
+    aspx = scn.render.resolution_x * scn.render.pixel_aspect_x
+    aspy = scn.render.resolution_y * scn.render.pixel_aspect_y
+
+    ratiox = min(aspx / aspy, 1.0)
+    ratioy = min(aspy / aspx, 1.0)
+
+    angleofview = 2.0 * math.atan(cam_data.sensor_width / (2.0 * cam_data.lens))
+    oppositeclipsta = math.tan(angleofview / 2.0) * cam_data.clip_start
+    oppositeclipend = math.tan(angleofview / 2.0) * cam_data.clip_end
+
+    box[2][0] = box[1][0] = -oppositeclipsta * ratiox
+    box[0][0] = box[3][0] = -oppositeclipend * ratiox
+    box[5][0] = box[6][0] = +oppositeclipsta * ratiox
+    box[4][0] = box[7][0] = +oppositeclipend * ratiox
+    box[1][1] = box[5][1] = -oppositeclipsta * ratioy
+    box[0][1] = box[4][1] = -oppositeclipend * ratioy
+    box[2][1] = box[6][1] = +oppositeclipsta * ratioy
+    box[3][1] = box[7][1] = +oppositeclipend * ratioy
+    box[0][2] = box[3][2] = box[4][2] = box[7][2] = -cam_data.clip_end
+    box[1][2] = box[2][2] = box[5][2] = box[6][2] = -cam_data.clip_start
+
+    return [cam.matrix_world @ Vector(i) for i in box]
+
+# Function to construct the frustum planes
+def construct_frustum_planes(cf):
+    def construct_plane(p1, p2, p3):
+        v1 = p3 - p1
+        v2 = p2 - p1
+        cp = v1.cross(v2).normalized()
+        d = cp.dot(p3)
+        return cp.x, cp.y, cp.z, -d
+
+    return [
+        construct_plane(cf[0], cf[2], cf[3]),
+        construct_plane(cf[3], cf[2], cf[7]),
+        construct_plane(cf[7], cf[6], cf[4]),
+        construct_plane(cf[5], cf[0], cf[4]),
+        construct_plane(cf[4], cf[0], cf[7]),
+        construct_plane(cf[2], cf[1], cf[5])
+    ]
+
+# Function to check if a point is inside all frustum planes
+def point_in_frustum(point, planes):
     for plane in planes:
-        if plane.dot(point_local) < 0:
+        if plane[0] * point.x + plane[1] * point.y + plane[2] * point.z + plane[3] < 0:
             return False
     return True
 
-# Function to check if a face is visible from the camera
-def is_face_visible(camera, obj, face):
-    cam_matrix = camera.matrix_world
-    cam_data = camera.data
-    cam_location = camera.location
-    planes = cam_data.view_frame(scene=bpy.context.scene)
-    planes = [plane.normalized() for plane in planes]
-
-    face_verts = [obj.data.vertices[i].co for i in face.vertices]
-    face_verts_local = [cam_matrix.inverted() @ v for v in face_verts]
-
-    return any(point_in_frustum(vert, planes, cam_location) for vert in face_verts_local)
-
-# Operator to create a new shot and color visible faces
+# Update the SHOTDIAL_OT_NewShot operator
 class SHOTDIAL_OT_NewShot(bpy.types.Operator):
     """Add a new shot and color visible faces"""
     bl_idname = "shotdial.new_shot"
     bl_label = "New Shot"
 
     def execute(self, context):
-        # Get the active camera or create a new one
-        if context.scene.camera:
-            cam_obj = context.scene.camera
-        else:
-            cam_data = bpy.data.cameras.new(name="Camera")
-            cam_obj = bpy.data.objects.new(name="Camera", object_data=cam_data)
-            context.scene.collection.objects.link(cam_obj)
-            context.scene.camera = cam_obj
+        cam_obj = context.scene.camera
+        if not cam_obj:
+            self.report({'ERROR'}, "No active camera in the scene")
+            return {'CANCELLED'}
 
-        # Generate a unique name and color
-        shot_name = f"Shot {len(context.scene.shotdial_shots) + 1}"
-        shot_color = (random.random(), random.random(), random.random())
+        # Get camera frustum
+        scene = context.scene
+        frustum_corners = construct_frustum_bb(cam_obj, scene)
+        frustum_planes = construct_frustum_planes(frustum_corners)
 
-        # Create a new shot entry
-        new_shot = context.scene.shotdial_shots.add()
-        new_shot.name = shot_name
-        new_shot.color = shot_color
-        new_shot.camera = cam_obj  # Store the camera object directly
+        # Assign material to visible faces
+        shot_check_mat = bpy.data.materials.get("ShotCheck") or bpy.data.materials.new(name="ShotCheck")
+        shot_check_mat.use_nodes = True
 
-        # Link the camera to the shot name
-        cam_obj.name = shot_name  # This makes the camera's name match the shot's name
+        for obj in scene.objects:
+            if obj.type != 'MESH':
+                continue
 
-        # Create a boolean attribute for the new shot
-        for obj in context.scene.objects:
-            if obj.type == 'MESH':
-                attr_name = f"shot_{shot_name}"
-                if attr_name not in obj.data.attributes:
-                    obj.data.attributes.new(name=attr_name, type='BOOLEAN', domain='FACE')
-                bool_layer = obj.data.attributes[attr_name].data
+            mesh = obj.data
+            if shot_check_mat.name not in mesh.materials:
+                mesh.materials.append(shot_check_mat)
 
-                for poly in obj.data.polygons:
-                    if is_face_visible(cam_obj, obj, poly):
-                        bool_layer[poly.index].value = True
-                    else:
-                        bool_layer[poly.index].value = False
+            for poly in mesh.polygons:
+                face_center = obj.matrix_world @ poly.center
+                if point_in_frustum(face_center, frustum_planes):
+                    poly.material_index = mesh.materials.find(shot_check_mat.name)
+                else:
+                    poly.material_index = -1
 
-        # Create or get the "ShotCheck" material
-        if "ShotCheck" not in bpy.data.materials:
-            shot_check_mat = bpy.data.materials.new(name="ShotCheck")
-            shot_check_mat.use_nodes = True
-        else:
-            shot_check_mat = bpy.data.materials["ShotCheck"]
-
-        # Set the viewport display color to the shot color
-        shot_check_mat.diffuse_color = (*shot_color, 1.0)
-
-        # Assign the "ShotCheck" material to visible faces
-        for obj in context.scene.objects:
-            if obj.type == 'MESH':
-                if shot_check_mat.name not in obj.data.materials:
-                    obj.data.materials.append(shot_check_mat)
-                attr_name = f"shot_{shot_name}"
-                bool_layer = obj.data.attributes[attr_name].data
-
-                for poly in obj.data.polygons:
-                    if bool_layer[poly.index].value:
-                        obj.data.polygons[poly.index].material_index = obj.data.materials.find(shot_check_mat.name)
-                    else:
-                        obj.data.polygons[poly.index].material_index = -1
-
-        context.area.tag_redraw()
-        self.report({'INFO'}, f"Shot '{shot_name}' created with visible face coloring")
+        self.report({'INFO'}, "New shot created with visible face coloring")
         return {'FINISHED'}
+
 
 # Operator to rename the shot and its associated camera
 class SHOTDIAL_OT_RenameShot(bpy.types.Operator):

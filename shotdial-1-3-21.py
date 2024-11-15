@@ -1,7 +1,7 @@
 bl_info = {
     "name": "ShotDial",
     "author": "Joseph Hansen",
-    "version": (1, 3, 20),
+    "version": (1, 3, 21),
     "blender": (3, 60, 13),
     "location": "",
     "warning": "",
@@ -143,7 +143,7 @@ class SHOTDIAL_OT_RenameShot(bpy.types.Operator):
             self.report({'ERROR'}, "Shot not found")
         return {'FINISHED'}
 
-class SHOTDIAL_PT_ShotPanel(Panel):
+class SHOTDIAL_PT_ShotPanel(bpy.types.Panel):
     bl_label = "ShotDial Panel"
     bl_idname = "SHOTDIAL_PT_shot_panel"
     bl_space_type = 'VIEW_3D'

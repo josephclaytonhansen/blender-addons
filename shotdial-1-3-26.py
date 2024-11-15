@@ -1,7 +1,7 @@
 bl_info = {
     "name": "ShotDial",
     "author": "Joseph Hansen",
-    "version": (1, 3, 24),
+    "version": (1, 3, 26),
     "blender": (3, 60, 13),
     "location": "",
     "warning": "",
@@ -30,67 +30,33 @@ import bpy
 import bmesh
 from mathutils import Vector
 
-# Construct the camera frustum as a bounding box
-def construct_frustum_bb(cam, scn):
-    cam_data = cam.data
-    box = [[0, 0, 0] for _ in range(8)]
-
-    aspx = scn.render.resolution_x * scn.render.pixel_aspect_x
-    aspy = scn.render.resolution_y * scn.render.pixel_aspect_y
-
-    ratiox = min(aspx / aspy, 1.0)
-    ratioy = min(aspy / ratiox, 1.0)
-
-    angle = 2.0 * math.atan(cam_data.sensor_width / (2.0 * cam_data.lens))
-    clip_sta = math.tan(angle / 2.0) * cam_data.clip_start
-    clip_end = math.tan(angle / 2.0) * cam_data.clip_end
-
-    box[0][0] = box[3][0] = -clip_end * ratiox
-    box[1][0] = box[2][0] = -clip_sta * ratiox
-    box[4][0] = box[7][0] = +clip_end * ratiox
-    box[5][0] = box[6][0] = +clip_sta * ratiox
-
-    box[0][1] = box[1][1] = -clip_end * ratioy
-    box[2][1] = box[3][1] = -clip_sta * ratioy
-    box[4][1] = box[5][1] = -clip_sta * ratioy
-    box[6][1] = box[7][1] = +clip_sta * ratioy
-
-    box[0][2] = box[1][2] = box[2][2] = box[3][2] = -cam_data.clip_end
-    box[4][2] = box[5][2] = box[6][2] = box[7][2] = -cam_data.clip_start
-
-    return [cam.matrix_world @ Vector(corner) for corner in box]
-
-# Raycast to check face visibility
-def is_face_visible(camera, obj, bm_face):
-    ray_origin = camera.location
-    face_center = obj.matrix_world @ bm_face.calc_center_median()
-
-    # Direction from the camera to the face center
-    direction = (face_center - ray_origin).normalized()
-
-    # Perform raycast
-    hit, location, normal, index = obj.ray_cast(ray_origin, direction)
-
-    # If we hit the same face, it is visible
-    return hit and index == bm_face.index
-
-# Operator to create a new shot with visible face detection
 class SHOTDIAL_OT_NewShot(bpy.types.Operator):
     """Add a new shot and color visible faces"""
     bl_idname = "shotdial.new_shot"
     bl_label = "New Shot"
 
     def execute(self, context):
-        scene = context.scene
-        cam_obj = scene.camera
+        # Get the active camera or create a new one
+        if context.scene.camera:
+            cam_obj = context.scene.camera
+        else:
+            cam_data = bpy.data.cameras.new(name="Camera")
+            cam_obj = bpy.data.objects.new(name="Camera", object_data=cam_data)
+            context.scene.collection.objects.link(cam_obj)
+            context.scene.camera = cam_obj
 
-        if not cam_obj:
-            self.report({'ERROR'}, "No active camera in the scene.")
-            return {'CANCELLED'}
-
-        # Generate shot name and color
-        shot_name = f"Shot {len(scene.shotdial_shots) + 1}"
+        # Generate a unique name and color
+        shot_name = f"Shot {len(context.scene.shotdial_shots) + 1}"
         shot_color = (random.random(), random.random(), random.random())
+
+        # Create a new shot entry
+        new_shot = context.scene.shotdial_shots.add()
+        new_shot.name = shot_name
+        new_shot.color = shot_color
+        new_shot.camera = cam_obj
+
+        # Link the camera to the shot name
+        cam_obj.name = shot_name
 
         # Create or get the "ShotCheck" material
         shot_check_mat = bpy.data.materials.get("ShotCheck") or bpy.data.materials.new("ShotCheck")
@@ -98,25 +64,11 @@ class SHOTDIAL_OT_NewShot(bpy.types.Operator):
 
         shot_check_mat.diffuse_color = (*shot_color, 1.0)
 
-        for obj in scene.objects:
+        for obj in context.scene.objects:
             if obj.type != 'MESH' or obj.hide_render:
                 continue
 
-            if shot_check_mat.name not in obj.data.materials:
-                obj.data.materials.append(shot_check_mat)
-
-            bm = bmesh.new()
-            bm.from_mesh(obj.data)
-            bm.faces.ensure_lookup_table()
-
-            for bm_face in bm.faces:
-                if is_face_visible(cam_obj, obj, bm_face):
-                    bm_face.material_index = obj.data.materials.find(shot_check_mat.name)
-
-            bm.to_mesh(obj.data)
-            bm.free()
-
-        self.report({'INFO'}, f"Shot '{shot_name}' created with visible face detection.")
+        self.report({'INFO'}, f"Shot '{shot_name}' created")
         return {'FINISHED'}
 
 
@@ -143,7 +95,7 @@ class SHOTDIAL_OT_RenameShot(bpy.types.Operator):
             self.report({'ERROR'}, "Shot not found")
         return {'FINISHED'}
 
-class SHOTDIAL_PT_ShotPanel(Panel):
+class SHOTDIAL_PT_ShotPanel(bpy.types.Panel):
     bl_label = "ShotDial Panel"
     bl_idname = "SHOTDIAL_PT_shot_panel"
     bl_space_type = 'VIEW_3D'
@@ -250,3 +202,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+

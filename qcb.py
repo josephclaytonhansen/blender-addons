@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Quick Corrective Blendshapes",
     "author": "Joseph Hansen",
-    "version": (1, 0, 9),
+    "version": (1, 0, 10),
     "blender": (3, 6, 13),
     "location": "Object Data Properties > Shape Keys",
     "description": "Makes it simple to create corrective blendshapes",
@@ -152,6 +152,7 @@ def draw_func(self, context):
     arp_cbs_props = context.object.arp_cbs_props
 
     layout.operator(ARP_OT_corrective_blendshape.bl_idname)
+    layout.operator(ARP_OT_corrective_blendshape_fkik_switch.bl_idname)
     if arp_cbs_props.show_properties:
         layout.prop(arp_cbs_props, "use_two_bones")
         layout.prop_search(arp_cbs_props, "rig", bpy.context.scene, "objects")
@@ -171,7 +172,6 @@ def draw_func(self, context):
 
         layout.prop(arp_cbs_props, "invert")
         layout.operator(ARP_OT_create_driver.bl_idname)
-        layout.operator(ARP_OT_corrective_blendshape_fkik_switch.bl_idname)
 
 def register():
     bpy.utils.register_class(ArpCbsProperties)

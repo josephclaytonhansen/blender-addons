@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Quick Corrective Blendshapes",
     "author": "Joseph Hansen",
-    "version": (1, 0, 8),
+    "version": (1, 0, 9),
     "blender": (3, 6, 13),
     "location": "Object Data Properties > Shape Keys",
     "description": "Makes it simple to create corrective blendshapes",
@@ -34,6 +34,43 @@ class ARP_OT_corrective_blendshape(bpy.types.Operator):
     def execute(self, context):
         context.object.arp_cbs_props.show_properties = True
         return {'FINISHED'}
+
+
+class ARP_OT_corrective_blendshape_fkik_switch(bpy.types.Operator):
+    bl_idname = "arp.corrective_blendshape_fkik_switch"
+    bl_label = "Set FK/IK Shape Keys"
+    
+    def execute(self,context):
+        ik_fks = [bpy.data.objects["rig"].pose.bones["c_hand_ik.r"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_hand_ik.l"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_foot_ik.r"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_foot_ik.l"]["ik_fk_switch"]]
+        ik_fk = 0
+        for i in ik_fks:
+            if i == 1:
+                ik_fk += 1
+            else:
+                ik_fk -= 1
+            if ik_fk > 0:
+                # FK keys on, IK keys off
+                all_shapes = bpy.data.shape_keys
+                for block in all_shapes:
+                    all_keys = block.key_blocks
+                    for key in all_keys:
+                        if "fk" in key.name:
+                            key.mute = False
+                        if "ik" in key.name:
+                            key.mute = True
+            else:
+                # FK keys off, IK keys on
+                all_shapes = bpy.data.shape_keys
+                for block in all_shapes:
+                    all_keys = block.key_blocks
+                    for key in all_keys:
+                        if "fk" in key.name:
+                            key.mute = True
+                        if "ik" in key.name:
+                            key.mute = False
+                            
+        return {'FINISHED'}
+    
 
 class ARP_OT_create_driver(bpy.types.Operator):
     bl_idname = "arp.create_driver"
@@ -131,19 +168,23 @@ def draw_func(self, context):
             layout.prop(arp_cbs_props, "bone2rest")
             layout.prop(arp_cbs_props, "bone2deform")
             layout.prop(arp_cbs_props, "combinationMethod")
+
         layout.prop(arp_cbs_props, "invert")
         layout.operator(ARP_OT_create_driver.bl_idname)
+        layout.operator(ARP_OT_corrective_blendshape_fkik_switch.bl_idname)
 
 def register():
     bpy.utils.register_class(ArpCbsProperties)
     bpy.utils.register_class(ARP_OT_corrective_blendshape)
     bpy.utils.register_class(ARP_OT_create_driver)
+    bpy.utils.register_class(ARP_OT_corrective_blendshape_fkik_switch)
     bpy.types.Object.arp_cbs_props = bpy.props.PointerProperty(type=ArpCbsProperties)
     bpy.types.DATA_PT_shape_keys.append(draw_func)
 
 def unregister():
     bpy.utils.unregister_class(ARP_OT_create_driver)
     bpy.utils.unregister_class(ARP_OT_corrective_blendshape)
+    bpy.utils.unregister_class(ARP_OT_corrective_blendshape_fkik_switch)
     bpy.utils.unregister_class(ArpCbsProperties)
     bpy.types.DATA_PT_shape_keys.remove(draw_func)
 

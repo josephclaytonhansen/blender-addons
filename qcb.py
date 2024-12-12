@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Quick Corrective Blendshapes",
     "author": "Joseph Hansen",
-    "version": (1, 0, 10),
+    "version": (1, 0, 11),
     "blender": (3, 6, 13),
     "location": "Object Data Properties > Shape Keys",
     "description": "Makes it simple to create corrective blendshapes",
@@ -41,6 +41,14 @@ class ARP_OT_corrective_blendshape_fkik_switch(bpy.types.Operator):
     bl_label = "Set FK/IK Shape Keys"
     
     def execute(self,context):
+        try:
+            rig_obj = bpy.data.objects["rig"]
+        except:
+            objs = bpy.data.objects
+            for obj in objs:
+                if obj.type == 'ARMATURE':
+                    rig_obj = obj
+                    break
         ik_fks = [bpy.data.objects["rig"].pose.bones["c_hand_ik.r"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_hand_ik.l"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_foot_ik.r"]["ik_fk_switch"], bpy.data.objects["rig"].pose.bones["c_foot_ik.l"]["ik_fk_switch"]]
         ik_fk = 0
         for i in ik_fks:

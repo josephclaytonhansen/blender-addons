@@ -4,33 +4,33 @@ TapTapSwap isn't solely mine, I've made changes to the original (https://github.
 
 ShotDial, my (arguably) most useful addon, is a unique repository- find it here: (https://github.com/josephclaytonhansen/blender-shotdial)
 
-### Addons
-#### audio-2-face-weight-import
+## Addons
+### audio-2-face-weight-import
 Used with NVIDIA Audio2Face; adds a A2F JSON file as a NLA track (or animation layer) in Blender.
 
-#### cloth-sim-on-2s
+### cloth-sim-on-2s
 Interpolates a baked (on-disk cache) cloth sim to be animated on twos
 
-#### delete-object-with-children
+### delete-object-with-children
 As written, replaces the default deletion behavior, instead deleting the children of a parent when deleting the parent. I don't use it, but apparently it's a Maya thing, made it for a co-worker
 
-#### multikey
+### multikey
 Allows for adjusting and animating same-named shapekeys on multiple objects at once; for example, to make a "blink" key that uses Head, Eyebrows, and Eyelashes objects.
 
-#### qcb
+### qcb
 Makes corrective blendshapes based on the angle or distance between two bone transform values- essentially a quick and dirty RBF node setup
 
-#### rendernotify
+### rendernotify
 Plays a sound of your choosing when a rendering is complete
 
-#### searchable-vertex-groups
+### searchable-vertex-groups
 Allows to filter and select vertex groups by name; an incredibly useful function that should be built in
 
-#### select-by-uvmap
+### select-by-uvmap
 Select objects by UV map name
 
-#### silhouette-view
+### silhouette-view
 Adds a silhouette toggle to the shading header
 
-#### transfer-shape-keys
+### transfer-shape-keys
 Transfers shape keys between objects of identical topologies 

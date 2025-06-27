@@ -8,20 +8,23 @@ bl_info = {
     "category": "NPR",
 }
 
-from mathutils import Vector
+from mathutils import Vector, Quaternion, Euler
+
 
 # Weight calculation functions
 def getDistances(correspondences, currentLightRotation):
     """
     Prerequisite for calculating weights;
-    Finds the distance between the current light rotation
-    and each of the stored light rotations.
+    Finds the angular distance between the current light rotation
+    and each of the stored light rotations using quaternions for accuracy.
     """
     distances = []
-    current_rot_vec = Vector(currentLightRotation)
+    current_quat = currentLightRotation.to_quaternion()
+
     for corr in correspondences:
-        corr_rot_vec = Vector(corr.light_rotation)
-        dist = (corr_rot_vec - current_rot_vec).length
+        corr_euler = Euler(corr.light_rotation, "XYZ")
+        corr_quat = corr_euler.to_quaternion()
+        dist = current_quat.rotation_difference(corr_quat).angle
         distances.append(dist)
     return distances
 
@@ -98,6 +101,33 @@ from bpy.types import (
     Operator,
     Panel,
 )
+
+
+class SR_OT_SetEmptyDisplayType(Operator):
+    bl_idname = "shading_rig.set_empty_display_type"
+    bl_label = "Set Empty Display Type"
+    bl_description = "Set the display type of the rig's empty object"
+
+    display_type: StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        if not (scene.shading_rig_list_index >= 0 and len(scene.shading_rig_list) > 0):
+            return False
+        active_item = scene.shading_rig_list[scene.shading_rig_list_index]
+        return active_item.empty_object is not None
+
+    def execute(self, context):
+        scene = context.scene
+        active_item = scene.shading_rig_list[scene.shading_rig_list_index]
+        empty_obj = active_item.empty_object
+
+        if empty_obj:
+            empty_obj.empty_display_type = self.display_type
+            return {"FINISHED"}
+
+        return {"CANCELLED"}
 
 
 # Definitions
@@ -261,7 +291,7 @@ class SR_OT_RigList_Add(Operator):
         if scene.shading_rig_default_light:
             new_item.light_object = scene.shading_rig_default_light
 
-        bpy.ops.object.empty_add(type="CIRCLE", align="VIEW", location=cursor_location)
+        bpy.ops.object.empty_add(type="SPHERE", align="VIEW", location=cursor_location)
         new_empty = context.active_object
         new_empty.empty_display_size = 0.5
         new_empty.show_name = True
@@ -762,6 +792,28 @@ class SR_PT_ShadingRigPanel(Panel):
                 row.label(text="", icon="MATERIAL")
                 row.prop(active_item, "material", text="")
 
+                row = col.row(align=True)
+                row.label(text="Display Type")
+                op = row.operator(
+                    SR_OT_SetEmptyDisplayType.bl_idname, icon="MESH_UVSPHERE", text=""
+                )
+                op.display_type = "SPHERE"
+
+                op = row.operator(
+                    SR_OT_SetEmptyDisplayType.bl_idname, icon="MESH_CIRCLE", text=""
+                )
+                op.display_type = "CIRCLE"
+
+                op = row.operator(
+                    SR_OT_SetEmptyDisplayType.bl_idname, icon="MESH_CONE", text=""
+                )
+                op.display_type = "CONE"
+
+                op = row.operator(
+                    SR_OT_SetEmptyDisplayType.bl_idname, icon="EMPTY_AXIS", text=""
+                )
+                op.display_type = "PLAIN_AXES"
+
                 col.separator()
 
                 col.prop(active_item, "elongation")
@@ -811,7 +863,7 @@ class SR_PT_ShadingRigPanel(Panel):
 
 
 @bpy.app.handlers.persistent
-def update_shading_rig_handler(scene):
+def update_shading_rig_handler(scene, depsgraph):
     """
     Handles automatic updates for the Shading Rig system.
     1. Detects renames of Empty objects and syncs shader node names.
@@ -820,52 +872,72 @@ def update_shading_rig_handler(scene):
     for rig_item in scene.shading_rig_list:
         empty_obj = rig_item.empty_object
         if not empty_obj:
+            print(
+                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Empty object assigned."
+            )
             continue
 
         current_empty_name = empty_obj.name
+        if rig_item.last_empty_name and rig_item.last_empty_name != current_empty_name:
+            old_empty_name = rig_item.last_empty_name
+
+            if rig_item.material and rig_item.material.node_tree:
+                node_tree = rig_item.material.node_tree
+
+                old_shading_node_name = f"ShadingRigEdit_{old_empty_name}"
+                new_shading_node_name = f"ShadingRigEdit_{current_empty_name}"
+                shading_node = node_tree.nodes.get(old_shading_node_name)
+                if shading_node:
+                    shading_node.name = new_shading_node_name
+                    shading_node.label = new_shading_node_name
+
+                old_mix_node_name = f"MixRGB_{old_empty_name}"
+                new_mix_node_name = f"MixRGB_{current_empty_name}"
+                mix_node = node_tree.nodes.get(old_mix_node_name)
+                if mix_node:
+                    mix_node.name = new_mix_node_name
+                    mix_node.label = new_mix_node_name
+
         if rig_item.last_empty_name != current_empty_name:
-            if rig_item.last_empty_name:
-                old_empty_name = rig_item.last_empty_name
-
-                if rig_item.material and rig_item.material.node_tree:
-                    node_tree = rig_item.material.node_tree
-
-                    old_shading_node_name = f"ShadingRigEdit_{old_empty_name}"
-                    new_shading_node_name = f"ShadingRigEdit_{current_empty_name}"
-                    shading_node = node_tree.nodes.get(old_shading_node_name)
-                    if shading_node:
-                        shading_node.name = new_shading_node_name
-                        shading_node.label = new_shading_node_name
-
-                    old_mix_node_name = f"MixRGB_{old_empty_name}"
-                    new_mix_node_name = f"MixRGB_{current_empty_name}"
-                    mix_node = node_tree.nodes.get(old_mix_node_name)
-                    if mix_node:
-                        mix_node.name = new_mix_node_name
-                        mix_node.label = new_mix_node_name
-
             rig_item.last_empty_name = current_empty_name
 
         light_obj = rig_item.light_object
         correspondences = rig_item.correspondences
-        if not light_obj or not correspondences:
+        if not light_obj:
+            print(
+                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Light object assigned."
+            )
+            continue
+        if len(correspondences) == 0:
+            print(
+                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no correspondences found."
+            )
             continue
 
-        current_light_rotation = light_obj.rotation_euler
-        light_obj_key = light_obj.name
+        eval_light_obj = light_obj.evaluated_get(depsgraph)
+        if not eval_light_obj:
+            print(
+                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - could not get evaluated light object from depsgraph."
+            )
+            continue
+
+        current_light_rotation = eval_light_obj.rotation_euler
+        light_obj_key = light_obj.name_full
 
         prev_rot = _previous_light_rotations.get(light_obj_key)
-        if prev_rot and prev_rot.almost_equal(current_light_rotation, decimal=5):
-            continue
-
-        _previous_light_rotations[light_obj_key] = current_light_rotation.copy()
+        if prev_rot:
+            v_prev = Vector(prev_rot)
+            v_curr = Vector(current_light_rotation)
+            if (v_prev - v_curr).length < 1e-5:
+                continue
 
         weighted_pos, weighted_scale = calculateWeightedEmptyPosition(
             correspondences, current_light_rotation
         )
-
         empty_obj.location = weighted_pos
         empty_obj.scale = weighted_scale
+
+        _previous_light_rotations[light_obj_key] = current_light_rotation.copy()
 
 
 # Register and unregister classes
@@ -876,6 +948,7 @@ CLASSES = [
     SR_UL_CorrespondenceList,
     SR_OT_RigList_Add,
     SR_OT_AddEditCoordinatesNode,
+    SR_OT_SetEmptyDisplayType,
     SR_OT_SetupObject,
     SR_OT_AppendNodes,
     SR_OT_Correspondence_Add,

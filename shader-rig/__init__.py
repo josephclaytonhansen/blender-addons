@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
-    "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), John Horne (sanity checking and helpful reminders)",
+    "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
     "version": (1, 2, 40),
     "blender": (4, 1, 0),
     "location": "Shading Rig",

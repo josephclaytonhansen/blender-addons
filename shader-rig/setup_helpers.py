@@ -12,7 +12,6 @@ from . import hansens_float_packer
 import os
 from mathutils import Vector
 
-
 class SR_OT_AddEditCoordinatesNode(Operator):
     # at one point, this just added the Coordinates,
     # now it does everything but I can't be 

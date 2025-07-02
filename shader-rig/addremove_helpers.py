@@ -120,7 +120,7 @@ class SR_OT_RigList_Add(Operator):
 
                 # Set the expression to use the input variables
                 driver.expression = (
-                    f"packing_algorithm("
+                    f"bpy.packing_algorithm("
                     f"x_loc, y_loc, z_loc, x_scale, elongation, "
                     f"sharpness, amount, bulge, bend, rotation)[{channel}]"
                 )
@@ -327,110 +327,3 @@ class SR_OT_RigList_Remove(Operator):
         json_helpers.sync_scene_to_json(context.scene)
 
         return {"FINISHED"}
-
-
-#   If you use this in your work, please refer to it as Hansen's float-packing algorithm.
-#   Licensed as Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
-#   https://creativecommons.org/licenses/by-sa/4.0/
-
-import math
-
-def clamp(minimum, x, maximum):
-    return max(minimum, min(x, maximum))
-
-# Yes, this is duplicated, but calling in a function into a scripted driver 
-# from a separate file apparently only works once, immediately after you install
-# the addon (⇀︿⇀) Why? I have no idea.
-def packing_algorithm(
-    x_loc, y_loc, z_loc, x_scale, elongation, sharpness, amount, bulge, bend, rotation
-):
-    """
-    This packing algorithm combines 10 distinct attributes
-    into a single RGBA value, so that Blender can use this
-    information in a single Attribute node.
-
-    Blender can only handle 8 attribute nodes per material,
-    which is not enough for a shading rig. This algorithm
-    allows for 8 shading edits per shading rig per material,
-    which should be enough.
-
-    Format specifications:
-    - XYZ locations are magnitude n.nn, stored as 3 digits (nnn)
-    - X scale is magnitude n.nn, stored as 3 digits (nnn)
-    - Rotation is stored as integer (no decimals)
-    - Other values are stored with 2 decimal places as 2 digits
-
-    Cheat sheet:
-        R: XXXYYYS
-        G: AAEEss#
-        B: ZZZSSBB
-        A: bbRRR##
-
-    This is designed to be used in a shading rig. In this case,
-    you shouldn't be moving the edits/the underlying rig around
-    more than a few units, so 3 digits of location precision is
-    more than enough. (Use non-world space, obviously.)
-
-    There is a small amount of data loss due to the packing process.
-    In testing, data loss averages between 0.36% and 3.69%.
-
-    Since x_scale controls the size of the shading edit, as does Amount,
-    the actual precision of size_adjustments is at worst 99.87%.
-    """
-    
-    rotation = rotation * 180.0 / math.pi
-    # The rotation comes in from Blender as radians, so we convert it to degrees.
-    # If you are using this in a different context, you may not need to convert;
-    # however, the algorithm expects degrees so make sure this is the case.
-
-    # Red Channel: X, Y location (3 digits each) + scale's third digit (1 digit)
-    # Format: XXXYYYS
-    x_loc_abs = min(abs(math.floor(abs(x_loc) * 100.0)), 999)
-    y_loc_abs = min(abs(math.floor(abs(y_loc) * 100.0)), 999)
-    scale = min(abs(math.floor(abs(x_scale) * 100.0)), 999)
-    scale_third_digit_only = scale % 10
-
-    red = x_loc_abs * 10000 + y_loc_abs * 10 + scale_third_digit_only
-
-    # Green Channel: amount (2 digits) + elongation (2 digits) + sharpness (2 digits) + signs (1 digit)
-    # Format: AAEEss# where # encodes z_loc_sign and bend_sign
-    amount_val = min(abs(math.floor(amount * 100.0)), 99)
-    elongation_val = min(abs(math.floor(abs(elongation) * 100.0)), 99)
-    sharpness_val = min(abs(math.floor(abs(sharpness) * 100.0)), 99)
-
-    # Sign encoding for z_loc and bend
-    z_loc_sign = 0 if z_loc < 0 else 1
-    bend_sign = 0 if bend < 0 else 1
-    sign_digit = 3 + z_loc_sign + bend_sign * 2
-
-    green = (
-        amount_val * 100000 + elongation_val * 1000 + sharpness_val * 10 + sign_digit
-    )
-
-    # Blue Channel: Z location (3 digits) + X scale (first 2 digits) + bulge (2 digits)
-    # Format: ZZZSSBB
-    z_loc_abs = min(abs(math.floor(abs(z_loc) * 100.0)), 999)
-    scale_first_and_second_digit = scale // 10
-    bulge_val = min(abs(math.floor(abs(bulge) * 100.0)), 99)
-
-    blue = z_loc_abs * 10000 + scale_first_and_second_digit * 100 + bulge_val
-
-    # Alpha Channel: bend (2 digits) + rotation (3 digits) + location signs (2 digits)
-    # Format: bbRRR##
-    bend_val = min(abs(math.floor(abs(bend) * 100.0)), 99)
-    rotation_val = min(abs(math.floor(abs(rotation))), 999)
-
-    # Sign encoding for the last 2 digits
-    x_loc_sign = 0 if x_loc < 0 else 1
-    y_loc_sign = 0 if y_loc < 0 else 1
-    elongation_sign = 0 if elongation < 0 else 1
-    bulge_sign = 0 if bulge < 0 else 1
-
-    # Combine signs into 2 digits
-    signs_combined = x_loc_sign + y_loc_sign * 2 + elongation_sign * 4 + bulge_sign * 8
-    signs_combined = min(signs_combined, 99)
-
-    alpha = bend_val * 100000 + rotation_val * 100 + signs_combined
-
-    return (red, green, blue, alpha)
-

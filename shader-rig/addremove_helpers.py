@@ -120,7 +120,7 @@ class SR_OT_RigList_Add(Operator):
 
                 # Set the expression to use the input variables
                 driver.expression = (
-                    f"hansens_float_packer.packing_algorithm("
+                    f"bpy.packing_algorithm("
                     f"x_loc, y_loc, z_loc, x_scale, elongation, "
                     f"sharpness, amount, bulge, bend, rotation)[{channel}]"
                 )

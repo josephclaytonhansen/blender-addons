@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 40),
+    "version": (1, 2, 46),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -21,6 +21,9 @@ from . import hansens_float_packer
 
 bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 # this has to be globally assigned to work consistently
+# actually, no, it just doesn't work consistently at all
+# seems like this only works immediately after you install
+# an addon. Definitely a bug
 
 _previous_light_rotations = {}
 
@@ -538,6 +541,8 @@ def register():
         description="Make stored correspondence values read-only",
         default=True,
     )
+    
+    bpy.packing_algorithm = hansens_float_packer.packing_algorithm
 
 
 def unregister():
@@ -558,11 +563,3 @@ def unregister():
 
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)
-
-
-if __name__ == "__main__":
-    try:
-        unregister()
-    except (RuntimeError, AttributeError):
-        pass
-    register()

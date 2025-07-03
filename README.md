@@ -40,10 +40,23 @@ Transfers shape keys between objects of identical topologies
 ### General Usage Terms
 Aside from Shading Rig + Cel Character Tools, these are offered free and as is; they may or may not work with any given version of Blender. I build and test on Blender 4.1 where they work. Anything beyond that is untested (and won't be, I offer these for free instead of offering support). You're welcome to modify them to work as needed. 
 
+I take no liability for any effect these addons may have on your work in Blender, your installation of Blender, or your hardware running Blender. You use these addons at your own discretion and risk.
+
 ### Shading Rig + Cel Character Tools Usage Terms
-Shading Rig + Cel Character Tools can be used by hobbyists for free. Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Any individual, team, company, or other entity bringing in more than $99,000 USD across all channels in gross revenue before any deductions annually, as payment, gratiuity, or compensation for work done in Blender, wholly or in part, is a professional user and must purchase seat licensing. You accept these terms when you download Shading Rig + Cel Character Tools. Unlicensed professional usage (based on the previous conditions) is prohibited.
+
+#### Terms
+Shading Rig + Cel Character Tools can be used by hobbyists for free. Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Any individual, team, company, or other entity bringing in more than $99,000 USD in gross revenue annually, as payment, gratuity, or compensation for work done in Blender, wholly or in part, is a professional user and must purchase seat licensing. You accept these terms when you download Shading Rig + Cel Character Tools. Unlicensed professional usage (based on the previous conditions) is prohibited. 
+
+I take no liability for any effect these addons may have on your work in Blender, your installation of Blender, or your hardware running Blender. You use these addons at your own discretion and risk.
+
+####  Definitions
+1. "Annually" is understood to mean the last 12 months up to the current day when Shading Rig + Cel Character Tools is used.
+2. "Gross revenue" is understood to mean revenue before any deductions, including but not limited to: payroll, overhead, taxes, or other licensing fees.
+3. A "seat" is a single user. A user may have multiple machines or computers. A user may not share their seat with another user. In the case that a machine is shared between users, both users must purchase a seat.
 
 A professional license includes support. Hobbyist licenses do not include support.
+
+Details for getting support will be provided to you on purchase of a professional seat license. 
 
 ### Miscellany
 * TapTapSwap isn't solely mine, I've made changes to the original (https://github.com/Pullusb/TapTapSwap)

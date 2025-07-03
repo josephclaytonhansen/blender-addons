@@ -106,7 +106,7 @@ class SR_RigItem(PropertyGroup):
         type=bpy.types.Object,
         poll=lambda self, obj: obj.type == "LIGHT",
     )
-    
+
     parent_object: PointerProperty(
         name="Parent Object",
         description="The object to which the Empty will be parented",
@@ -347,7 +347,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 op.display_type = "PLAIN_AXES"
 
                 col.separator()
-                
+
                 col.prop(active_item, "parent_object", text="Parent Object")
 
                 col.prop(active_item, "elongation")
@@ -551,7 +551,7 @@ def register():
         description="Make stored correspondence values read-only",
         default=True,
     )
-    
+
     bpy.packing_algorithm = hansens_float_packer.packing_algorithm
 
 

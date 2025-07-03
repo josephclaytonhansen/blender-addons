@@ -1,12 +1,11 @@
 [![Deploy docs to josephclaytonhansen.github.io/blender-addons](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/static.yml/badge.svg?branch=main)](https://josephclaytonhansen.github.io/blender-addons/)
 
-These are offered free and as is; they may or may not work with any given version of Blender. I know for sure they work with 3.6.13 LTS, and I've tested most of them with 4.1, where they also work. Anything beyond that is untested (and won't be, I offer these for free instead of offering support). You're welcome to modify them to work as needed. 
+## Shading Rig + Cel Character Tools
+More information coming soon.
 
-TapTapSwap isn't solely mine, I've made changes to the original (https://github.com/Pullusb/TapTapSwap)
+Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Licensing terms below.
 
-ShotDial, my (arguably) most useful addon, is a unique repository- find it here: (https://github.com/josephclaytonhansen/blender-shotdial)
-
-## Addons
+## Other Addons
 ### audio-2-face-weight-import
 Used with NVIDIA Audio2Face; adds a A2F JSON file as a NLA track (or animation layer) in Blender.
 
@@ -36,3 +35,17 @@ Adds a silhouette toggle to the shading header
 
 ### transfer-shape-keys
 Transfers shape keys between objects of identical topologies 
+
+## Notes
+### General Usage Terms
+Aside from Shading Rig + Cel Character Tools, these are offered free and as is; they may or may not work with any given version of Blender. I build and test on Blender 4.1 where they work. Anything beyond that is untested (and won't be, I offer these for free instead of offering support). You're welcome to modify them to work as needed. 
+
+### Shading Rig + Cel Character Tools Usage Terms
+Shading Rig + Cel Character Tools can be used by hobbyists for free. Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Any individual, team, company, or other entity bringing in more than $99,000 USD across all channels in gross revenue before any deductions annually, as payment, gratiuity, or compensation for work done in Blender, wholly or in part, is a professional user and must purchase seat licensing. You accept these terms when you download Shading Rig + Cel Character Tools. Unlicensed professional usage (based on the previous conditions) is prohibited.
+
+A professional license includes support. Hobbyist licenses do not include support.
+
+### Miscellany
+* TapTapSwap isn't solely mine, I've made changes to the original (https://github.com/Pullusb/TapTapSwap)
+* ShotDial, my (arguably) most useful addon, is a unique repository- find it here: (https://github.com/josephclaytonhansen/blender-shotdial)
+

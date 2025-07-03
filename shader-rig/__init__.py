@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 46),
+    "version": (1, 2, 51),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -105,6 +105,14 @@ class SR_RigItem(PropertyGroup):
         description="The Light object that acts as a light source or projection point",
         type=bpy.types.Object,
         poll=lambda self, obj: obj.type == "LIGHT",
+    )
+    
+    parent_object: PointerProperty(
+        name="Parent Object",
+        description="The object to which the Empty will be parented",
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type in {"MESH", "CURVE", "EMPTY"},
+        update=addremove_helpers.update_parent_object,
     )
 
     material: PointerProperty(
@@ -241,7 +249,7 @@ class SR_PT_ShadingRigPanel(Panel):
             scene,
             "shading_rig_show_defaults",
             icon="TRIA_DOWN" if scene.shading_rig_show_defaults else "TRIA_RIGHT",
-            text="Defaults",
+            text="Settings",
             emboss=False,
         )
 
@@ -339,6 +347,8 @@ class SR_PT_ShadingRigPanel(Panel):
                 op.display_type = "PLAIN_AXES"
 
                 col.separator()
+                
+                col.prop(active_item, "parent_object", text="Parent Object")
 
                 col.prop(active_item, "elongation")
                 col.prop(active_item, "sharpness")

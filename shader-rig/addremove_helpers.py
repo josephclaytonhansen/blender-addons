@@ -59,7 +59,6 @@ class SR_OT_RigList_Add(Operator):
 
             # Create drivers for each channel (0=red, 1=green, 2=blue, 3=alpha)
             for channel in range(4):
-                # Create the driver
                 fcurve = obj.driver_add(f'["{packed_prop_name}"]', channel)
                 driver = fcurve.driver
                 driver.type = "SCRIPTED"
@@ -147,26 +146,26 @@ class SR_OT_Correspondence_Add(Operator):
         )
 
     def execute(self, context):
-        scene = context.scene
-        active_rig_item = scene.shading_rig_list[
-            json_helpers.get_shading_rig_list_index()
-        ]
-
-        if not active_rig_item.light_object:
-            self.report({"ERROR"}, "Active edit has no Light Object assigned.")
-            return {"CANCELLED"}
-        if not active_rig_item.empty_object:
-            self.report({"ERROR"}, "Active edit has no Empty Object assigned.")
-            return {"CANCELLED"}
-
-        light_obj = active_rig_item.light_object
-        empty_obj = active_rig_item.empty_object
-
-        if not light_obj or not empty_obj:
-            self.report({"ERROR"}, "Active edit has no Light or Empty Object assigned.")
-            return {"CANCELLED"}
-
         try:
+            scene = context.scene
+            active_rig_item = scene.shading_rig_list[
+                json_helpers.get_shading_rig_list_index()
+            ]
+
+            if not active_rig_item.light_object:
+                self.report({"ERROR"}, "Active edit has no Light Object assigned.")
+                return {"CANCELLED"}
+            if not active_rig_item.empty_object:
+                self.report({"ERROR"}, "Active edit has no Empty Object assigned.")
+                return {"CANCELLED"}
+
+            light_obj = active_rig_item.light_object
+            empty_obj = active_rig_item.empty_object
+
+            if not light_obj or not empty_obj:
+                self.report({"ERROR"}, "Active edit has no Light or Empty Object assigned.")
+                return {"CANCELLED"}
+
             new_corr = active_rig_item.correspondences.add()
             new_corr.name = f"Correspondence.{len(active_rig_item.correspondences):03d}"
 
@@ -179,12 +178,13 @@ class SR_OT_Correspondence_Add(Operator):
             )
 
             self.report({"INFO"}, f"Stored pose in '{new_corr.name}'.")
+            
         except Exception as e:
             self.report({"ERROR"}, "Failed to add correspondence. " + str(e))
             return {"CANCELLED"}
+        
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
-
 
 class SR_OT_Correspondence_Remove(Operator):
     """Remove the selected correspondence from the active edit."""
@@ -327,3 +327,25 @@ class SR_OT_RigList_Remove(Operator):
         json_helpers.sync_scene_to_json(context.scene)
 
         return {"FINISHED"}
+    
+def update_parent_object(self, context):
+    """Create or update a child of constraint on the empty object, to parent_object"""
+    active_rig_item = self
+
+    if not active_rig_item.empty_object:
+        return
+
+    empty_obj = active_rig_item.empty_object
+    parent_obj = active_rig_item.parent_object
+
+    constraint_name = "ShadingRig Parent"
+    child_of_constraint = empty_obj.constraints.get(constraint_name)
+
+    if parent_obj:
+        if not child_of_constraint:
+            child_of_constraint = empty_obj.constraints.new(type='CHILD_OF')
+            child_of_constraint.name = constraint_name
+        child_of_constraint.target = parent_obj
+    else:
+        if child_of_constraint:
+            empty_obj.constraints.remove(child_of_constraint)

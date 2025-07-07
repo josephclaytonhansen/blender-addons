@@ -316,29 +316,109 @@ class SR_OT_SetEmptyDisplayType(Operator):
         return {"CANCELLED"}
 
 
-class SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene(Operator):
-    """Sync JSON data from the ShadingRigSceneProperties object to the scene's shading rig list."""
+class SR_OT_SyncExternalData(Operator):
+    """Sync external data from all ShadingRigSceneProperties objects into a combined object."""
 
-    bl_idname = "shading_rig.sync_json_to_scene"
-    bl_label = "Sync JSON to Scene"
-    bl_description = "Sync JSON data from the ShadingRigSceneProperties object to the scene's shading rig list"
+    bl_idname = "shading_rig.sync_external_data"
+    bl_label = "Sync External Data"
+    bl_description = "Combine all external ShadingRigSceneProperties objects into a single combined object"
 
     @classmethod
     def poll(cls, context):
-        props_obj = json_helpers.get_scene_properties_object()
-        if props_obj is None:
-            cls.poll_message_set("ShadingRigSceneProperties object not found.")
+        # Check if there are any ShadingRigSceneProperties objects other than Combined
+        properties_objects = []
+        for obj in bpy.data.objects:
+            if (
+                obj.name.startswith("ShadingRigSceneProperties_")
+                and obj.name != "ShadingRigSceneProperties_Combined"
+            ):
+                properties_objects.append(obj)
+
+        if not properties_objects:
+            cls.poll_message_set("No external ShadingRigSceneProperties objects found.")
+            return False
+
+        # Check if any of them have data
+        has_data = False
+        for props_obj in properties_objects:
+            json_data = props_obj.get("shading_rig_list_json", "[]")
+            if json_data and json_data != "[]":
+                has_data = True
+                break
+
+        if not has_data:
+            cls.poll_message_set("No external data found to sync.")
+            return False
+
+        return True
+
+    def execute(self, context):
+        try:
+            # Create the combined properties object
+            combined_obj = json_helpers.create_combined_properties_object()
+
+            if not combined_obj:
+                self.report({"ERROR"}, "Failed to create combined properties object.")
+                return {"CANCELLED"}
+
+            # Sync the combined data to the scene
+            json_helpers.sync_json_to_scene(context.scene)
+
+            # Count how many objects were combined
+            properties_objects = []
+            for obj in bpy.data.objects:
+                if (
+                    obj.name.startswith("ShadingRigSceneProperties_")
+                    and obj.name != "ShadingRigSceneProperties_Combined"
+                ):
+                    json_data = obj.get("shading_rig_list_json", "[]")
+                    if json_data and json_data != "[]":
+                        properties_objects.append(obj)
+
+            self.report(
+                {"INFO"},
+                f"Combined data from {len(properties_objects)} external objects.",
+            )
+
+            return {"FINISHED"}
+
+        except Exception as e:
+            self.report({"ERROR"}, f"Failed to sync external data: {e}")
+            return {"CANCELLED"}
+
+
+class SR_OT_ClearCombinedData(Operator):
+    """Clear the combined data and return to normal character-based behavior."""
+
+    bl_idname = "shading_rig.clear_combined_data"
+    bl_label = "Clear Combined Data"
+    bl_description = "Remove the combined properties object and return to normal character-based behavior"
+
+    @classmethod
+    def poll(cls, context):
+        combined_obj = bpy.data.objects.get("ShadingRigSceneProperties_Combined")
+        if not combined_obj:
+            cls.poll_message_set("No combined data to clear.")
             return False
         return True
 
     def execute(self, context):
-        scene = context.scene
         try:
-            json_helpers.sync_json_to_scene(scene)
-            self.report({"INFO"}, "Shading rig list synced from JSON.")
+            # Clear the combined properties object
+            json_helpers.cleanup_combined_properties()
+
+            # Clear the scene's shading rig list
+            context.scene.shading_rig_list.clear()
+
+            self.report(
+                {"INFO"},
+                "Combined data cleared. Returned to normal character-based behavior.",
+            )
+
             return {"FINISHED"}
+
         except Exception as e:
-            self.report({"ERROR"}, f"Failed to sync from JSON: {e}")
+            self.report({"ERROR"}, f"Failed to clear combined data: {e}")
             return {"CANCELLED"}
 
 
@@ -362,15 +442,3 @@ def update_character_name(self, context):
             None,
         )
         bpy.context.collection.objects.link(props_obj)
-
-        props_obj["shading_rig_list_index"] = 0
-        props_obj["shading_rig_list"] = bpy.data.collections.new("ShadingRigList")
-        props_obj["character_name"] = new_name
-
-        try:
-            props_obj.shading_rig_list_index = json_helpers.get_shading_rig_list_index()
-            props_obj.shading_rig_list = context.scene.shading_rig_list
-        except Exception as e:
-            print(f"Error setting up ShadingRigSceneProperties: {e}")
-
-        json_helpers.sync_scene_to_json(context.scene)

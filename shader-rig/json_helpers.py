@@ -106,6 +106,53 @@ def combine_multiple_json_shading_rig_lists(json_list):
     return serialize_rig_list_to_json(combined_rig_list)
 
 
+def create_combined_properties_object():
+    """Create a combined properties object from all existing ShadingRigSceneProperties objects."""
+    # Find all ShadingRigSceneProperties objects
+    properties_objects = []
+    for obj in bpy.data.objects:
+        if (
+            obj.name.startswith("ShadingRigSceneProperties_")
+            and obj.name != "ShadingRigSceneProperties_Combined"
+        ):
+            properties_objects.append(obj)
+
+    if not properties_objects:
+        return None
+
+    # Collect all JSON data from these objects
+    json_data_list = []
+    for props_obj in properties_objects:
+        json_data = props_obj.get("shading_rig_list_json", "[]")
+        if json_data and json_data != "[]":
+            json_data_list.append(json_data)
+
+    if not json_data_list:
+        return None
+
+    # Create or get the combined properties object
+    combined_obj_name = "ShadingRigSceneProperties_Combined"
+    combined_obj = bpy.data.objects.get(combined_obj_name)
+
+    if not combined_obj:
+        combined_obj = bpy.data.objects.new(combined_obj_name, None)
+        bpy.context.collection.objects.link(combined_obj)
+        combined_obj["shading_rig_list_index"] = 0
+        combined_obj["character_name"] = "Combined"
+
+    # Combine all the JSON data
+    combined_json = combine_multiple_json_shading_rig_lists(json_data_list)
+    combined_obj["shading_rig_list_json"] = combined_json
+
+    return combined_obj
+
+
+def use_combined_properties():
+    """Check if we should use the combined properties object."""
+    combined_obj = bpy.data.objects.get("ShadingRigSceneProperties_Combined")
+    return combined_obj is not None
+
+
 # ---------------------------------------------------------------------------- #
 #             Getters/setters for object level "scene" properties              #
 # ---------------------------------------------------------------------------- #
@@ -113,6 +160,12 @@ def combine_multiple_json_shading_rig_lists(json_list):
 
 def get_scene_properties_object():
     """Get the ShadingRigSceneProperties empty object."""
+
+    if use_combined_properties():
+        combined_obj = bpy.data.objects.get("ShadingRigSceneProperties_Combined")
+        if combined_obj:
+            return combined_obj
+
     props_obj = bpy.data.objects.get(
         f"ShadingRigSceneProperties_{bpy.context.scene.shading_rig_chararacter_name}"
     )
@@ -137,3 +190,10 @@ def get_shading_rig_list_json():
 def set_shading_rig_list_json(json_data):
     props_obj = get_scene_properties_object()
     props_obj["shading_rig_list_json"] = json_data
+
+
+def cleanup_combined_properties():
+    """Remove the combined properties object to return to normal behavior."""
+    combined_obj = bpy.data.objects.get("ShadingRigSceneProperties_Combined")
+    if combined_obj:
+        bpy.data.objects.remove(combined_obj)

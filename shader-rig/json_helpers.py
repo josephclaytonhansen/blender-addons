@@ -8,6 +8,7 @@ import bpy
 # CollectionProperties have to be stored as JSON to work as object properties
 # This is incredibly stupid but ¯\_(ツ)_/¯
 
+
 def serialize_rig_list_to_json(rig_list):
     """Convert rig list to JSON string."""
     data = []
@@ -45,10 +46,12 @@ def deserialize_rig_list_from_json(json_string):
         return []
     return json.loads(json_string)
 
+
 # It's not enough to serialize, we need to sync between
 # the existing CollectionProperty and the JSON string
 # because BLENDER CAN'T DO IT NATIVELY?!?!?!?!?!
 # (╯°□°)╯︵ ┻━┻
+
 
 def sync_scene_to_json(scene):
     """Save scene rig list to JSON on empty object."""
@@ -94,6 +97,15 @@ def sync_json_to_scene(scene):
             new_corr.empty_scale = corr_data["empty_scale"]
 
 
+def combine_multiple_json_shading_rig_lists(json_list):
+    """Combine multiple JSON shading rig lists into one."""
+    combined_rig_list = []
+    for json_data in json_list:
+        rig_data_list = deserialize_rig_list_from_json(json_data)
+        combined_rig_list.extend(rig_data_list)
+    return serialize_rig_list_to_json(combined_rig_list)
+
+
 # ---------------------------------------------------------------------------- #
 #             Getters/setters for object level "scene" properties              #
 # ---------------------------------------------------------------------------- #
@@ -101,7 +113,9 @@ def sync_json_to_scene(scene):
 
 def get_scene_properties_object():
     """Get the ShadingRigSceneProperties empty object."""
-    props_obj = bpy.data.objects.get("ShadingRigSceneProperties")
+    props_obj = bpy.data.objects.get(
+        f"ShadingRigSceneProperties_{bpy.context.scene.shading_rig_chararacter_name}"
+    )
     return props_obj
 
 

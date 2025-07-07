@@ -6,12 +6,27 @@ from bpy.types import (
 
 from . import json_helpers
 
+
 class SR_OT_RigList_Add(Operator):
     """Add a new edit to the list."""
 
     bl_idname = "shading_rig.list_add"
     bl_label = "Add Edit"
     bl_description = "Create a new Empty as a new edit"
+
+    @classmethod
+    def poll(cls, context):
+        if json_helpers.get_scene_properties_object() is None:
+            cls.poll_message_set(
+                "Please set a character name and append required nodes"
+            )
+            return False
+
+        if not context.scene.shading_rig_default_material:
+            cls.poll_message_set("Please set up shading rig on an object")
+            return False
+
+        return True
 
     def execute(self, context):
         scene = context.scene
@@ -35,7 +50,9 @@ class SR_OT_RigList_Add(Operator):
 
         new_item.empty_object = new_empty
 
-        new_item.name = f"SR_Edit.{len(rig_list):03d}"
+        new_item.name = (
+            f"SR_Edit_{scene.shading_rig_chararacter_name}_{len(rig_list):03d}"
+        )
 
         new_item.last_empty_name = new_item.name
 
@@ -139,11 +156,36 @@ class SR_OT_Correspondence_Add(Operator):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-
-        return (
+        if not (
             json_helpers.get_shading_rig_list_index() >= 0
             and len(scene.shading_rig_list) > 0
-        )
+        ):
+            cls.poll_message_set("No edits in the list.")
+            return False
+
+        if not scene.shading_rig_list[
+            json_helpers.get_shading_rig_list_index()
+        ].light_object:
+            cls.poll_message_set("Active edit has no Light Object assigned.")
+            return False
+
+        if not scene.shading_rig_list[
+            json_helpers.get_shading_rig_list_index()
+        ].empty_object:
+            cls.poll_message_set("Active edit has no Empty Object assigned.")
+            return False
+
+        if not scene.shading_rig_chararacter_name:
+            cls.poll_message_set("Please set a character name.")
+            return False
+
+        if not scene.shading_rig_list[
+            json_helpers.get_shading_rig_list_index()
+        ].added_to_material:
+            cls.poll_message_set("Add the edit to a material first.")
+            return False
+
+        return True
 
     def execute(self, context):
         try:
@@ -152,22 +194,17 @@ class SR_OT_Correspondence_Add(Operator):
                 json_helpers.get_shading_rig_list_index()
             ]
 
-            if not active_rig_item.light_object:
-                self.report({"ERROR"}, "Active edit has no Light Object assigned.")
-                return {"CANCELLED"}
-            if not active_rig_item.empty_object:
-                self.report({"ERROR"}, "Active edit has no Empty Object assigned.")
-                return {"CANCELLED"}
-
             light_obj = active_rig_item.light_object
             empty_obj = active_rig_item.empty_object
 
             if not light_obj or not empty_obj:
-                self.report({"ERROR"}, "Active edit has no Light or Empty Object assigned.")
+                self.report(
+                    {"ERROR"}, "Active edit has no Light or Empty Object assigned."
+                )
                 return {"CANCELLED"}
 
             new_corr = active_rig_item.correspondences.add()
-            new_corr.name = f"Correspondence.{len(active_rig_item.correspondences):03d}"
+            new_corr.name = f"Correspondence_{scene.shading_rig_chararacter_name}_{len(active_rig_item.correspondences):03d}"
 
             new_corr.light_rotation = light_obj.rotation_euler
             new_corr.empty_position = empty_obj.location
@@ -178,13 +215,14 @@ class SR_OT_Correspondence_Add(Operator):
             )
 
             self.report({"INFO"}, f"Stored pose in '{new_corr.name}'.")
-            
+
         except Exception as e:
             self.report({"ERROR"}, "Failed to add correspondence. " + str(e))
             return {"CANCELLED"}
-        
+
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
+
 
 class SR_OT_Correspondence_Remove(Operator):
     """Remove the selected correspondence from the active edit."""
@@ -201,6 +239,7 @@ class SR_OT_Correspondence_Remove(Operator):
             json_helpers.get_shading_rig_list_index() >= 0
             and len(scene.shading_rig_list) > 0
         ):
+            cls.poll_message_set("No edits in the list.")
             return False
         active_rig_item = scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
@@ -235,7 +274,9 @@ class SR_OT_RigList_Remove(Operator):
 
     bl_idname = "shading_rig.list_remove"
     bl_label = "Remove Edit"
-    bl_description = "Remove the selected edit and its associated objects from the scene"
+    bl_description = (
+        "Remove the selected edit and its associated objects from the scene"
+    )
 
     @classmethod
     def poll(cls, context):
@@ -327,7 +368,8 @@ class SR_OT_RigList_Remove(Operator):
         json_helpers.sync_scene_to_json(context.scene)
 
         return {"FINISHED"}
-    
+
+
 def update_parent_object(self, context):
     """Create or update a child of constraint on the empty object, to parent_object"""
     active_rig_item = self
@@ -343,7 +385,7 @@ def update_parent_object(self, context):
 
     if parent_obj:
         if not child_of_constraint:
-            child_of_constraint = empty_obj.constraints.new(type='CHILD_OF')
+            child_of_constraint = empty_obj.constraints.new(type="CHILD_OF")
             child_of_constraint.name = constraint_name
         child_of_constraint.target = parent_obj
     else:

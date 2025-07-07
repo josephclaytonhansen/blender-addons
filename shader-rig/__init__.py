@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 51),
+    "version": (1, 2, 92),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -39,7 +39,6 @@ from bpy.props import (
 from bpy.types import (
     PropertyGroup,
     UIList,
-    Operator,
     Panel,
 )
 
@@ -256,13 +255,31 @@ class SR_PT_ShadingRigPanel(Panel):
         if scene.shading_rig_show_defaults:
             col = box.column(align=True)
             row = col.row(align=True)
+            split = row.split(factor=0.5)
+            splitcol1 = split.column(align=True)
+            splitcol2 = split.column(align=True)
+            splitcol1.label(text="Character Name")
+            splitcol2.prop(scene, "shading_rig_chararacter_name", text="")
+            row = col.row(align=True)
             row.label(text="", icon="LIGHT")
             row.prop(scene, "shading_rig_default_light", text="")
             col.prop(scene, "shading_rig_corr_readonly")
+
+        layout.separator()
+
+        box = layout.box()
+        col = box.column(align=True)
+
+        col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND")
+
+        if len(scene.shading_rig_list) <= 0:
             col.operator(
-                setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA"
+                setup_helpers.SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene.bl_idname,
+                icon="FILE_REFRESH",
+                text="Sync External Rig",
             )
-            col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND")
+
+        col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA")
 
         layout.separator()
 
@@ -504,6 +521,7 @@ CLASSES = [
     setup_helpers.SR_OT_SetEmptyDisplayType,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,
+    setup_helpers.SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene,
     addremove_helpers.SR_OT_Correspondence_Add,
     addremove_helpers.SR_OT_Correspondence_Remove,
     addremove_helpers.SR_OT_RigList_Remove,
@@ -542,6 +560,13 @@ def register():
         default=True,
     )
 
+    bpy.types.Scene.shading_rig_chararacter_name = StringProperty(
+        name="Character Name",
+        description="Name of the character being shaded",
+        default="",
+        update=setup_helpers.update_character_name,
+    )
+
     bpy.app.handlers.depsgraph_update_post.append(update_shading_rig_handler)
 
     bpy.app.handlers.load_post.append(load_handler)
@@ -561,6 +586,7 @@ def unregister():
 
     del bpy.types.Scene.shading_rig_list
     del bpy.types.Scene.shading_rig_list_index
+    del bpy.types.Scene.shading_rig_chararacter_name
 
     if update_shading_rig_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(update_shading_rig_handler)

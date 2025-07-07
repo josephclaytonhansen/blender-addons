@@ -12,12 +12,18 @@ from . import hansens_float_packer
 import os
 from mathutils import Vector
 
+
 class SR_OT_AddEditCoordinatesNode(Operator):
+    """
+    Add the edit to the material
+    """
+
     # at one point, this just added the Coordinates,
-    # now it does everything but I can't be 
-    # faffed to rename it 
+    # now it does everything but I can't be
+    # faffed to rename it
     bl_idname = "shading_rig.add_edit_coordinates_node"
-    bl_label = "Set Up Drivers For Edit"
+    bl_label = "Add Edit to Material"
+    bl_description = "Adds the ShadingRigEdit node group and sets up Attributes"
 
     @classmethod
     def poll(cls, context):
@@ -51,12 +57,12 @@ class SR_OT_AddEditCoordinatesNode(Operator):
                 or "ColorRamp_ShadingRig" not in nodes
                 # These names MUST NOT CHANGE
                 # in the shader editor!
-                # You can do whatever you want 
-                # with the nodes, just don't 
-                # touch these two. 
+                # You can do whatever you want
+                # with the nodes, just don't
+                # touch these two.
             ):
                 cls.poll_message_set(
-                    "Material must contain 'DiffuseToRGB_ShadingRig' and 'ColorRamp_ShadingRig' nodes."
+                    "Material must contain 'DiffuseToRGB_ShadingRig' and 'ColorRamp_ShadingRig' nodes!"
                 )
                 return False
 
@@ -130,7 +136,7 @@ class SR_OT_AddEditCoordinatesNode(Operator):
             )
 
         node_tree.links.new(mix_node_lighten.outputs["Color"], dest_node.inputs[0])
-    
+
         attr_node = node_tree.nodes.new("ShaderNodeAttribute")
 
         attr_node.attribute_name = f"packed:{empty_obj.name}"
@@ -139,12 +145,9 @@ class SR_OT_AddEditCoordinatesNode(Operator):
 
         attr_node.location.x = new_node.location.x - 200
         attr_node.location.y = new_y_pos - 200
-        
+
         hansens_float_packer.unpack_nodes(
-            attr_node,
-            new_node,
-            mix_node_lighten,
-            node_tree
+            attr_node, new_node, mix_node_lighten, node_tree
         )
 
         active_item.added_to_material = True
@@ -222,6 +225,9 @@ class SR_OT_AppendNodes(Operator):
         if "ShadingRig_Base" in bpy.data.materials:
             cls.poll_message_set("Required material 'ShadingRig_Base' already exists.")
             return False
+        if len(context.scene.shading_rig_chararacter_name) <= 1:
+            cls.poll_message_set("Set a character name first.")
+            return False
 
         script_file = os.path.realpath(__file__)
         directory = os.path.dirname(script_file)
@@ -233,14 +239,29 @@ class SR_OT_AppendNodes(Operator):
         return True
 
     def execute(self, context):
-        props_obj = bpy.data.objects.get("ShadingRigSceneProperties")
+        props_obj = bpy.data.objects.get(
+            f"ShadingRigSceneProperties_{context.scene.shading_rig_chararacter_name}"
+        )
         if not props_obj:
             # Create the empty if it doesn't exist
-            props_obj = bpy.data.objects.new("ShadingRigSceneProperties", None)
+            props_obj = bpy.data.objects.new(
+                f"ShadingRigSceneProperties_{context.scene.shading_rig_chararacter_name}",
+                None,
+            )
             bpy.context.collection.objects.link(props_obj)
-            # Initialize the index
+
             props_obj["shading_rig_list_index"] = 0
             props_obj["shading_rig_list"] = bpy.data.collections.new("ShadingRigList")
+
+            try:
+                props_obj.shading_rig_list_index = (
+                    json_helpers.get_shading_rig_list_index()
+                )
+                props_obj.shading_rig_list = bpy.context.scene.shading_rig_list
+            except Exception as e:
+                self.report({"INFO"}, f"{e}")
+
+            props_obj["character_name"] = context.scene.shading_rig_chararacter_name
 
         script_file = os.path.realpath(__file__)
         directory = os.path.dirname(script_file)
@@ -259,18 +280,8 @@ class SR_OT_AppendNodes(Operator):
             f"Appended {len(data_to.node_groups)} node groups and {len(data_to.materials)} material(s).",
         )
 
-        # add an empty to store "scene" properties
-        empty_obj = bpy.data.objects.new("ShadingRigSceneProperties", None)
-        bpy.context.collection.objects.link(empty_obj)
-        try:
-            empty_obj.shading_rig_list_index = json_helpers.get_shading_rig_list_index()
-            empty_obj.shading_rig_list = bpy.context.scene.shading_rig_list
-        except:
-            print(
-                "Failed to set properties on the empty object- don't worry about it, it's fine"
-            )
-
         return {"FINISHED"}
+
 
 # This is a weird little visual operator,
 # doesn't really fit anywhere else
@@ -288,6 +299,7 @@ class SR_OT_SetEmptyDisplayType(Operator):
             json_helpers.get_shading_rig_list_index() >= 0
             and len(scene.shading_rig_list) > 0
         ):
+            cls.poll_message_set("No shading rigs in the list.")
             return False
         active_item = scene.shading_rig_list[json_helpers.get_shading_rig_list_index()]
         return active_item.empty_object is not None
@@ -302,3 +314,63 @@ class SR_OT_SetEmptyDisplayType(Operator):
             return {"FINISHED"}
 
         return {"CANCELLED"}
+
+
+class SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene(Operator):
+    """Sync JSON data from the ShadingRigSceneProperties object to the scene's shading rig list."""
+
+    bl_idname = "shading_rig.sync_json_to_scene"
+    bl_label = "Sync JSON to Scene"
+    bl_description = "Sync JSON data from the ShadingRigSceneProperties object to the scene's shading rig list"
+
+    @classmethod
+    def poll(cls, context):
+        props_obj = json_helpers.get_scene_properties_object()
+        if props_obj is None:
+            cls.poll_message_set("ShadingRigSceneProperties object not found.")
+            return False
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        try:
+            json_helpers.sync_json_to_scene(scene)
+            self.report({"INFO"}, "Shading rig list synced from JSON.")
+            return {"FINISHED"}
+        except Exception as e:
+            self.report({"ERROR"}, f"Failed to sync from JSON: {e}")
+            return {"CANCELLED"}
+
+
+def update_character_name(self, context):
+    new_name = self.shading_rig_chararacter_name
+    if len(new_name) <= 0:
+        self.shading_rig_chararacter_name = "Character"
+        return
+
+    props_obj = json_helpers.get_scene_properties_object()
+    if props_obj:
+        old_name = props_obj.get("character_name", "")
+        if old_name != new_name:
+            props_obj.name = f"ShadingRigSceneProperties_{new_name}"
+            props_obj["character_name"] = new_name
+            json_helpers.sync_scene_to_json(context.scene)
+    else:
+        # Create the empty if it doesn't exist
+        props_obj = bpy.data.objects.new(
+            f"ShadingRigSceneProperties_{new_name}",
+            None,
+        )
+        bpy.context.collection.objects.link(props_obj)
+
+        props_obj["shading_rig_list_index"] = 0
+        props_obj["shading_rig_list"] = bpy.data.collections.new("ShadingRigList")
+        props_obj["character_name"] = new_name
+
+        try:
+            props_obj.shading_rig_list_index = json_helpers.get_shading_rig_list_index()
+            props_obj.shading_rig_list = context.scene.shading_rig_list
+        except Exception as e:
+            print(f"Error setting up ShadingRigSceneProperties: {e}")
+
+        json_helpers.sync_scene_to_json(context.scene)

@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 92),
+    "version": (1, 2, 96),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -274,10 +274,9 @@ class SR_PT_ShadingRigPanel(Panel):
 
         if len(scene.shading_rig_list) <= 0:
             col.operator(
-                setup_helpers.SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene.bl_idname,
-                icon="FILE_REFRESH",
-                text="Sync External Rig",
+                setup_helpers.SR_OT_SyncExternalData.bl_idname, icon="FILE_REFRESH"
             )
+            col.operator(setup_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH")
 
         col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA")
 
@@ -521,7 +520,8 @@ CLASSES = [
     setup_helpers.SR_OT_SetEmptyDisplayType,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,
-    setup_helpers.SR_OT_SyncJsonFromShadingRigScenePropertiesObjectToScene,
+    setup_helpers.SR_OT_SyncExternalData,
+    setup_helpers.SR_OT_ClearCombinedData,
     addremove_helpers.SR_OT_Correspondence_Add,
     addremove_helpers.SR_OT_Correspondence_Remove,
     addremove_helpers.SR_OT_RigList_Remove,

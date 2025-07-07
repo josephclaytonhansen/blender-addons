@@ -122,7 +122,7 @@ def combine_multiple_json_shading_rig_lists(json_list):
     for json_data in json_list:
         rig_data_list = deserialize_rig_list_from_json(json_data)
         combined_rig_list.extend(rig_data_list)
-    return serialize_rig_list_to_json(combined_rig_list)
+    return json.dumps(combined_rig_list)
 
 
 def create_combined_properties_object():

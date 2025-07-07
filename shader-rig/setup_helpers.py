@@ -9,7 +9,7 @@ from bpy.props import StringProperty
 from . import json_helpers
 from . import hansens_float_packer
 
-import os
+import os, json
 from mathutils import Vector
 
 
@@ -361,6 +361,20 @@ class SR_OT_SyncExternalData(Operator):
                 self.report({"ERROR"}, "Failed to create combined properties object.")
                 return {"CANCELLED"}
 
+            # Validate the combined JSON before syncing
+            json_data = combined_obj.get("shading_rig_list_json", "[]")
+            try:
+                test_data = json.loads(json_data)
+                if not isinstance(test_data, list):
+                    self.report(
+                        {"ERROR"},
+                        f"Invalid JSON data format: expected list, got {type(test_data)}",
+                    )
+                    return {"CANCELLED"}
+            except json.JSONDecodeError as e:
+                self.report({"ERROR"}, f"Invalid JSON data: {e}")
+                return {"CANCELLED"}
+
             # Sync the combined data to the scene
             json_helpers.sync_json_to_scene(context.scene)
 
@@ -375,15 +389,32 @@ class SR_OT_SyncExternalData(Operator):
                     if json_data and json_data != "[]":
                         properties_objects.append(obj)
 
-            self.report(
-                {"INFO"},
-                f"Combined data from {len(properties_objects)} external objects.",
+            # Count missing objects
+            missing_objects = 0
+            missing_materials = 0
+            for rig in context.scene.shading_rig_list:
+                if not rig.empty_object:
+                    missing_objects += 1
+                if not rig.material:
+                    missing_materials += 1
+
+            info_message = (
+                f"Combined data from {len(properties_objects)} external objects."
             )
+            if missing_objects > 0:
+                info_message += f" Warning: {missing_objects} empty objects not found."
+            if missing_materials > 0:
+                info_message += f" Warning: {missing_materials} materials not found."
+
+            self.report({"INFO"}, info_message)
 
             return {"FINISHED"}
 
         except Exception as e:
             self.report({"ERROR"}, f"Failed to sync external data: {e}")
+            import traceback
+
+            traceback.print_exc()
             return {"CANCELLED"}
 
 

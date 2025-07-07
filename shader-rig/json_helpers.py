@@ -13,6 +13,15 @@ def serialize_rig_list_to_json(rig_list):
     """Convert rig list to JSON string."""
     data = []
     for rig in rig_list:
+        empty_object_name = ""
+        if rig.empty_object and hasattr(rig.empty_object, "name"):
+            empty_object_name = rig.empty_object.name
+        light_object_name = ""
+        if rig.light_object and hasattr(rig.light_object, "name"):
+            light_object_name = rig.light_object.name
+        material_name = ""
+        if rig.material and hasattr(rig.material, "name"):
+            material_name = rig.material.name
         rig_data = {
             "name": rig.name,
             "elongation": rig.elongation,
@@ -23,9 +32,9 @@ def serialize_rig_list_to_json(rig_list):
             "rotation": rig.rotation,
             "added_to_material": rig.added_to_material,
             "correspondences_index": rig.correspondences_index,
-            "empty_object_name": rig.empty_object.name if rig.empty_object else "",
-            "light_object_name": rig.light_object.name if rig.light_object else "",
-            "material_name": rig.material.name if rig.material else "",
+            "empty_object_name": empty_object_name,
+            "light_object_name": light_object_name,
+            "material_name": material_name,
             "correspondences": [
                 {
                     "name": corr.name,
@@ -70,6 +79,8 @@ def sync_json_to_scene(scene):
     # Rebuild from JSON
     for rig_data in rig_data_list:
         new_rig = scene.shading_rig_list.add()
+
+        # Set basic properties first
         new_rig.name = rig_data["name"]
         new_rig.elongation = rig_data["elongation"]
         new_rig.sharpness = rig_data["sharpness"]
@@ -80,13 +91,21 @@ def sync_json_to_scene(scene):
         new_rig.added_to_material = rig_data["added_to_material"]
         new_rig.correspondences_index = rig_data["correspondences_index"]
 
-        # Re-link objects by name
-        if rig_data["empty_object_name"]:
-            new_rig.empty_object = bpy.data.objects.get(rig_data["empty_object_name"])
-        if rig_data["light_object_name"]:
-            new_rig.light_object = bpy.data.objects.get(rig_data["light_object_name"])
-        if rig_data["material_name"]:
-            new_rig.material = bpy.data.materials.get(rig_data["material_name"])
+        # Handle object references carefully - only assign if objects exist
+        if rig_data.get("empty_object_name"):
+            empty_obj = bpy.data.objects.get(rig_data["empty_object_name"])
+            if empty_obj and empty_obj.type == "EMPTY":
+                new_rig.empty_object = empty_obj
+
+        if rig_data.get("light_object_name"):
+            light_obj = bpy.data.objects.get(rig_data["light_object_name"])
+            if light_obj and light_obj.type == "LIGHT":
+                new_rig.light_object = light_obj
+
+        if rig_data.get("material_name"):
+            material = bpy.data.materials.get(rig_data["material_name"])
+            if material:
+                new_rig.material = material
 
         # Rebuild correspondences
         for corr_data in rig_data["correspondences"]:

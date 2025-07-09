@@ -9,9 +9,12 @@ from bpy.props import StringProperty
 from . import json_helpers
 from . import hansens_float_packer
 
-import os, json
+import os
+import json
 from mathutils import Vector
 
+def update_material(self, context):
+    self.added_to_material = False
 
 class SR_OT_AddEditCoordinatesNode(Operator):
     """

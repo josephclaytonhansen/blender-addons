@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 120),
+    "version": (1, 2, 126),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -118,6 +118,7 @@ class SR_RigItem(PropertyGroup):
         name="Affected Material",
         description="The material that will be affected by this rig",
         type=bpy.types.Material,
+        update=setup_helpers.update_material,
     )
 
     added_to_material: BoolProperty(
@@ -263,6 +264,10 @@ class SR_PT_ShadingRigPanel(Panel):
             row = col.row(align=True)
             row.label(text="", icon="LIGHT")
             row.prop(scene, "shading_rig_default_light", text="")
+            row = col.row(align=True)
+            row.label(text="", icon="MATERIAL")
+            row.prop(scene, "shading_rig_default_material", text="")
+            col.separator()
             col.prop(scene, "shading_rig_corr_readonly")
 
         layout.separator()
@@ -298,14 +303,8 @@ class SR_PT_ShadingRigPanel(Panel):
             addremove_helpers.SR_OT_RigList_Remove.bl_idname, icon="REMOVE", text=""
         )
 
-        if True:
-            try:
-                active_item = scene.shading_rig_list[
-                    json_helpers.get_shading_rig_list_index()
-                ]
-            except Exception as e:
-                print(f"Shading Rig Debug: {e} (this is fine)")
-                return
+        if scene.shading_rig_list and 0 <= scene.shading_rig_list_index < len(scene.shading_rig_list):
+            active_item = scene.shading_rig_list[scene.shading_rig_list_index]
 
             box = layout.box()
 

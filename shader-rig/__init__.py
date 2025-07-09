@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 112),
+    "version": (1, 2, 120),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -176,7 +176,7 @@ class SR_RigItem(PropertyGroup):
         default=0.0,
         min=-3.14,
         max=3.14,
-        step=0.01,
+        step=0.1,
         unit="ROTATION",
         update=update_helpers.property_update_sync,
     )

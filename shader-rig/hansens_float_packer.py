@@ -81,13 +81,13 @@ def packing_algorithm(
     # Alpha Channel: bend (2 digits) + rotation (3 digits) + location signs (2 digits)
     # Format: bbRRR##
 
-    rotation = rotation * 180.0 / math.pi
+    rotation = rotation * 180.0 / math.pi / 100.0
     # The rotation comes in from Blender as radians, so we convert it to degrees.
     # If you are using this in a different context, you may not need to convert;
     # however, the algorithm expects degrees so make sure this is the case.
 
     bend_val = min(abs(math.floor(abs(bend) * 100.0)), 99)
-    rotation_val = min(abs(math.floor(abs(rotation)* 10.0)), 999)
+    rotation_val = min(abs(math.floor(abs(rotation) * 100.0)), 999)
 
     # Sign encoding for the last 2 digits
     x_loc_sign = 0 if x_loc < 0 else 1
@@ -102,117 +102,6 @@ def packing_algorithm(
     alpha = bend_val * 100000 + rotation_val * 100 + signs_combined
 
     return (red, green, blue, alpha)
-
-
-def unpacking_algorithm(red, green, blue, alpha):
-    # Red Channel: XXXYYYS
-    scale_third_digit = red % 10
-    red_remaining = red // 10
-    y_loc_abs = red_remaining % 1000
-    x_loc_abs = red_remaining // 1000
-
-    # Green Channel: AAEEss#
-    sign_digit = green % 10
-    green_remaining = green // 10
-    sharpness_val = green_remaining % 100
-    green_remaining = green_remaining // 100
-    elongation_val = green_remaining % 100
-    hardness_val = green_remaining // 100
-
-    # Decode z_loc_sign and bend_sign from sign_digit
-    sign_offset = sign_digit - 3
-    z_loc_sign = sign_offset % 2
-    bend_sign = sign_offset // 2
-
-    # Blue Channel: ZZZSSBB
-    bulge_val = blue % 100
-    blue_remaining = blue // 100
-    scale_first_two_digits = blue_remaining % 100
-    z_loc_abs = blue_remaining // 100
-
-    # Reconstruct full scale from first two digits and third digit
-    scale_full = scale_first_two_digits * 10 + scale_third_digit
-
-    # Alpha Channel: bbRRR##
-    signs_combined = alpha % 100
-    alpha_remaining = alpha // 100
-    rotation_val = alpha_remaining % 1000
-    bend_val = alpha_remaining // 1000
-
-    # Decode the combined signs
-    x_loc_sign = signs_combined % 2
-    y_loc_sign = (signs_combined // 2) % 2
-    elongation_sign = (signs_combined // 4) % 2
-    bulge_sign = (signs_combined // 8) % 2
-
-    # Convert back to original floating-point values with proper signs and scaling
-    x_loc = (x_loc_abs / 100.0) * (1 if x_loc_sign else -1)
-    y_loc = (y_loc_abs / 100.0) * (1 if y_loc_sign else -1)
-    z_loc = (z_loc_abs / 100.0) * (1 if z_loc_sign else -1)
-    x_scale = scale_full / 100.0
-    elongation = (elongation_val / 100.0) * (1 if elongation_sign else -1)
-    sharpness = (sharpness_val / 100.0) * (1 if sharpness_val > 0 else -1)
-    bend = (bend_val / 100.0) * (1 if bend_sign else -1)
-    bulge = (bulge_val / 100.0) * (1 if bulge_sign else -1)
-    hardness = hardness_val / 100.0
-    rotation = float(rotation_val)
-    # Convert rotation back to radians
-    rotation = rotation * math.pi / 180.0
-
-    return {
-        "x_loc": x_loc,
-        "y_loc": y_loc,
-        "z_loc": z_loc,
-        "x_scale": x_scale,
-        "elongation": elongation,
-        "sharpness": sharpness,
-        "bend": bend,
-        "bulge": bulge,
-        "rotation": rotation,
-        "hardness": hardness,
-    }
-
-
-def test_pack_and_unpack(
-    x_loc, y_loc, z_loc, x_scale, elongation, sharpness, hardness, bulge, bend, rotation
-):
-    packed = packing_algorithm(
-        x_loc,
-        y_loc,
-        z_loc,
-        x_scale,
-        elongation,
-        sharpness,
-        hardness,
-        bulge,
-        bend,
-        rotation,
-    )
-    unpacked = unpacking_algorithm(*packed)
-
-    print("Original values:")
-    print(
-        f"x_loc: {x_loc}, y_loc: {y_loc}, z_loc: {z_loc}, x_scale: {x_scale}, "
-        f"elongation: {elongation}, sharpness: {sharpness}, hardness: {hardness}, "
-        f"bulge: {bulge}, bend: {bend}, rotation: {rotation}"
-    )
-    print("Packed values:")
-    print(f"Packed: {packed}")
-    print("Unpacked values:")
-    print(f"Unpacked: {unpacked}")
-    print("Difference:")
-    print(
-        f"x_loc: {unpacked['x_loc'] - x_loc}, "
-        f"y_loc: {unpacked['y_loc'] - y_loc}, "
-        f"z_loc: {unpacked['z_loc'] - z_loc}, "
-        f"x_scale: {unpacked['x_scale'] - x_scale}, "
-        f"elongation: {unpacked['elongation'] - elongation}, "
-        f"sharpness: {unpacked['sharpness'] - sharpness}, "
-        f"hardness: {unpacked['hardness'] - hardness}, "
-        f"bulge: {unpacked['bulge'] - bulge}, "
-        f"bend: {unpacked['bend'] - bend}, "
-        f"rotation: {unpacked['rotation'] - rotation}"
-    )
 
 
 def unpack_nodes(attribute_node, edit_node, hardness_dest, node_tree):
@@ -337,7 +226,7 @@ def unpack_nodes(attribute_node, edit_node, hardness_dest, node_tree):
     rotation_val = new_math("MODULO", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], rotation_val.inputs[0])
 
-    rotation_divide_by_ten = new_math("DIVIDE", 10.0)
+    rotation_divide_by_ten = new_math("DIVIDE", 1000.0)
     node_tree.links.new(rotation_val.outputs[0], rotation_divide_by_ten.inputs[0])
     rotation_val = rotation_divide_by_ten
 

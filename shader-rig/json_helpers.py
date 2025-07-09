@@ -26,7 +26,7 @@ def serialize_rig_list_to_json(rig_list):
             "name": rig.name,
             "elongation": rig.elongation,
             "sharpness": rig.sharpness,
-            "amount": rig.amount,
+            "hardness": rig.hardness,
             "bulge": rig.bulge,
             "bend": rig.bend,
             "rotation": rig.rotation,
@@ -84,7 +84,7 @@ def sync_json_to_scene(scene):
         new_rig.name = rig_data["name"]
         new_rig.elongation = rig_data["elongation"]
         new_rig.sharpness = rig_data["sharpness"]
-        new_rig.amount = rig_data["amount"]
+        new_rig.hardness = rig_data["hardness"]
         new_rig.bulge = rig_data["bulge"]
         new_rig.bend = rig_data["bend"]
         new_rig.rotation = rig_data["rotation"]

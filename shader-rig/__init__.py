@@ -44,10 +44,10 @@ from bpy.types import (
 
 
 # -------------------------------- Definitions ------------------------------- #
-class SR_CorrespondenceItem(PropertyGroup):
-    """A single correspondence item."""
+class SR_CorrelationItem(PropertyGroup):
+    """A single correlation item."""
 
-    name: StringProperty(name="Name", default="New Correspondence")
+    name: StringProperty(name="Name", default="New Correlation")
 
     light_rotation: FloatVectorProperty(
         name="Light Rotation",
@@ -187,9 +187,9 @@ class SR_RigItem(PropertyGroup):
         default=True,
     )
 
-    correspondences: CollectionProperty(type=SR_CorrespondenceItem)
+    correlations: CollectionProperty(type=SR_CorrelationItem)
 
-    correspondences_index: IntProperty(name="Selected Correspondence Index", default=0)
+    correlations_index: IntProperty(name="Selected Correlation Index", default=0)
 
     last_empty_name: StringProperty(
         name="Last Empty Name",
@@ -212,8 +212,8 @@ class SR_UL_RigList(UIList):
             layout.label(text="", icon="OBJECT_DATA")
 
 
-class SR_UL_CorrespondenceList(UIList):
-    """UIList for displaying the list of correspondences for a rig."""
+class SR_UL_CorrelationList(UIList):
+    """UIList for displaying the list of correlations for a rig."""
 
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
@@ -380,35 +380,33 @@ class SR_PT_ShadingRigPanel(Panel):
                     )
 
             box = layout.box()
-            box.label(text="Correspondences")
+            box.label(text="Correlations")
             row = box.row()
             row.template_list(
-                "SR_UL_CorrespondenceList",
+                "SR_UL_CorrelationList",
                 "",
                 active_item,
-                "correspondences",
+                "correlations",
                 active_item,
-                "correspondences_index",
+                "correlations_index",
             )
             col = row.column(align=True)
             col.operator(
-                addremove_helpers.SR_OT_Correspondence_Add.bl_idname,
+                addremove_helpers.SR_OT_Correlation_Add.bl_idname,
                 icon="ADD",
                 text="",
             )
             col.operator(
-                addremove_helpers.SR_OT_Correspondence_Remove.bl_idname,
+                addremove_helpers.SR_OT_Correlation_Remove.bl_idname,
                 icon="REMOVE",
                 text="",
             )
 
             if (
-                active_item.correspondences_index >= 0
-                and len(active_item.correspondences) > 0
+                active_item.correlations_index >= 0
+                and len(active_item.correlations) > 0
             ):
-                active_corr = active_item.correspondences[
-                    active_item.correspondences_index
-                ]
+                active_corr = active_item.correlations[active_item.correlations_index]
 
                 corr_box = box.box()
                 corr_box.prop(active_corr, "name", text="Name")
@@ -471,15 +469,15 @@ def update_shading_rig_handler(scene, depsgraph):
             rig_item.last_empty_name = current_empty_name
 
         light_obj = rig_item.light_object
-        correspondences = rig_item.correspondences
+        correlations = rig_item.correlations
         if not light_obj:
             print(
                 f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Light object assigned."
             )
             continue
-        if len(correspondences) == 0:
+        if len(correlations) == 0:
             print(
-                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no correspondences found."
+                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no correlations found."
             )
             continue
 
@@ -501,7 +499,7 @@ def update_shading_rig_handler(scene, depsgraph):
                 continue
 
         weighted_pos, weighted_scale = math_helpers.calculateWeightedEmptyPosition(
-            correspondences, current_light_rotation
+            correlations, current_light_rotation
         )
         empty_obj.location = weighted_pos
         empty_obj.scale = weighted_scale
@@ -511,10 +509,10 @@ def update_shading_rig_handler(scene, depsgraph):
 
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
-    SR_CorrespondenceItem,
+    SR_CorrelationItem,
     SR_RigItem,
     SR_UL_RigList,
-    SR_UL_CorrespondenceList,
+    SR_UL_CorrelationList,
     addremove_helpers.SR_OT_RigList_Add,
     setup_helpers.SR_OT_AddEditCoordinatesNode,
     setup_helpers.SR_OT_SetEmptyDisplayType,
@@ -522,8 +520,8 @@ CLASSES = [
     setup_helpers.SR_OT_AppendNodes,
     setup_helpers.SR_OT_SyncExternalData,
     setup_helpers.SR_OT_ClearCombinedData,
-    addremove_helpers.SR_OT_Correspondence_Add,
-    addremove_helpers.SR_OT_Correspondence_Remove,
+    addremove_helpers.SR_OT_Correlation_Add,
+    addremove_helpers.SR_OT_Correlation_Remove,
     addremove_helpers.SR_OT_RigList_Remove,
     SR_PT_ShadingRigPanel,
 ]
@@ -572,8 +570,8 @@ def register():
     bpy.app.handlers.load_post.append(load_handler)
 
     bpy.types.Scene.shading_rig_corr_readonly = BoolProperty(
-        name="Read-Only Correspondences",
-        description="Make stored correspondence values read-only",
+        name="Read-Only Correlations",
+        description="Make stored correlation values read-only",
         default=True,
     )
 

@@ -31,18 +31,18 @@ def serialize_rig_list_to_json(rig_list):
             "bend": rig.bend,
             "rotation": rig.rotation,
             "added_to_material": rig.added_to_material,
-            "correspondences_index": rig.correspondences_index,
+            "correlations_index": rig.correlations_index,
             "empty_object_name": empty_object_name,
             "light_object_name": light_object_name,
             "material_name": material_name,
-            "correspondences": [
+            "correlations": [
                 {
                     "name": corr.name,
                     "light_rotation": list(corr.light_rotation),
                     "empty_position": list(corr.empty_position),
                     "empty_scale": list(corr.empty_scale),
                 }
-                for corr in rig.correspondences
+                for corr in rig.correlations
             ],
         }
         data.append(rig_data)
@@ -89,7 +89,7 @@ def sync_json_to_scene(scene):
         new_rig.bend = rig_data["bend"]
         new_rig.rotation = rig_data["rotation"]
         new_rig.added_to_material = rig_data["added_to_material"]
-        new_rig.correspondences_index = rig_data["correspondences_index"]
+        new_rig.correlations_index = rig_data["correlations_index"]
 
         # Handle object references carefully - only assign if objects exist
         if rig_data.get("empty_object_name"):
@@ -107,9 +107,9 @@ def sync_json_to_scene(scene):
             if material:
                 new_rig.material = material
 
-        # Rebuild correspondences
-        for corr_data in rig_data["correspondences"]:
-            new_corr = new_rig.correspondences.add()
+        # Rebuild correlations
+        for corr_data in rig_data["correlations"]:
+            new_corr = new_rig.correlations.add()
             new_corr.name = corr_data["name"]
             new_corr.light_rotation = corr_data["light_rotation"]
             new_corr.empty_position = corr_data["empty_position"]

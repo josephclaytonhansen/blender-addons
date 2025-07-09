@@ -146,12 +146,12 @@ class SR_OT_RigList_Add(Operator):
         return {"FINISHED"}
 
 
-class SR_OT_Correspondence_Add(Operator):
-    """Add a new correspondence to the active rig."""
+class SR_OT_Correlation_Add(Operator):
+    """Add a new correlation to the active rig."""
 
-    bl_idname = "shading_rig.correspondence_add"
-    bl_label = "Add Correspondence"
-    bl_description = "Add a new correspondence to the active rig"
+    bl_idname = "shading_rig.correlation_add"
+    bl_label = "Add Correlation"
+    bl_description = "Add a new correlation to the active rig"
 
     @classmethod
     def poll(cls, context):
@@ -203,33 +203,31 @@ class SR_OT_Correspondence_Add(Operator):
                 )
                 return {"CANCELLED"}
 
-            new_corr = active_rig_item.correspondences.add()
-            new_corr.name = f"Correspondence_{scene.shading_rig_chararacter_name}_{len(active_rig_item.correspondences):03d}"
+            new_corr = active_rig_item.correlations.add()
+            new_corr.name = f"Correlation_{scene.shading_rig_chararacter_name}_{len(active_rig_item.correlations):03d}"
 
             new_corr.light_rotation = light_obj.rotation_euler
             new_corr.empty_position = empty_obj.location
             new_corr.empty_scale = empty_obj.scale
 
-            active_rig_item.correspondences_index = (
-                len(active_rig_item.correspondences) - 1
-            )
+            active_rig_item.correlations_index = len(active_rig_item.correlations) - 1
 
             self.report({"INFO"}, f"Stored pose in '{new_corr.name}'.")
 
         except Exception as e:
-            self.report({"ERROR"}, "Failed to add correspondence. " + str(e))
+            self.report({"ERROR"}, "Failed to add correlation. " + str(e))
             return {"CANCELLED"}
 
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
 
 
-class SR_OT_Correspondence_Remove(Operator):
-    """Remove the selected correspondence from the active edit."""
+class SR_OT_Correlation_Remove(Operator):
+    """Remove the selected correlation from the active edit."""
 
-    bl_idname = "shading_rig.correspondence_remove"
-    bl_label = "Remove Correspondence"
-    bl_description = "Remove the selected correspondence from the active edit"
+    bl_idname = "shading_rig.correlation_remove"
+    bl_label = "Remove Correlation"
+    bl_description = "Remove the selected correlation from the active edit"
 
     @classmethod
     def poll(cls, context):
@@ -244,27 +242,27 @@ class SR_OT_Correspondence_Remove(Operator):
         active_rig_item = scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ]
-        return len(active_rig_item.correspondences) > 0
+        return len(active_rig_item.correlations) > 0
 
     def execute(self, context):
         scene = context.scene
         active_rig_item = scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ]
-        index = active_rig_item.correspondences_index
+        index = active_rig_item.correlations_index
 
-        if index >= len(active_rig_item.correspondences):
+        if index >= len(active_rig_item.correlations):
             return {"CANCELLED"}
 
-        removed_name = active_rig_item.correspondences[index].name
-        active_rig_item.correspondences.remove(index)
+        removed_name = active_rig_item.correlations[index].name
+        active_rig_item.correlations.remove(index)
 
         if index > 0:
-            active_rig_item.correspondences_index = index - 1
+            active_rig_item.correlations_index = index - 1
         else:
-            active_rig_item.correspondences_index = 0
+            active_rig_item.correlations_index = 0
 
-        self.report({"INFO"}, f"Removed correspondence '{removed_name}' from edit.")
+        self.report({"INFO"}, f"Removed correlation '{removed_name}' from edit.")
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
 

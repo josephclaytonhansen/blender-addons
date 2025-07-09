@@ -3,7 +3,8 @@ from mathutils import Vector, Quaternion, Euler
 
 # ----------------------- Weight calculation functions ----------------------- #
 
-def getDistances(correspondences, currentLightRotation):
+
+def getDistances(correlations, currentLightRotation):
     """
     Prerequisite for calculating weights;
     Finds the angular distance between the current light rotation
@@ -12,7 +13,7 @@ def getDistances(correspondences, currentLightRotation):
     distances = []
     current_quat = currentLightRotation.to_quaternion()
 
-    for corr in correspondences:
+    for corr in correlations:
         corr_euler = Euler(corr.light_rotation, "XYZ")
         corr_quat = corr_euler.to_quaternion()
         dist = current_quat.rotation_difference(corr_quat).angle
@@ -45,25 +46,23 @@ def getWeights(distances):
     return weights
 
 
-def calculateWeightedEmptyPosition(correspondences, currentLightRotation):
+def calculateWeightedEmptyPosition(correlations, currentLightRotation):
     """
     Given a list of light rotations -> empty positions and a current light
     rotation, interpolates the empty position.
     """
-    if not correspondences:
+    if not correlations:
         return [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]
-    if len(correspondences) == 1:
-        return list(correspondences[0].empty_position), list(
-            correspondences[0].empty_scale
-        )
+    if len(correlations) == 1:
+        return list(correlations[0].empty_position), list(correlations[0].empty_scale)
 
-    distances = getDistances(correspondences, currentLightRotation)
+    distances = getDistances(correlations, currentLightRotation)
     weights = getWeights(distances)
 
     weighted_position = Vector((0.0, 0.0, 0.0))
     weighted_scale = Vector((0.0, 0.0, 0.0))
 
-    for i, corr in enumerate(correspondences):
+    for i, corr in enumerate(correlations):
         weight = weights[i]
         weighted_position += Vector(corr.empty_position) * weight
         weighted_scale += Vector(corr.empty_scale) * weight

@@ -43,7 +43,7 @@ class SR_OT_RigList_Add(Operator):
 
         bpy.ops.object.empty_add(type="SPHERE", align="VIEW", location=cursor_location)
         new_empty = context.active_object
-        new_empty.empty_display_size = 0.25
+        new_empty.empty_display_size = 0.1
         new_empty.show_name = True
         new_empty.show_in_front = True
         bpy.ops.transform.rotate(value=1.5708, orient_axis="X", orient_type="LOCAL")

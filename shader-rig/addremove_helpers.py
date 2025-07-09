@@ -88,7 +88,7 @@ class SR_OT_RigList_Add(Operator):
                     "x_scale",
                     "elongation",
                     "sharpness",
-                    "amount",
+                    "hardness",
                     "bulge",
                     "bend",
                     "rotation",
@@ -103,7 +103,7 @@ class SR_OT_RigList_Add(Operator):
                 var_paths_context_prop = [
                     f"shading_rig_list[{rig_index}].elongation",
                     f"shading_rig_list[{rig_index}].sharpness",
-                    f"shading_rig_list[{rig_index}].amount",
+                    f"shading_rig_list[{rig_index}].hardness",
                     f"shading_rig_list[{rig_index}].bulge",
                     f"shading_rig_list[{rig_index}].bend",
                     f"shading_rig_list[{rig_index}].rotation",
@@ -138,7 +138,7 @@ class SR_OT_RigList_Add(Operator):
                 driver.expression = (
                     f"bpy.packing_algorithm("
                     f"x_loc, y_loc, z_loc, x_scale, elongation, "
-                    f"sharpness, amount, bulge, bend, rotation)[{channel}]"
+                    f"sharpness, hardness, bulge, bend, rotation)[{channel}]"
                 )
 
         json_helpers.sync_scene_to_json(context.scene)
@@ -295,7 +295,7 @@ class SR_OT_RigList_Remove(Operator):
             base_prop_names = [
                 "elongation",
                 "sharpness",
-                "amount",
+                "hardness",
                 "bulge",
                 "bend",
                 "rotation",

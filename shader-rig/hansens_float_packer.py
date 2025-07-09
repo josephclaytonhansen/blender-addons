@@ -4,12 +4,13 @@
 
 import math
 
+
 def clamp(minimum, x, maximum):
     return max(minimum, min(x, maximum))
 
 
 def packing_algorithm(
-    x_loc, y_loc, z_loc, x_scale, elongation, sharpness, amount, bulge, bend, rotation
+    x_loc, y_loc, z_loc, x_scale, elongation, sharpness, hardness, bulge, bend, rotation
 ):
     """
     This packing algorithm combines 10 distinct attributes
@@ -38,13 +39,13 @@ def packing_algorithm(
     more than a few units, so 3 digits of location precision is
     more than enough. (Use non-world space, obviously.)
 
-    There is a small amount of data loss due to the packing process.
+    There is a small hardness of data loss due to the packing process.
     In testing, data loss averages between 0.36% and 3.69%.
 
-    Since x_scale controls the size of the shading edit, as does Amount,
+    Since x_scale controls the size of the shading edit, as does Hardness,
     the actual precision of size_adjustments is at worst 99.87%.
     """
-    
+
     rotation = rotation * 180.0 / math.pi
     # The rotation comes in from Blender as radians, so we convert it to degrees.
     # If you are using this in a different context, you may not need to convert;
@@ -59,9 +60,9 @@ def packing_algorithm(
 
     red = x_loc_abs * 10000 + y_loc_abs * 10 + scale_third_digit_only
 
-    # Green Channel: amount (2 digits) + elongation (2 digits) + sharpness (2 digits) + signs (1 digit)
+    # Green Channel: hardness (2 digits) + elongation (2 digits) + sharpness (2 digits) + signs (1 digit)
     # Format: AAEEss# where # encodes z_loc_sign and bend_sign
-    amount_val = min(abs(math.floor(amount * 100.0)), 99)
+    hardness_val = min(abs(math.floor(hardness * 100.0)), 99)
     elongation_val = min(abs(math.floor(abs(elongation) * 100.0)), 99)
     sharpness_val = min(abs(math.floor(abs(sharpness) * 100.0)), 99)
 
@@ -71,7 +72,7 @@ def packing_algorithm(
     sign_digit = 3 + z_loc_sign + bend_sign * 2
 
     green = (
-        amount_val * 100000 + elongation_val * 1000 + sharpness_val * 10 + sign_digit
+        hardness_val * 100000 + elongation_val * 1000 + sharpness_val * 10 + sign_digit
     )
 
     # Blue Channel: Z location (3 digits) + X scale (first 2 digits) + bulge (2 digits)
@@ -115,7 +116,7 @@ def unpacking_algorithm(red, green, blue, alpha):
     sharpness_val = green_remaining % 100
     green_remaining = green_remaining // 100
     elongation_val = green_remaining % 100
-    amount_val = green_remaining // 100
+    hardness_val = green_remaining // 100
 
     # Decode z_loc_sign and bend_sign from sign_digit
     sign_offset = sign_digit - 3
@@ -152,7 +153,7 @@ def unpacking_algorithm(red, green, blue, alpha):
     sharpness = (sharpness_val / 100.0) * (1 if sharpness_val > 0 else -1)
     bend = (bend_val / 100.0) * (1 if bend_sign else -1)
     bulge = (bulge_val / 100.0) * (1 if bulge_sign else -1)
-    amount = amount_val / 100.0
+    hardness = hardness_val / 100.0
     rotation = float(rotation_val)
     # Convert rotation back to radians
     rotation = rotation * math.pi / 180.0
@@ -167,38 +168,53 @@ def unpacking_algorithm(red, green, blue, alpha):
         "bend": bend,
         "bulge": bulge,
         "rotation": rotation,
-        "amount": amount,
+        "hardness": hardness,
     }
 
-def test_pack_and_unpack(x_loc, y_loc, z_loc, x_scale, elongation, sharpness, amount, bulge, bend, rotation):
+
+def test_pack_and_unpack(
+    x_loc, y_loc, z_loc, x_scale, elongation, sharpness, hardness, bulge, bend, rotation
+):
     packed = packing_algorithm(
-        x_loc, y_loc, z_loc, x_scale, elongation, sharpness, amount, bulge, bend, rotation
+        x_loc,
+        y_loc,
+        z_loc,
+        x_scale,
+        elongation,
+        sharpness,
+        hardness,
+        bulge,
+        bend,
+        rotation,
     )
     unpacked = unpacking_algorithm(*packed)
 
     print("Original values:")
-    print(f"x_loc: {x_loc}, y_loc: {y_loc}, z_loc: {z_loc}, x_scale: {x_scale}, "
-        f"elongation: {elongation}, sharpness: {sharpness}, amount: {amount}, "
-        f"bulge: {bulge}, bend: {bend}, rotation: {rotation}")
+    print(
+        f"x_loc: {x_loc}, y_loc: {y_loc}, z_loc: {z_loc}, x_scale: {x_scale}, "
+        f"elongation: {elongation}, sharpness: {sharpness}, hardness: {hardness}, "
+        f"bulge: {bulge}, bend: {bend}, rotation: {rotation}"
+    )
     print("Packed values:")
     print(f"Packed: {packed}")
     print("Unpacked values:")
     print(f"Unpacked: {unpacked}")
     print("Difference:")
-    print(f"x_loc: {unpacked['x_loc'] - x_loc}, "
+    print(
+        f"x_loc: {unpacked['x_loc'] - x_loc}, "
         f"y_loc: {unpacked['y_loc'] - y_loc}, "
         f"z_loc: {unpacked['z_loc'] - z_loc}, "
         f"x_scale: {unpacked['x_scale'] - x_scale}, "
         f"elongation: {unpacked['elongation'] - elongation}, "
         f"sharpness: {unpacked['sharpness'] - sharpness}, "
-        f"amount: {unpacked['amount'] - amount}, "
+        f"hardness: {unpacked['hardness'] - hardness}, "
         f"bulge: {unpacked['bulge'] - bulge}, "
         f"bend: {unpacked['bend'] - bend}, "
         f"rotation: {unpacked['rotation'] - rotation}"
-        )
+    )
 
 
-def unpack_nodes(attribute_node, edit_node, amount_dest, node_tree):
+def unpack_nodes(attribute_node, edit_node, hardness_dest, node_tree):
     def new_math(op, val=None):
         node = node_tree.nodes.new("ShaderNodeMath")
         node.operation = op
@@ -263,10 +279,10 @@ def unpack_nodes(attribute_node, edit_node, amount_dest, node_tree):
     elongation_val = new_math("MODULO", 100.0)
     node_tree.links.new(green_floor100.outputs[0], elongation_val.inputs[0])
 
-    amount_div = new_math("DIVIDE", 100.0)
-    node_tree.links.new(green_floor100.outputs[0], amount_div.inputs[0])
-    amount_floor = new_math("FLOOR")
-    node_tree.links.new(amount_div.outputs[0], amount_floor.inputs[0])
+    hardness_div = new_math("DIVIDE", 100.0)
+    node_tree.links.new(green_floor100.outputs[0], hardness_div.inputs[0])
+    hardness_floor = new_math("FLOOR")
+    node_tree.links.new(hardness_div.outputs[0], hardness_floor.inputs[0])
 
     # Decode z_loc_sign and bend_sign from sign_digit
     sign_offset = new_math("SUBTRACT", 3.0)
@@ -319,7 +335,7 @@ def unpack_nodes(attribute_node, edit_node, amount_dest, node_tree):
 
     rotation_val = new_math("MODULO", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], rotation_val.inputs[0])
-    
+
     rotation_to_degrees = new_math("MULTIPLY", (180.0 / math.pi))
     node_tree.links.new(rotation_val.outputs[0], rotation_to_degrees.inputs[0])
     rotation_val = rotation_to_degrees
@@ -395,8 +411,8 @@ def unpack_nodes(attribute_node, edit_node, amount_dest, node_tree):
     node_tree.links.new(sharpness_div.outputs[0], sharpness.inputs[0])
     node_tree.links.new(sharpness_sign_sub1.outputs[0], sharpness.inputs[1])
 
-    amount = new_math("DIVIDE", 100.0)
-    node_tree.links.new(amount_floor.outputs[0], amount.inputs[0])
+    hardness = new_math("DIVIDE", 100.0)
+    node_tree.links.new(hardness_floor.outputs[0], hardness.inputs[0])
 
     # Connect to edit_node inputs
     node_tree.links.new(x_loc.outputs[0], edit_node.inputs[0])
@@ -408,13 +424,14 @@ def unpack_nodes(attribute_node, edit_node, amount_dest, node_tree):
     node_tree.links.new(bend.outputs[0], edit_node.inputs[6])
     node_tree.links.new(bulge.outputs[0], edit_node.inputs[7])
     node_tree.links.new(rotation_val.outputs[0], edit_node.inputs[8])
-    node_tree.links.new(amount.outputs[0], amount_dest.inputs[0])
+    node_tree.links.new(hardness.outputs[0], hardness_dest.inputs[0])
+
 
 # Congratulations, you read through this whole thing! By the time
 # you're reading this, hopefully it's obselete and they've
 # fixed the arbitrary limit on the number of attribute nodes
 # you can use in a material in Blender.
-# 
+#
 #
 #
 # haha

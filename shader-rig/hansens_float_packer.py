@@ -25,7 +25,7 @@ def packing_algorithm(
     Format specifications:
     - XYZ locations are magnitude n.nn, stored as 3 digits (nnn)
     - X scale is magnitude n.nn, stored as 3 digits (nnn)
-    - Rotation is stored as integer (no decimals)
+    - Rotation is stored as nn.n (1 decimal)
     - Other values are stored with 2 decimal places as 2 digits
 
     Cheat sheet:
@@ -80,8 +80,14 @@ def packing_algorithm(
 
     # Alpha Channel: bend (2 digits) + rotation (3 digits) + location signs (2 digits)
     # Format: bbRRR##
+
+    rotation = rotation * 180.0 / math.pi
+    # The rotation comes in from Blender as radians, so we convert it to degrees.
+    # If you are using this in a different context, you may not need to convert;
+    # however, the algorithm expects degrees so make sure this is the case.
+
     bend_val = min(abs(math.floor(abs(bend) * 100.0)), 99)
-    rotation_val = min(abs(math.floor(abs(rotation))), 999)
+    rotation_val = min(abs(math.floor(abs(rotation)* 10.0)), 999)
 
     # Sign encoding for the last 2 digits
     x_loc_sign = 0 if x_loc < 0 else 1
@@ -150,6 +156,8 @@ def unpacking_algorithm(red, green, blue, alpha):
     bulge = (bulge_val / 100.0) * (1 if bulge_sign else -1)
     hardness = hardness_val / 100.0
     rotation = float(rotation_val)
+    # Convert rotation back to radians
+    rotation = rotation * math.pi / 180.0
 
     return {
         "x_loc": x_loc,
@@ -328,6 +336,14 @@ def unpack_nodes(attribute_node, edit_node, hardness_dest, node_tree):
 
     rotation_val = new_math("MODULO", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], rotation_val.inputs[0])
+
+    rotation_divide_by_ten = new_math("DIVIDE", 10.0)
+    node_tree.links.new(rotation_val.outputs[0], rotation_divide_by_ten.inputs[0])
+    rotation_val = rotation_divide_by_ten
+
+    rotation_to_degrees = new_math("MULTIPLY", (180.0 / math.pi))
+    node_tree.links.new(rotation_val.outputs[0], rotation_to_degrees.inputs[0])
+    rotation_val = rotation_to_degrees
 
     bend_div1000 = new_math("DIVIDE", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], bend_div1000.inputs[0])

@@ -46,11 +46,6 @@ def packing_algorithm(
     the actual precision of size_adjustments is at worst 99.87%.
     """
 
-    rotation = rotation * 180.0 / math.pi
-    # The rotation comes in from Blender as radians, so we convert it to degrees.
-    # If you are using this in a different context, you may not need to convert;
-    # however, the algorithm expects degrees so make sure this is the case.
-
     # Red Channel: X, Y location (3 digits each) + scale's third digit (1 digit)
     # Format: XXXYYYS
     x_loc_abs = min(abs(math.floor(abs(x_loc) * 100.0)), 999)
@@ -155,8 +150,6 @@ def unpacking_algorithm(red, green, blue, alpha):
     bulge = (bulge_val / 100.0) * (1 if bulge_sign else -1)
     hardness = hardness_val / 100.0
     rotation = float(rotation_val)
-    # Convert rotation back to radians
-    rotation = rotation * math.pi / 180.0
 
     return {
         "x_loc": x_loc,
@@ -335,10 +328,6 @@ def unpack_nodes(attribute_node, edit_node, hardness_dest, node_tree):
 
     rotation_val = new_math("MODULO", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], rotation_val.inputs[0])
-
-    rotation_to_degrees = new_math("MULTIPLY", (180.0 / math.pi))
-    node_tree.links.new(rotation_val.outputs[0], rotation_to_degrees.inputs[0])
-    rotation_val = rotation_to_degrees
 
     bend_div1000 = new_math("DIVIDE", 1000.0)
     node_tree.links.new(alpha_floor100.outputs[0], bend_div1000.inputs[0])

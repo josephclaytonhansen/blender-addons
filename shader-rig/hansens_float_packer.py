@@ -41,7 +41,7 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
     }
     vals = {}
     signs = {}
-    # trunk-ignore(ruff/B007)
+
     for color, attributes in pairs.items():
         for attr in attributes:
             if attr in ["elongation", "bend", "bulge"]:
@@ -72,7 +72,7 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
     return (red, green, blue)
 
 
-def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
+def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     def new_math(op, val=None):
         node = node_tree.nodes.new("ShaderNodeMath")
         node.operation = op
@@ -99,6 +99,7 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
 
     """
     Edit node inputs, in order:
+    emptyVector
     Elongation
     Sharpness
     Rotation
@@ -106,6 +107,11 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
     Bulge
     Mask
     """
+    # Empty vector: add a Texture Coordinate node, and use the Object output
+    # Set the Object in the Texture Coordinate to effect_empty
+    tex_coord = node_tree.nodes.new("ShaderNodeTexCoord")
+    tex_coord.object = effect_empty
+    node_tree.links.new(tex_coord.outputs[3], edit_node.inputs[0])
 
     # RED CHANNEL: elongation (4 digits) + sign (1 digit) + sharpness (3 digits)
     # Extract elongation value (first 4 digits)
@@ -126,14 +132,14 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
 
     # Apply sign to elongation
     elongation_signed = apply_sign(elongation_value, elongation_sign_raw)
-    node_tree.links.new(elongation_signed.outputs[0], edit_node.inputs[0])
+    node_tree.links.new(elongation_signed.outputs[0], edit_node.inputs[1])
 
     # Extract sharpness (last 3 digits)
     sharpness_raw = new_math("MODULO", 1000.0)
     node_tree.links.new(red, sharpness_raw.inputs[0])
     sharpness_value = new_math("DIVIDE", 1000.0)
     node_tree.links.new(sharpness_raw.outputs[0], sharpness_value.inputs[0])
-    node_tree.links.new(sharpness_value.outputs[0], edit_node.inputs[1])
+    node_tree.links.new(sharpness_value.outputs[0], edit_node.inputs[2])
 
     # GREEN CHANNEL: bend (4 digits) + sign (1 digit) + hardness (3 digits)
     # Extract bend value (first 4 digits)
@@ -154,14 +160,14 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
 
     # Apply sign to bend
     bend_signed = apply_sign(bend_value, bend_sign_raw)
-    node_tree.links.new(bend_signed.outputs[0], edit_node.inputs[3])
+    node_tree.links.new(bend_signed.outputs[0], edit_node.inputs[4])
 
     # Extract hardness (last 3 digits)
     hardness_raw = new_math("MODULO", 1000.0)
     node_tree.links.new(green, hardness_raw.inputs[0])
     hardness_value = new_math("DIVIDE", 1000.0)
     node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
-    node_tree.links.new(hardness_value.outputs[0], edit_node.inputs[2])
+    node_tree.links.new(hardness_value.outputs[0], edit_node.inputs[3])
 
     # BLUE CHANNEL: bulge (4 digits) + sign (1 digit) + mode (2 digits) + mask (2 digits)
     # Extract bulge value (first 4 digits)
@@ -182,7 +188,7 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
 
     # Apply sign to bulge
     bulge_signed = apply_sign(bulge_value, bulge_sign_raw)
-    node_tree.links.new(bulge_signed.outputs[0], edit_node.inputs[4])
+    node_tree.links.new(bulge_signed.outputs[0], edit_node.inputs[5])
 
     # Extract mode (next 2 digits)
     blue_mod_1000 = new_math("MODULO", 1000.0)
@@ -191,16 +197,15 @@ def unpack_nodes(attribute_node, edit_node, mode_dest, node_tree):
     node_tree.links.new(blue_mod_1000.outputs[0], mode_div.inputs[0])
     mode_raw = new_math("FLOOR")
     node_tree.links.new(mode_div.outputs[0], mode_raw.inputs[0])
-    node_tree.links.new(mode_raw.outputs[0], mode_dest)
 
     # Extract mask (last 2 digits)
     mask_raw = new_math("MODULO", 100.0)
     node_tree.links.new(blue, mask_raw.inputs[0])
     mask_value = new_math("DIVIDE", 100.0)
     node_tree.links.new(mask_raw.outputs[0], mask_value.inputs[0])
-    node_tree.links.new(mask_value.outputs[0], edit_node.inputs[5])
+    node_tree.links.new(mask_value.outputs[0], edit_node.inputs[6])
 
-    return (mode_raw, mask_value)
+    return (mode_raw, mask_value, hardness_value)
 
 
 # Congratulations, you read through this whole thing! By the time

@@ -1,20 +1,127 @@
-import bpy
+import os
 
+import bpy
 from bpy.types import (
     Operator,
 )
-
-from bpy.props import StringProperty
-
-from . import json_helpers
-from . import hansens_float_packer
-
-import os
-import json
 from mathutils import Vector
+
+from . import hansens_float_packer, json_helpers
+
+
+def create_mode_mix_nodes(
+    node_tree,
+    mode_value_output,
+    base_color_input,
+    edit_color_output,
+    mask_output,
+    location,
+):
+    """
+    Creates a node-based switch system for 5 different mix modes:
+    0 = Lighten, 1 = Subtract, 2 = Multiply, 3 = Darken, 4 = Add
+    Args:
+        node_tree: The material node tree
+        mode_value_output: Output socket containing the mode value (0-4)
+        base_color_input: Input socket for the base color
+        edit_color_output: Output socket from the edit node
+        mask_output: Output socket containing the mask value
+        location: Base location for positioning nodes
+
+    Returns:
+        final_output: The output socket of the final mixed result
+    """
+
+    def new_math(op, val=None):
+        node = node_tree.nodes.new("ShaderNodeMath")
+        node.operation = op
+        if val is not None:
+            node.inputs[1].default_value = val
+        return node
+
+    def new_mix(blend_type, x_offset=0, y_offset=0):
+        node = node_tree.nodes.new("ShaderNodeMixRGB")
+        node.blend_type = blend_type
+        node.location = location + Vector((x_offset, y_offset))
+        return node
+
+    mix_lighten = new_mix("LIGHTEN", 0, 200)  # mode 0
+    mix_subtract = new_mix("SUBTRACT", 0, 100)  # mode 1
+    mix_multiply = new_mix("MULTIPLY", 0, 0)  # mode 2
+    mix_darken = new_mix("DARKEN", 0, -100)  # mode 3
+    mix_add = new_mix("ADD", 0, -200)  # mode 4
+
+    for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
+        node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
+        node_tree.links.new(edit_color_output, mix_node.inputs[2])  # Color2
+        node_tree.links.new(mask_output, mix_node.inputs[0])  # Fac
+
+    # mode == 0 (Lighten)
+    compare_0 = new_math("COMPARE", 0.0)
+    compare_0.location = location + Vector((200, 200))
+    node_tree.links.new(mode_value_output, compare_0.inputs[0])
+
+    # mode == 1 (Subtract)
+    compare_1 = new_math("COMPARE", 1.0)
+    compare_1.location = location + Vector((200, 100))
+    node_tree.links.new(mode_value_output, compare_1.inputs[0])
+
+    # mode == 2 (Multiply)
+    compare_2 = new_math("COMPARE", 2.0)
+    compare_2.location = location + Vector((200, 0))
+    node_tree.links.new(mode_value_output, compare_2.inputs[0])
+
+    # mode == 3 (Darken)
+    compare_3 = new_math("COMPARE", 3.0)
+    compare_3.location = location + Vector((200, -100))
+    node_tree.links.new(mode_value_output, compare_3.inputs[0])
+
+    # mode == 4 (Add)
+    compare_4 = new_math("COMPARE", 4.0)
+    compare_4.location = location + Vector((200, -200))
+    node_tree.links.new(mode_value_output, compare_4.inputs[0])
+
+    # Create mix nodes to blend between the results based on mode
+    # First level: choose between lighten and subtract
+    mix_0_1 = new_mix("MIX", 400, 150)
+    node_tree.links.new(compare_1.outputs[0], mix_0_1.inputs[0])  # Use mode 1 as factor
+    node_tree.links.new(mix_lighten.outputs[0], mix_0_1.inputs[1])  # Lighten result
+    node_tree.links.new(mix_subtract.outputs[0], mix_0_1.inputs[2])  # Subtract result
+
+    # Second level: choose between multiply and darken
+    mix_2_3 = new_mix("MIX", 400, -50)
+    node_tree.links.new(compare_3.outputs[0], mix_2_3.inputs[0])  # Use mode 3 as factor
+    node_tree.links.new(mix_multiply.outputs[0], mix_2_3.inputs[1])  # Multiply result
+    node_tree.links.new(mix_darken.outputs[0], mix_2_3.inputs[2])  # Darken result
+
+    # Third level: choose between (lighten/subtract) and (multiply/darken)
+    mix_01_23 = new_mix("MIX", 600, 50)
+    # Use mode >= 2 as factor
+    mode_ge_2 = new_math("GREATER_THAN", 1.5)
+    mode_ge_2.location = location + Vector((400, 50))
+    node_tree.links.new(mode_value_output, mode_ge_2.inputs[0])
+    node_tree.links.new(mode_ge_2.outputs[0], mix_01_23.inputs[0])
+    node_tree.links.new(
+        mix_0_1.outputs[0], mix_01_23.inputs[1]
+    )  # Lighten/Subtract result
+    node_tree.links.new(
+        mix_2_3.outputs[0], mix_01_23.inputs[2]
+    )  # Multiply/Darken result
+
+    # Fourth level: choose between (lighten/subtract/multiply/darken) and add
+    final_mix = new_mix("MIX", 800, 0)
+    node_tree.links.new(
+        compare_4.outputs[0], final_mix.inputs[0]
+    )  # Use mode 4 as factor
+    node_tree.links.new(mix_01_23.outputs[0], final_mix.inputs[1])  # Combined result
+    node_tree.links.new(mix_add.outputs[0], final_mix.inputs[2])  # Add result
+
+    return final_mix.outputs[0]
+
 
 def update_material(self, context):
     self.added_to_material = False
+
 
 class SR_OT_AddEditCoordinatesNode(Operator):
     """
@@ -56,8 +163,8 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         if mat and mat.node_tree:
             nodes = mat.node_tree.nodes
             if (
-                "DiffuseToRGB_ShadingRig" not in nodes
-                or "ColorRamp_ShadingRig" not in nodes
+                "ShadingRig_Entry" not in nodes
+                or "ShadingRig_Ramp" not in nodes
                 # These names MUST NOT CHANGE
                 # in the shader editor!
                 # You can do whatever you want
@@ -65,7 +172,7 @@ class SR_OT_AddEditCoordinatesNode(Operator):
                 # touch these two.
             ):
                 cls.poll_message_set(
-                    "Material must contain 'DiffuseToRGB_ShadingRig' and 'ColorRamp_ShadingRig' nodes!"
+                    "Material must contain 'ShadingRig_Entry' and 'ShadingRig_Ramp' nodes!"
                 )
                 return False
 
@@ -75,21 +182,17 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         scene = context.scene
         rig_index = json_helpers.get_shading_rig_list_index()
         active_item = scene.shading_rig_list[rig_index]
-
         material = active_item.material
-        node_group_name = "ShadingRigEdit"
+        node_group_name = "ShadingRigEffect"
         node_tree = material.node_tree
         nodes = node_tree.nodes
-
-        source_node = nodes.get("DiffuseToRGB_ShadingRig")
-        dest_node = nodes.get("ColorRamp_ShadingRig")
-
+        source_node = nodes.get("ShadingRig_Entry")
+        dest_node = nodes.get("ShadingRig_Ramp")
         edit_coords_group = bpy.data.node_groups[node_group_name]
-
         new_node = material.node_tree.nodes.new("ShaderNodeGroup")
         new_node.node_tree = edit_coords_group
-
         empty_obj = active_item.empty_object
+
         if not empty_obj:
             self.report({"ERROR"}, "No Empty Object assigned to the rig.")
             material.node_tree.nodes.remove(new_node)
@@ -100,22 +203,20 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         new_node.label = node_instance_name
         new_node.location.x -= 200
 
-        mix_node_lighten = material.node_tree.nodes.new("ShaderNodeMixRGB")
-        mix_node_lighten_name = f"MixRGB_Lighten_{empty_obj.name}"
-        mix_node_lighten.name = mix_node_lighten_name
-        mix_node_lighten.label = mix_node_lighten_name
-
-        mix_node_lighten.location = new_node.location + Vector((new_node.width + 40, 0))
-        mix_node_lighten.blend_type = "LIGHTEN"
+        # Create attribute node first (needed for unpacking)
+        attr_node = node_tree.nodes.new("ShaderNodeAttribute")
+        attr_node.attribute_name = f"packed:{empty_obj.name}"
+        attr_node.label = f"packed:{empty_obj.name}"
+        attr_node.attribute_type = "OBJECT"
 
         previous_link = None
         if dest_node.inputs[0].is_linked:
             previous_link = dest_node.inputs[0].links[0]
 
         current_chain_tail_node = previous_link.from_node if previous_link else None
-
         y_offset_increment = 300
         new_y_pos = 0.0
+
         if current_chain_tail_node:
             new_y_pos = current_chain_tail_node.location.y + y_offset_increment
         else:
@@ -124,34 +225,32 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         new_node.location.x = dest_node.location.x - 450
         new_node.location.y = new_y_pos
 
-        mix_node_lighten.location.x = new_node.location.x + new_node.width + 100
-        mix_node_lighten.location.y = new_y_pos
-
-        node_tree.links.new(new_node.outputs[0], mix_node_lighten.inputs["Color2"])
-
-        if previous_link:
-            node_tree.links.new(
-                previous_link.from_socket, mix_node_lighten.inputs["Color1"]
-            )
-        else:
-            node_tree.links.new(
-                source_node.outputs[0], mix_node_lighten.inputs["Color1"]
-            )
-
-        node_tree.links.new(mix_node_lighten.outputs["Color"], dest_node.inputs[0])
-
-        attr_node = node_tree.nodes.new("ShaderNodeAttribute")
-
-        attr_node.attribute_name = f"packed:{empty_obj.name}"
-        attr_node.label = f"packed:{empty_obj.name}"
-        attr_node.attribute_type = "OBJECT"
-
         attr_node.location.x = new_node.location.x - 200
         attr_node.location.y = new_y_pos - 200
 
-        hansens_float_packer.unpack_nodes(
-            attr_node, new_node, mix_node_lighten, node_tree
+        # Unpack the attributes and get the outputs we need
+        mode_raw, mask_value = hansens_float_packer.unpack_nodes(
+            attribute_node=attr_node, edit_node=new_node, node_tree=node_tree
         )
+
+        # Determine base color input
+        if previous_link:
+            base_color_socket = previous_link.from_socket
+        else:
+            base_color_socket = source_node.outputs[0]
+
+        # Create the mode-based mix node system
+        final_output = create_mode_mix_nodes(
+            node_tree=node_tree,
+            mode_value_output=mode_raw.outputs[0],
+            base_color_input=base_color_socket,
+            edit_color_output=new_node.outputs[0],
+            mask_output=mask_value.outputs[0],
+            location=Vector((new_node.location.x + 400, new_node.location.y)),
+        )
+
+        # Connect the final output to the destination
+        node_tree.links.new(final_output, dest_node.inputs[0])
 
         active_item.added_to_material = True
         self.report(
@@ -284,195 +383,3 @@ class SR_OT_AppendNodes(Operator):
         )
 
         return {"FINISHED"}
-
-
-# This is a weird little visual operator,
-# doesn't really fit anywhere else
-class SR_OT_SetEmptyDisplayType(Operator):
-    bl_idname = "shading_rig.set_empty_display_type"
-    bl_label = "Set Empty Display Type"
-    bl_description = "Set the display type of the rig's empty object"
-
-    display_type: StringProperty()
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        if not (
-            json_helpers.get_shading_rig_list_index() >= 0
-            and len(scene.shading_rig_list) > 0
-        ):
-            cls.poll_message_set("No shading rigs in the list.")
-            return False
-        active_item = scene.shading_rig_list[json_helpers.get_shading_rig_list_index()]
-        return active_item.empty_object is not None
-
-    def execute(self, context):
-        scene = context.scene
-        active_item = scene.shading_rig_list[json_helpers.get_shading_rig_list_index()]
-        empty_obj = active_item.empty_object
-
-        if empty_obj:
-            empty_obj.empty_display_type = self.display_type
-            return {"FINISHED"}
-
-        return {"CANCELLED"}
-
-
-class SR_OT_SyncExternalData(Operator):
-    """Sync external data from all ShadingRigSceneProperties objects into a combined object."""
-
-    bl_idname = "shading_rig.sync_external_data"
-    bl_label = "Sync External Data"
-    bl_description = "Combine all external ShadingRigSceneProperties objects into a single combined object"
-
-    @classmethod
-    def poll(cls, context):
-        # Check if there are any ShadingRigSceneProperties objects other than Combined
-        properties_objects = []
-        for obj in bpy.data.objects:
-            if (
-                obj.name.startswith("ShadingRigSceneProperties_")
-                and obj.name != "ShadingRigSceneProperties_Combined"
-            ):
-                properties_objects.append(obj)
-
-        if not properties_objects:
-            cls.poll_message_set("No external ShadingRigSceneProperties objects found.")
-            return False
-
-        # Check if any of them have data
-        has_data = False
-        for props_obj in properties_objects:
-            json_data = props_obj.get("shading_rig_list_json", "[]")
-            if json_data and json_data != "[]":
-                has_data = True
-                break
-
-        if not has_data:
-            cls.poll_message_set("No external data found to sync.")
-            return False
-
-        return True
-
-    def execute(self, context):
-        try:
-            # Create the combined properties object
-            combined_obj = json_helpers.create_combined_properties_object()
-
-            if not combined_obj:
-                self.report({"ERROR"}, "Failed to create combined properties object.")
-                return {"CANCELLED"}
-
-            # Validate the combined JSON before syncing
-            json_data = combined_obj.get("shading_rig_list_json", "[]")
-            try:
-                test_data = json.loads(json_data)
-                if not isinstance(test_data, list):
-                    self.report(
-                        {"ERROR"},
-                        f"Invalid JSON data format: expected list, got {type(test_data)}",
-                    )
-                    return {"CANCELLED"}
-            except json.JSONDecodeError as e:
-                self.report({"ERROR"}, f"Invalid JSON data: {e}")
-                return {"CANCELLED"}
-
-            # Sync the combined data to the scene
-            json_helpers.sync_json_to_scene(context.scene)
-
-            # Count how many objects were combined
-            properties_objects = []
-            for obj in bpy.data.objects:
-                if (
-                    obj.name.startswith("ShadingRigSceneProperties_")
-                    and obj.name != "ShadingRigSceneProperties_Combined"
-                ):
-                    json_data = obj.get("shading_rig_list_json", "[]")
-                    if json_data and json_data != "[]":
-                        properties_objects.append(obj)
-
-            # Count missing objects
-            missing_objects = 0
-            missing_materials = 0
-            for rig in context.scene.shading_rig_list:
-                if not rig.empty_object:
-                    missing_objects += 1
-                if not rig.material:
-                    missing_materials += 1
-
-            info_message = (
-                f"Combined data from {len(properties_objects)} external objects."
-            )
-            if missing_objects > 0:
-                info_message += f" Warning: {missing_objects} empty objects not found."
-            if missing_materials > 0:
-                info_message += f" Warning: {missing_materials} materials not found."
-
-            self.report({"INFO"}, info_message)
-
-            return {"FINISHED"}
-
-        except Exception as e:
-            self.report({"ERROR"}, f"Failed to sync external data: {e}")
-            import traceback
-
-            traceback.print_exc()
-            return {"CANCELLED"}
-
-
-class SR_OT_ClearCombinedData(Operator):
-    """Clear the combined data and return to normal character-based behavior."""
-
-    bl_idname = "shading_rig.clear_combined_data"
-    bl_label = "Clear Combined Data"
-    bl_description = "Remove the combined properties object and return to normal character-based behavior"
-
-    @classmethod
-    def poll(cls, context):
-        combined_obj = bpy.data.objects.get("ShadingRigSceneProperties_Combined")
-        if not combined_obj:
-            cls.poll_message_set("No combined data to clear.")
-            return False
-        return True
-
-    def execute(self, context):
-        try:
-            # Clear the combined properties object
-            json_helpers.cleanup_combined_properties()
-
-            # Clear the scene's shading rig list
-            context.scene.shading_rig_list.clear()
-
-            self.report(
-                {"INFO"},
-                "Combined data cleared. Returned to normal character-based behavior.",
-            )
-
-            return {"FINISHED"}
-
-        except Exception as e:
-            self.report({"ERROR"}, f"Failed to clear combined data: {e}")
-            return {"CANCELLED"}
-
-
-def update_character_name(self, context):
-    new_name = self.shading_rig_chararacter_name
-    if len(new_name) <= 0:
-        self.shading_rig_chararacter_name = "Character"
-        return
-
-    props_obj = json_helpers.get_scene_properties_object()
-    if props_obj:
-        old_name = props_obj.get("character_name", "")
-        if old_name != new_name:
-            props_obj.name = f"ShadingRigSceneProperties_{new_name}"
-            props_obj["character_name"] = new_name
-            json_helpers.sync_scene_to_json(context.scene)
-    else:
-        # Create the empty if it doesn't exist
-        props_obj = bpy.data.objects.new(
-            f"ShadingRigSceneProperties_{new_name}",
-            None,
-        )
-        bpy.context.collection.objects.link(props_obj)

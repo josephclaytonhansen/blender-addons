@@ -1,5 +1,4 @@
 import bpy
-
 from bpy.types import (
     Operator,
 )
@@ -43,7 +42,7 @@ class SR_OT_RigList_Add(Operator):
 
         bpy.ops.object.empty_add(type="SPHERE", align="VIEW", location=cursor_location)
         new_empty = context.active_object
-        new_empty.empty_display_size = 0.1
+        new_empty.empty_display_size = 0.05
         new_empty.show_name = True
         new_empty.show_in_front = True
         bpy.ops.transform.rotate(value=1.5708, orient_axis="X", orient_type="LOCAL")
@@ -73,73 +72,46 @@ class SR_OT_RigList_Add(Operator):
 
         for obj in objects_with_material:
             packed_prop_name = f"packed:{new_item.name}"
-            obj[packed_prop_name] = [0, 0, 0, 0]
+            obj[packed_prop_name] = [0, 0, 0]
 
-            # Create drivers for each channel (0=red, 1=green, 2=blue, 3=alpha)
-            for channel in range(4):
+            # Create drivers for each channel (0=red, 1=green, 2=blue)
+            for channel in range(3):
                 fcurve = obj.driver_add(f'["{packed_prop_name}"]', channel)
                 driver = fcurve.driver
                 driver.type = "SCRIPTED"
 
                 # Create input variables as Context Properties
                 var_names = [
-                    "x_loc",
-                    "y_loc",
-                    "z_loc",
-                    "x_scale",
                     "elongation",
                     "sharpness",
-                    "hardness",
-                    "bulge",
                     "bend",
-                    "rotation",
+                    "bulge",
+                    "hardness",
+                    "mask",
+                    "mode",
                 ]
-
-                var_paths_transform_channel = [
-                    f"{new_item.name}.location[0]",
-                    f"{new_item.name}.location[1]",
-                    f"{new_item.name}.location[2]",
-                    f"{new_item.name}.scale[0]",
-                ]
-                var_paths_context_prop = [
+                var_paths = [
                     f"shading_rig_list[{rig_index}].elongation",
                     f"shading_rig_list[{rig_index}].sharpness",
                     f"shading_rig_list[{rig_index}].hardness",
                     f"shading_rig_list[{rig_index}].bulge",
                     f"shading_rig_list[{rig_index}].bend",
-                    f"shading_rig_list[{rig_index}].rotation",
+                    f"shading_rig_list[{rig_index}].mask",
+                    f"shading_rig_list[{rig_index}].mode",
                 ]
-
-                var_paths = var_paths_transform_channel + var_paths_context_prop
 
                 # Create driver variables
                 for var_name, var_path in zip(var_names, var_paths):
                     var = driver.variables.new()
                     var.name = var_name
-                    if "location" in var_path or "scale" in var_path:
-                        # Use Transform Channel for location and scale
-                        var.type = "TRANSFORMS"
-                        # var.targets[0].id_type = 'OBJECT'
-                        var.targets[0].id = new_item.empty_object
-                        if "location" in var_path:
-                            var.targets[0].transform_type = (
-                                "LOC_X"
-                                if "x_loc" in var_name
-                                else "LOC_Y" if "y_loc" in var_name else "LOC_Z"
-                            )
-                        elif "scale" in var_path:
-                            var.targets[0].transform_type = "SCALE_X"
-                    else:
-                        # Use Context Property for other variables
-                        var.type = "CONTEXT_PROP"
-                        var.targets[0].context_property = "ACTIVE_SCENE"
-                        var.targets[0].data_path = var_path
+                    var.type = "CONTEXT_PROP"
+                    var.targets[0].context_property = "ACTIVE_SCENE"
+                    var.targets[0].data_path = var_path
 
                 # Set the expression to use the input variables
                 driver.expression = (
                     f"bpy.packing_algorithm("
-                    f"x_loc, y_loc, z_loc, x_scale, elongation, "
-                    f"sharpness, hardness, bulge, bend, rotation)[{channel}]"
+                    f"elongation, sharpness, bulge, bend, hardness, mask, mode)[{channel}]"
                 )
 
         json_helpers.sync_scene_to_json(context.scene)
@@ -210,6 +182,7 @@ class SR_OT_Correlation_Add(Operator):
             new_corr.light_rotation = light_obj.rotation_euler
             new_corr.empty_position = empty_obj.location
             new_corr.empty_scale = empty_obj.scale
+            new_corr.empty_rotation = empty_obj.rotation_euler
 
             active_rig_item.correlations_index = len(active_rig_item.correlations) - 1
 
@@ -291,60 +264,7 @@ class SR_OT_RigList_Remove(Operator):
 
         item_to_remove = rig_list[index]
 
-        # Remove the custom properties
-        if item_to_remove.material:
-            base_prop_names = [
-                "elongation",
-                "sharpness",
-                "hardness",
-                "bulge",
-                "bend",
-                "rotation",
-                "edit_location_x",
-                "edit_location_y",
-                "edit_location_z",
-                "edit_scale_x",
-                "edit_scale_y",
-                "edit_scale_z",
-            ]
-
-            for obj in bpy.data.objects:
-                if any(
-                    s.material == item_to_remove.material for s in obj.material_slots
-                ):
-                    for base_prop in base_prop_names:
-                        prop_name = f"{base_prop}:{item_to_remove.name}"
-                        if prop_name in obj:
-                            del obj[prop_name]
-
-        if item_to_remove.material and item_to_remove.empty_object:
-            material = item_to_remove.material
-            empty_name = item_to_remove.empty_object.name
-            node_to_remove_name = f"ShadingRigEdit_{empty_name}"
-
-            if material.node_tree:
-                node_tree = material.node_tree
-                mix_node_to_remove_name = f"MixRGB_{empty_name}"
-                mix_node = node_tree.nodes.get(mix_node_to_remove_name)
-                if mix_node:
-                    input_socket = mix_node.inputs["Color1"]
-                    output_socket = mix_node.outputs["Color"]
-
-                    if input_socket.is_linked and output_socket.is_linked:
-                        upstream_socket = input_socket.links[0].from_socket
-                        downstream_sockets = [
-                            link.to_socket for link in output_socket.links
-                        ]
-
-                        for downstream_socket in downstream_sockets:
-                            node_tree.links.new(upstream_socket, downstream_socket)
-
-                node_to_remove = material.node_tree.nodes.get(node_to_remove_name)
-                if node_to_remove:
-                    material.node_tree.nodes.remove(node_to_remove)
-
-                if mix_node:
-                    material.node_tree.nodes.remove(mix_node)
+        # TODO: Remove material nodes
 
         objects_to_delete = []
         if item_to_remove.empty_object:

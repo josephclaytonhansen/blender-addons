@@ -2,22 +2,25 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 2, 126),
+    "version": (1, 3, 18),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
 }
 
 import bpy
-
-from . import math_helpers
-from . import json_helpers
-from . import setup_helpers
-from . import addremove_helpers
-from . import update_helpers
 from mathutils import Vector
 
-from . import hansens_float_packer
+from . import (
+    addremove_helpers,
+    externaldata_helpers,
+    hansens_float_packer,
+    json_helpers,
+    math_helpers,
+    setup_helpers,
+    update_helpers,
+    visual_helpers,
+)
 
 bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 # this has to be globally assigned to work consistently
@@ -28,18 +31,18 @@ bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 _previous_light_rotations = {}
 
 from bpy.props import (
-    StringProperty,
     BoolProperty,
-    PointerProperty,
     CollectionProperty,
-    IntProperty,
     FloatProperty,
     FloatVectorProperty,
+    IntProperty,
+    PointerProperty,
+    StringProperty,
 )
 from bpy.types import (
+    Panel,
     PropertyGroup,
     UIList,
-    Panel,
 )
 
 
@@ -63,6 +66,14 @@ class SR_CorrelationItem(PropertyGroup):
         unit="LENGTH",
         size=3,
         description="Stored position of the empty object",
+    )
+
+    empty_rotation: FloatVectorProperty(
+        name="Empty Rotation",
+        subtype="EULER",
+        unit="ROTATION",
+        size=3,
+        description="Stored rotation of the empty object",
     )
 
     empty_scale: FloatVectorProperty(
@@ -172,13 +183,21 @@ class SR_RigItem(PropertyGroup):
         update=update_helpers.property_update_sync,
     )
 
-    rotation: FloatProperty(
-        name="Rotation",
-        default=0.0,
-        min=-3.14,
-        max=3.14,
-        step=0.1,
-        unit="ROTATION",
+    mask: FloatProperty(
+        name="Mask",
+        default=0.5,
+        min=0.0,
+        max=1.0,
+        step=0.05,
+        update=update_helpers.property_update_sync,
+    )
+
+    mode: IntProperty(
+        name="Mode",
+        description="Mode of the shading rig edit",
+        default=0,
+        min=0,
+        max=4,
         update=update_helpers.property_update_sync,
     )
 
@@ -279,9 +298,12 @@ class SR_PT_ShadingRigPanel(Panel):
 
         if len(scene.shading_rig_list) <= 0:
             col.operator(
-                setup_helpers.SR_OT_SyncExternalData.bl_idname, icon="FILE_REFRESH"
+                externaldata_helpers.SR_OT_SyncExternalData.bl_idname,
+                icon="FILE_REFRESH",
             )
-            col.operator(setup_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH")
+            col.operator(
+                externaldata_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH"
+            )
 
         col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA")
 
@@ -303,7 +325,9 @@ class SR_PT_ShadingRigPanel(Panel):
             addremove_helpers.SR_OT_RigList_Remove.bl_idname, icon="REMOVE", text=""
         )
 
-        if scene.shading_rig_list and 0 <= scene.shading_rig_list_index < len(scene.shading_rig_list):
+        if scene.shading_rig_list and 0 <= scene.shading_rig_list_index < len(
+            scene.shading_rig_list
+        ):
             active_item = scene.shading_rig_list[scene.shading_rig_list_index]
 
             box = layout.box()
@@ -334,43 +358,49 @@ class SR_PT_ShadingRigPanel(Panel):
                 row = col.row(align=True)
                 row.label(text="Display Type")
                 op = row.operator(
-                    setup_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
+                    visual_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
                     icon="MESH_UVSPHERE",
                     text="",
                 )
                 op.display_type = "SPHERE"
 
                 op = row.operator(
-                    setup_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
+                    visual_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
                     icon="MESH_CIRCLE",
                     text="",
                 )
                 op.display_type = "CIRCLE"
 
                 op = row.operator(
-                    setup_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
+                    visual_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
                     icon="MESH_CONE",
                     text="",
                 )
                 op.display_type = "CONE"
 
                 op = row.operator(
-                    setup_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
+                    visual_helpers.SR_OT_SetEmptyDisplayType.bl_idname,
                     icon="EMPTY_AXIS",
                     text="",
                 )
                 op.display_type = "PLAIN_AXES"
 
-                col.separator()
+                row = col.row(align=True)
+                split = row.split(factor=0.5)
+                splitcol1 = split.column(align=True)
+                splitcol2 = split.column(align=True)
+                splitcol1.label(text="Parent Object")
+                splitcol2.prop(active_item, "parent_object", text="")
 
-                col.prop(active_item, "parent_object", text="Parent Object")
+                col.separator()
 
                 col.prop(active_item, "elongation")
                 col.prop(active_item, "sharpness")
                 col.prop(active_item, "hardness")
                 col.prop(active_item, "bulge")
                 col.prop(active_item, "bend")
-                col.prop(active_item, "rotation")
+                col.prop(active_item, "mask")
+                col.prop(active_item, "mode")
 
                 if not active_item.added_to_material:
                     col.operator(
@@ -415,6 +445,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_corr, "light_rotation", text="Light Rotation")
                 col.prop(active_corr, "empty_position", text="Empty Position")
                 col.prop(active_corr, "empty_scale", text="Empty Scale")
+                col.prop(active_corr, "empty_rotation", text="Empty Rotation")
 
 
 @bpy.app.handlers.persistent
@@ -497,11 +528,14 @@ def update_shading_rig_handler(scene, depsgraph):
             if (v_prev - v_curr).length < 1e-5:
                 continue
 
-        weighted_pos, weighted_scale = math_helpers.calculateWeightedEmptyPosition(
-            correlations, current_light_rotation
+        weighted_pos, weighted_scale, weighted_rotation = (
+            math_helpers.calculateWeightedEmptyPosition(
+                correlations, current_light_rotation
+            )
         )
         empty_obj.location = weighted_pos
         empty_obj.scale = weighted_scale
+        empty_obj.rotation_euler = weighted_rotation
 
         _previous_light_rotations[light_obj_key] = current_light_rotation.copy()
 
@@ -514,11 +548,11 @@ CLASSES = [
     SR_UL_CorrelationList,
     addremove_helpers.SR_OT_RigList_Add,
     setup_helpers.SR_OT_AddEditCoordinatesNode,
-    setup_helpers.SR_OT_SetEmptyDisplayType,
+    visual_helpers.SR_OT_SetEmptyDisplayType,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,
-    setup_helpers.SR_OT_SyncExternalData,
-    setup_helpers.SR_OT_ClearCombinedData,
+    externaldata_helpers.SR_OT_SyncExternalData,
+    externaldata_helpers.SR_OT_ClearCombinedData,
     addremove_helpers.SR_OT_Correlation_Add,
     addremove_helpers.SR_OT_Correlation_Remove,
     addremove_helpers.SR_OT_RigList_Remove,
@@ -561,7 +595,7 @@ def register():
         name="Character Name",
         description="Name of the character being shaded",
         default="",
-        update=setup_helpers.update_character_name,
+        update=externaldata_helpers.update_character_name,
     )
 
     bpy.app.handlers.depsgraph_update_post.append(update_shading_rig_handler)

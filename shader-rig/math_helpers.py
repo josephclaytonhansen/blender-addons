@@ -1,5 +1,4 @@
-import bpy
-from mathutils import Vector, Quaternion, Euler
+from mathutils import Euler, Vector
 
 # ----------------------- Weight calculation functions ----------------------- #
 
@@ -61,10 +60,12 @@ def calculateWeightedEmptyPosition(correlations, currentLightRotation):
 
     weighted_position = Vector((0.0, 0.0, 0.0))
     weighted_scale = Vector((0.0, 0.0, 0.0))
+    weighted_rotation = Vector((0.0, 0.0, 0.0))
 
     for i, corr in enumerate(correlations):
         weight = weights[i]
         weighted_position += Vector(corr.empty_position) * weight
         weighted_scale += Vector(corr.empty_scale) * weight
+        weighted_rotation += Vector(corr.empty_rotation) * weight
 
-    return list(weighted_position), list(weighted_scale)
+    return list(weighted_position), list(weighted_scale), list(weighted_rotation)

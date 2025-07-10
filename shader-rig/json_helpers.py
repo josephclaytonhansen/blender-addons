@@ -1,4 +1,5 @@
 import json
+
 import bpy
 
 # ---------------------------------------------------------------------------- #
@@ -29,7 +30,8 @@ def serialize_rig_list_to_json(rig_list):
             "hardness": rig.hardness,
             "bulge": rig.bulge,
             "bend": rig.bend,
-            "rotation": rig.rotation,
+            "mask": rig.mask,
+            "mode": rig.mode,
             "added_to_material": rig.added_to_material,
             "correlations_index": rig.correlations_index,
             "empty_object_name": empty_object_name,
@@ -40,6 +42,7 @@ def serialize_rig_list_to_json(rig_list):
                     "name": corr.name,
                     "light_rotation": list(corr.light_rotation),
                     "empty_position": list(corr.empty_position),
+                    "empty_rotation": list(corr.empty_rotation),
                     "empty_scale": list(corr.empty_scale),
                 }
                 for corr in rig.correlations
@@ -87,7 +90,8 @@ def sync_json_to_scene(scene):
         new_rig.hardness = rig_data["hardness"]
         new_rig.bulge = rig_data["bulge"]
         new_rig.bend = rig_data["bend"]
-        new_rig.rotation = rig_data["rotation"]
+        new_rig.mask = rig_data["mask"]
+        new_rig.mode = rig_data["mode"]
         new_rig.added_to_material = rig_data["added_to_material"]
         new_rig.correlations_index = rig_data["correlations_index"]
 
@@ -113,6 +117,7 @@ def sync_json_to_scene(scene):
             new_corr.name = corr_data["name"]
             new_corr.light_rotation = corr_data["light_rotation"]
             new_corr.empty_position = corr_data["empty_position"]
+            new_corr.empty_rotation = corr_data["empty_rotation"]
             new_corr.empty_scale = corr_data["empty_scale"]
 
 

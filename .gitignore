@@ -4,3 +4,5 @@
 pyvenv.cfg
 mkdocs.yml
 /docs
+/.trunk
+/.vscode

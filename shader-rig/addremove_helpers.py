@@ -45,7 +45,9 @@ class SR_OT_RigList_Add(Operator):
         new_empty.empty_display_size = 0.05
         new_empty.show_name = True
         new_empty.show_in_front = True
-        bpy.ops.transform.rotate(value=1.5708, orient_axis="X", orient_type="LOCAL")
+        bpy.ops.transform.rotate(value=.45, orient_axis="X", orient_type="WORLD")
+        bpy.ops.transform.rotate(value=-.16, orient_axis="Y", orient_type="WORLD")
+
         bpy.ops.transform.resize(value=(1.5, 1.5, 1.5))
 
         new_item.empty_object = new_empty

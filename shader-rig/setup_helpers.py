@@ -14,7 +14,7 @@ def create_mode_mix_nodes(
     mode_value_output,
     base_color_input,
     edit_color_output,
-    hardness,
+    hardness_output,
     location,
 ):
 
@@ -214,7 +214,10 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         attr_node.location.y = new_y_pos - 200
 
         mode_raw, mask_value, hardness_value = hansens_float_packer.unpack_nodes(
-            attribute_node=attr_node, edit_node=new_node, node_tree=node_tree, effect_empty=empty_obj
+            attribute_node=attr_node,
+            edit_node=new_node,
+            node_tree=node_tree,
+            effect_empty=empty_obj,
         )
 
         if previous_link:

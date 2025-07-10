@@ -40,7 +40,7 @@ def create_mode_mix_nodes(
     for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
         node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
         node_tree.links.new(edit_color_output, mix_node.inputs[2])  # Color2
-        node_tree.links.new(hardness, mix_node.inputs[0])  # Fac
+        node_tree.links.new(hardness_output, mix_node.inputs[0])  # Fac
 
     # mode == 0 (Lighten)
     compare_0 = new_math("COMPARE", 0.0)

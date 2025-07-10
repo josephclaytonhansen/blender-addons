@@ -14,23 +14,9 @@ def create_mode_mix_nodes(
     mode_value_output,
     base_color_input,
     edit_color_output,
-    mask_output,
+    hardness,
     location,
 ):
-    """
-    Creates a node-based switch system for 5 different mix modes:
-    0 = Lighten, 1 = Subtract, 2 = Multiply, 3 = Darken, 4 = Add
-    Args:
-        node_tree: The material node tree
-        mode_value_output: Output socket containing the mode value (0-4)
-        base_color_input: Input socket for the base color
-        edit_color_output: Output socket from the edit node
-        mask_output: Output socket containing the mask value
-        location: Base location for positioning nodes
-
-    Returns:
-        final_output: The output socket of the final mixed result
-    """
 
     def new_math(op, val=None):
         node = node_tree.nodes.new("ShaderNodeMath")
@@ -54,7 +40,7 @@ def create_mode_mix_nodes(
     for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
         node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
         node_tree.links.new(edit_color_output, mix_node.inputs[2])  # Color2
-        node_tree.links.new(mask_output, mix_node.inputs[0])  # Fac
+        node_tree.links.new(hardness, mix_node.inputs[0])  # Fac
 
     # mode == 0 (Lighten)
     compare_0 = new_math("COMPARE", 0.0)
@@ -203,7 +189,6 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         new_node.label = node_instance_name
         new_node.location.x -= 200
 
-        # Create attribute node first (needed for unpacking)
         attr_node = node_tree.nodes.new("ShaderNodeAttribute")
         attr_node.attribute_name = f"packed:{empty_obj.name}"
         attr_node.label = f"packed:{empty_obj.name}"
@@ -228,28 +213,24 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         attr_node.location.x = new_node.location.x - 200
         attr_node.location.y = new_y_pos - 200
 
-        # Unpack the attributes and get the outputs we need
-        mode_raw, mask_value = hansens_float_packer.unpack_nodes(
-            attribute_node=attr_node, edit_node=new_node, node_tree=node_tree
+        mode_raw, mask_value, hardness_value = hansens_float_packer.unpack_nodes(
+            attribute_node=attr_node, edit_node=new_node, node_tree=node_tree, effect_empty=empty_obj
         )
 
-        # Determine base color input
         if previous_link:
             base_color_socket = previous_link.from_socket
         else:
             base_color_socket = source_node.outputs[0]
 
-        # Create the mode-based mix node system
         final_output = create_mode_mix_nodes(
             node_tree=node_tree,
             mode_value_output=mode_raw.outputs[0],
             base_color_input=base_color_socket,
             edit_color_output=new_node.outputs[0],
-            mask_output=mask_value.outputs[0],
+            hardness_output=hardness_value.outputs[0],
             location=Vector((new_node.location.x + 400, new_node.location.y)),
         )
 
-        # Connect the final output to the destination
         node_tree.links.new(final_output, dest_node.inputs[0])
 
         active_item.added_to_material = True

@@ -203,7 +203,10 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     node_tree.links.new(blue, mask_raw.inputs[0])
     mask_value = new_math("DIVIDE", 100.0)
     node_tree.links.new(mask_raw.outputs[0], mask_value.inputs[0])
-    node_tree.links.new(mask_value.outputs[0], edit_node.inputs[6])
+    # Make mask negative
+    mask_sign = new_math("MULTIPLY", -1.0)
+    node_tree.links.new(mask_value.outputs[0], mask_sign.inputs[0])
+    node_tree.links.new(mask_sign.outputs[0], edit_node.inputs[6])
 
     return (mode_raw, mask_value, hardness_value)
 

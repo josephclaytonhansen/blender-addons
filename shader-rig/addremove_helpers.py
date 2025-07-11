@@ -40,7 +40,7 @@ class SR_OT_RigList_Add(Operator):
         if scene.shading_rig_default_light:
             new_item.light_object = scene.shading_rig_default_light
 
-        bpy.ops.object.empty_add(type="SPHERE", align="VIEW", location=cursor_location)
+        bpy.ops.object.empty_add(type="SPHERE", location=cursor_location)
         new_empty = context.active_object
         new_empty.empty_display_size = 0.05
         new_empty.show_name = True
@@ -58,7 +58,6 @@ class SR_OT_RigList_Add(Operator):
 
         json_helpers.set_shading_rig_list_index(len(rig_list) - 1)
 
-        # create custom properties on objects with the material
         objects_with_material = []
         for obj in bpy.data.objects:
             if any(s.material == new_item.material for s in obj.material_slots):

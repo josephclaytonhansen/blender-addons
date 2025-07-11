@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 36),
+    "version": (1, 3, 55),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -186,8 +186,8 @@ class SR_RigItem(PropertyGroup):
     mask: FloatProperty(
         name="Mask",
         default=0.5,
-        min=0.0,
-        max=1.0,
+        min=0,
+        max=1,
         step=0.05,
         update=update_helpers.property_update_sync,
     )
@@ -403,10 +403,36 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "mode")
 
                 if not active_item.added_to_material:
-                    col.operator(
-                        setup_helpers.SR_OT_AddEditCoordinatesNode.bl_idname,
-                        icon="NODETREE",
-                    )
+                    active_object = context.active_object
+                    if (
+                        active_object
+                        and active_object.type == "MESH"
+                        and active_item.material
+                        and active_item.material.node_tree
+                    ):
+                        if (
+                            active_object.dimensions.x >= 2.0
+                            or active_object.dimensions.y >= 2.0
+                            or active_object.dimensions.z >= 2.0
+                        ):
+                            col.label(
+                                text="Active object is too large for shading rig edits to work properly.",
+                            )
+                            col.label(
+                                text="You must scale down your object and then rescale."
+                            )
+                            col.label(
+                                text="Shading Rig works best on human-sized characters, give or take a meter."
+                            )
+                        else:
+                            col.operator(
+                                setup_helpers.SR_OT_AddEditCoordinatesNode.bl_idname,
+                                icon="NODETREE",
+                            )
+                    else:
+                        col.label(
+                            text="Select a set-up mesh object",
+                        )
 
             box = layout.box()
             box.label(text="Correlations")

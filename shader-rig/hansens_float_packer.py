@@ -141,16 +141,16 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     node_tree.links.new(sharpness_raw.outputs[0], sharpness_value.inputs[0])
     node_tree.links.new(sharpness_value.outputs[0], edit_node.inputs[2])
 
-    # GREEN CHANNEL: bend (4 digits) + sign (1 digit) + hardness (3 digits)
-    # Extract bend value (first 4 digits)
-    bend_div = new_math("DIVIDE", 10000.0)
-    node_tree.links.new(green, bend_div.inputs[0])
-    bend_raw = new_math("FLOOR")
-    node_tree.links.new(bend_div.outputs[0], bend_raw.inputs[0])
-    bend_value = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(bend_raw.outputs[0], bend_value.inputs[0])
+    # GREEN CHANNEL: hardness (3 digits) + sign (1 digit) + bend (3 digits)
+    # Extract hardness value (first 3 digits)
+    hardness_div = new_math("DIVIDE", 10000.0)
+    node_tree.links.new(green, hardness_div.inputs[0])
+    hardness_raw = new_math("FLOOR")
+    node_tree.links.new(hardness_div.outputs[0], hardness_raw.inputs[0])
+    hardness_value = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
 
-    # Extract bend sign (5th digit)
+    # Extract bend sign (4th digit)
     green_mod_10000 = new_math("MODULO", 10000.0)
     node_tree.links.new(green, green_mod_10000.inputs[0])
     bend_sign_div = new_math("DIVIDE", 1000.0)
@@ -158,16 +158,15 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     bend_sign_raw = new_math("FLOOR")
     node_tree.links.new(bend_sign_div.outputs[0], bend_sign_raw.inputs[0])
 
+    # Extract bend (last 3 digits)
+    bend_raw = new_math("MODULO", 1000.0)
+    node_tree.links.new(green, bend_raw.inputs[0])
+    bend_value = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(bend_raw.outputs[0], bend_value.inputs[0])
+
     # Apply sign to bend
     bend_signed = apply_sign(bend_value, bend_sign_raw)
     node_tree.links.new(bend_signed.outputs[0], edit_node.inputs[4])
-
-    # Extract hardness (last 3 digits)
-    hardness_raw = new_math("MODULO", 1000.0)
-    node_tree.links.new(green, hardness_raw.inputs[0])
-    hardness_value = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
-    node_tree.links.new(hardness_value.outputs[0], edit_node.inputs[3])
 
     # BLUE CHANNEL: bulge (4 digits) + sign (1 digit) + mode (2 digits) + mask (2 digits)
     # Extract bulge value (first 4 digits)

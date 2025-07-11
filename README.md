@@ -1,5 +1,6 @@
 [![Deploy docs to josephclaytonhansen.github.io/blender-addons](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/static.yml/badge.svg?branch=main)](https://josephclaytonhansen.github.io/blender-addons/)
 [![Pylint](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml)
+[![CodeQL](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql)
 
 ## Shading Rig + Cel Character Tools
 More information coming soon.

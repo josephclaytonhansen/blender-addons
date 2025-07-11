@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 55),
+    "version": (1, 3, 58),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -400,7 +400,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "bulge")
                 col.prop(active_item, "bend")
                 col.prop(active_item, "mask")
-                col.prop(active_item, "mode")
+                # col.prop(active_item, "mode")
 
                 if not active_item.added_to_material:
                     active_object = context.active_object

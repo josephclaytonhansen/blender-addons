@@ -4,142 +4,10 @@ import bpy
 from bpy.types import (
     Operator,
 )
-from mathutils import Vector, Matrix
+from mathutils import Matrix
 
 from . import hansens_float_packer, json_helpers
 
-
-def create_mode_mix_nodes(
-    node_tree,
-    mode_value_output,
-    base_color_input,
-    edit_color_output,
-    hardness_output,
-    location,
-):
-
-    def new_math(op, val=None):
-        node = node_tree.nodes.new("ShaderNodeMath")
-        node.operation = op
-        if val is not None:
-            node.inputs[1].default_value = val
-        return node
-
-    def new_mix(blend_type, x_offset=0, y_offset=0):
-        node = node_tree.nodes.new("ShaderNodeMixRGB")
-        node.blend_type = blend_type
-        node.location = location + Vector((x_offset, y_offset))
-        return node
-
-    # Create all blend mode mix nodes
-    mix_lighten = new_mix("LIGHTEN", 0, 200)  # mode 0
-    mix_subtract = new_mix("SUBTRACT", 0, 100)  # mode 1
-    mix_multiply = new_mix("MULTIPLY", 0, 0)  # mode 2
-    mix_darken = new_mix("DARKEN", 0, -100)  # mode 3
-    mix_add = new_mix("ADD", 0, -200)  # mode 4
-
-    # Connect inputs to all blend modes
-    for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
-        node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
-        node_tree.links.new(edit_color_output, mix_node.inputs[2])  # Color2
-        node_tree.links.new(hardness_output, mix_node.inputs[0])  # Fac
-
-    # Create a more robust mode selection system using floor and modulo
-    # This handles floating point precision better
-
-    # Round the mode value to nearest integer
-    mode_rounded = new_math("ROUND")
-    mode_rounded.location = location + Vector((200, 300))
-    node_tree.links.new(mode_value_output, mode_rounded.inputs[0])
-
-    # Clamp mode between 0 and 4
-    mode_clamped = new_math("MAXIMUM", 0.0)
-    mode_clamped.location = location + Vector((300, 300))
-    node_tree.links.new(mode_rounded.outputs[0], mode_clamped.inputs[0])
-
-    mode_clamped2 = new_math("MINIMUM", 4.0)
-    mode_clamped2.location = location + Vector((400, 300))
-    node_tree.links.new(mode_clamped.outputs[0], mode_clamped2.inputs[0])
-
-    # Create selection logic for each mode
-    # Use a different approach: create factors for each mode
-
-    # Mode 0 factor: 1 when mode == 0, 0 otherwise
-    mode_0_check = new_math("COMPARE", 0.0)
-    mode_0_check.location = location + Vector((500, 200))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_0_check.inputs[0])
-
-    # Mode 1 factor: 1 when mode == 1, 0 otherwise
-    mode_1_check = new_math("COMPARE", 1.0)
-    mode_1_check.location = location + Vector((500, 100))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_1_check.inputs[0])
-
-    # Mode 2 factor: 1 when mode == 2, 0 otherwise
-    mode_2_check = new_math("COMPARE", 2.0)
-    mode_2_check.location = location + Vector((500, 0))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_2_check.inputs[0])
-
-    # Mode 3 factor: 1 when mode == 3, 0 otherwise
-    mode_3_check = new_math("COMPARE", 3.0)
-    mode_3_check.location = location + Vector((500, -100))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_3_check.inputs[0])
-
-    # Mode 4 factor: 1 when mode == 4, 0 otherwise
-    mode_4_check = new_math("COMPARE", 4.0)
-    mode_4_check.location = location + Vector((500, -200))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_4_check.inputs[0])
-
-    # Create weighted sum of all modes
-    # This is more reliable than cascading mix nodes
-
-    # Multiply each blend result by its mode factor
-    weighted_0 = new_mix("MULTIPLY", 700, 200)
-    node_tree.links.new(mode_0_check.outputs[0], weighted_0.inputs[0])  # Factor
-    node_tree.links.new(mix_lighten.outputs[0], weighted_0.inputs[1])   # Color1 (used as base)
-    weighted_0.inputs[2].default_value = (0, 0, 0, 1)  # Color2 (black)
-
-    weighted_1 = new_mix("MULTIPLY", 700, 100)
-    node_tree.links.new(mode_1_check.outputs[0], weighted_1.inputs[0])
-    node_tree.links.new(mix_subtract.outputs[0], weighted_1.inputs[1])
-    weighted_1.inputs[2].default_value = (0, 0, 0, 1)
-
-    weighted_2 = new_mix("MULTIPLY", 700, 0)
-    node_tree.links.new(mode_2_check.outputs[0], weighted_2.inputs[0])
-    node_tree.links.new(mix_multiply.outputs[0], weighted_2.inputs[1])
-    weighted_2.inputs[2].default_value = (0, 0, 0, 1)
-
-    weighted_3 = new_mix("MULTIPLY", 700, -100)
-    node_tree.links.new(mode_3_check.outputs[0], weighted_3.inputs[0])
-    node_tree.links.new(mix_darken.outputs[0], weighted_3.inputs[1])
-    weighted_3.inputs[2].default_value = (0, 0, 0, 1)
-
-    weighted_4 = new_mix("MULTIPLY", 700, -200)
-    node_tree.links.new(mode_4_check.outputs[0], weighted_4.inputs[0])
-    node_tree.links.new(mix_add.outputs[0], weighted_4.inputs[1])
-    weighted_4.inputs[2].default_value = (0, 0, 0, 1)
-
-    # Add all weighted results together
-    sum_01 = new_mix("ADD", 900, 150)
-    node_tree.links.new(weighted_0.outputs[0], sum_01.inputs[1])
-    node_tree.links.new(weighted_1.outputs[0], sum_01.inputs[2])
-    sum_01.inputs[0].default_value = 1.0  # Full factor
-
-    sum_23 = new_mix("ADD", 900, -50)
-    node_tree.links.new(weighted_2.outputs[0], sum_23.inputs[1])
-    node_tree.links.new(weighted_3.outputs[0], sum_23.inputs[2])
-    sum_23.inputs[0].default_value = 1.0
-
-    sum_0123 = new_mix("ADD", 1100, 50)
-    node_tree.links.new(sum_01.outputs[0], sum_0123.inputs[1])
-    node_tree.links.new(sum_23.outputs[0], sum_0123.inputs[2])
-    sum_0123.inputs[0].default_value = 1.0
-
-    final_sum = new_mix("ADD", 1300, 0)
-    node_tree.links.new(sum_0123.outputs[0], final_sum.inputs[1])
-    node_tree.links.new(weighted_4.outputs[0], final_sum.inputs[2])
-    final_sum.inputs[0].default_value = 1.0
-
-    return final_sum.outputs[0]
 
 def update_material(self, context):
     self.added_to_material = False
@@ -185,9 +53,10 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         bl = active_item.empty_object.location
         distance = (al - bl).length
         if distance > 1.5:
-            cls.poll_message_set(
-                "Move the empty object closer to the active object"
-            )
+            cls.poll_message_set("Move the empty object closer to the active object")
+            return False
+        elif distance < 0.1:
+            cls.poll_message_set("Move the empty object outside of the active object")
             return False
 
         mat = active_item.material
@@ -206,6 +75,9 @@ class SR_OT_AddEditCoordinatesNode(Operator):
                     "Material must contain 'ShadingRig_Entry' and 'ShadingRig_Ramp' nodes!"
                 )
                 return False
+        else:
+            cls.poll_message_set("Material must have a valid node tree!")
+            return False
 
         return True
 
@@ -278,16 +150,16 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         else:
             base_color_socket = source_node.outputs[0]
 
-        final_output = create_mode_mix_nodes(
-            node_tree=node_tree,
-            mode_value_output=mode_raw.outputs[0],
-            base_color_input=base_color_socket,
-            edit_color_output=new_node.outputs[0],
-            hardness_output=hardness_value.outputs[0],
-            location=Vector((new_node.location.x + 400, new_node.location.y)),
-        )
+        mix_node_lighten = node_tree.nodes.new("ShaderNodeMixRGB")
+        mix_node_lighten.location.x = new_node.location.x - 200
+        mix_node_lighten.location.y = new_y_pos - 200
+        mix_node_lighten.blend_type = "LIGHTEN"
 
-        node_tree.links.new(final_output, dest_node.inputs[0])
+        node_tree.links.new(base_color_socket, mix_node_lighten.inputs[1])
+        node_tree.links.new(new_node.outputs[0], mix_node_lighten.inputs[2])
+        node_tree.links.new(hardness_value.outputs[0], mix_node_lighten.inputs[0])
+
+        node_tree.links.new(mix_node_lighten.outputs[0], dest_node.inputs[0])
 
         active_item.added_to_material = True
         self.report(

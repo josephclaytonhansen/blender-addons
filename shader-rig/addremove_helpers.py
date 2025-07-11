@@ -42,11 +42,9 @@ class SR_OT_RigList_Add(Operator):
 
         bpy.ops.object.empty_add(type="SPHERE", location=cursor_location)
         new_empty = context.active_object
-        new_empty.empty_display_size = 0.05
+        new_empty.empty_display_size = 0.15
         new_empty.show_name = True
         new_empty.show_in_front = True
-
-        bpy.ops.transform.resize(value=(1.5, 1.5, 1.5))
 
         new_item.empty_object = new_empty
 

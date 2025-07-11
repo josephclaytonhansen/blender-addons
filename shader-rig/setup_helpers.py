@@ -4,7 +4,7 @@ import bpy
 from bpy.types import (
     Operator,
 )
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 
 from . import hansens_float_packer, json_helpers
 
@@ -13,17 +13,167 @@ def update_material(self, context):
     self.added_to_material = False
 
 
-class SR_OT_AddEditCoordinatesNode(Operator):
+def create_mode_mix_nodes(
+    node_tree,
+    mode_value_output,
+    base_color_input,
+    effect_color_output,
+    hardness_output,
+    location,
+):
+
+    def new_math(op, val=None):
+        node = node_tree.nodes.new("ShaderNodeMath")
+        node.operation = op
+        if val is not None:
+            node.inputs[1].default_value = val
+        return node
+
+    def new_mix(blend_type, x_offset=0, y_offset=0):
+        node = node_tree.nodes.new("ShaderNodeMixRGB")
+        node.blend_type = blend_type
+        node.location = location + Vector((x_offset, y_offset))
+        return node
+
+    # Create all blend mode mix nodes
+    mix_lighten = new_mix("LIGHTEN", 0, 200)  # mode 0
+    mix_subtract = new_mix("SUBTRACT", 0, 100)  # mode 1
+    mix_multiply = new_mix("MULTIPLY", 0, 0)  # mode 2
+    mix_darken = new_mix("DARKEN", 0, -100)  # mode 3
+    mix_add = new_mix("ADD", 0, -200)  # mode 4
+
+    # Connect inputs to all blend modes
+    for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
+        node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
+        node_tree.links.new(effect_color_output, mix_node.inputs[2])  # Color2
+        node_tree.links.new(hardness_output, mix_node.inputs[0])  # Fac
+
+    # Round the mode value to nearest integer
+    mode_rounded = new_math("ROUND")
+    mode_rounded.location = location + Vector((200, 300))
+    node_tree.links.new(mode_value_output, mode_rounded.inputs[0])
+
+    # Clamp mode between 0 and 4
+    mode_clamped = new_math("MAXIMUM", 0.0)
+    mode_clamped.location = location + Vector((300, 300))
+    node_tree.links.new(mode_rounded.outputs[0], mode_clamped.inputs[0])
+
+    mode_clamped2 = new_math("MINIMUM", 4.0)
+    mode_clamped2.location = location + Vector((400, 300))
+    node_tree.links.new(mode_clamped.outputs[0], mode_clamped2.inputs[0])
+
+    mode_0_check = new_math("COMPARE", 0.0)
+    mode_0_check.location = location + Vector((500, 200))
+    node_tree.links.new(mode_clamped2.outputs[0], mode_0_check.inputs[0])
+
+    mode_1_check = new_math("COMPARE", 1.0)
+    mode_1_check.location = location + Vector((500, 100))
+    node_tree.links.new(mode_clamped2.outputs[0], mode_1_check.inputs[0])
+
+    mode_2_check = new_math("COMPARE", 2.0)
+    mode_2_check.location = location + Vector((500, 0))
+    node_tree.links.new(mode_clamped2.outputs[0], mode_2_check.inputs[0])
+
+    mode_3_check = new_math("COMPARE", 3.0)
+    mode_3_check.location = location + Vector((500, -100))
+    node_tree.links.new(mode_clamped2.outputs[0], mode_3_check.inputs[0])
+
+    mode_4_check = new_math("COMPARE", 4.0)
+    mode_4_check.location = location + Vector((500, -200))
+    node_tree.links.new(mode_clamped2.outputs[0], mode_4_check.inputs[0])
+
+    # Create selection factors by multiplying mode check with hardness
+    # This ensures hardness is properly applied to the selected mode
+
+    # Multiply mode selection by hardness to get the actual blend factor
+    factor_0 = new_math("MULTIPLY")
+    factor_0.location = location + Vector((700, 200))
+    node_tree.links.new(mode_0_check.outputs[0], factor_0.inputs[0])
+    node_tree.links.new(hardness_output, factor_0.inputs[1])
+
+    factor_1 = new_math("MULTIPLY")
+    factor_1.location = location + Vector((700, 100))
+    node_tree.links.new(mode_1_check.outputs[0], factor_1.inputs[0])
+    node_tree.links.new(hardness_output, factor_1.inputs[1])
+
+    factor_2 = new_math("MULTIPLY")
+    factor_2.location = location + Vector((700, 0))
+    node_tree.links.new(mode_2_check.outputs[0], factor_2.inputs[0])
+    node_tree.links.new(hardness_output, factor_2.inputs[1])
+
+    factor_3 = new_math("MULTIPLY")
+    factor_3.location = location + Vector((700, -100))
+    node_tree.links.new(mode_3_check.outputs[0], factor_3.inputs[0])
+    node_tree.links.new(hardness_output, factor_3.inputs[1])
+
+    factor_4 = new_math("MULTIPLY")
+    factor_4.location = location + Vector((700, -200))
+    node_tree.links.new(mode_4_check.outputs[0], factor_4.inputs[0])
+    node_tree.links.new(hardness_output, factor_4.inputs[1])
+
+    # Mix each blend result with the base color using the hardness-adjusted factor
+    # This properly applies hardness to each mode
+    final_0 = new_mix("MIX", 900, 200)
+    node_tree.links.new(
+        factor_0.outputs[0], final_0.inputs[0]
+    )  # Hardness * mode_selection
+    node_tree.links.new(base_color_input, final_0.inputs[1])  # Base color
+    node_tree.links.new(mix_lighten.outputs[0], final_0.inputs[2])  # Blend result
+
+    final_1 = new_mix("MIX", 900, 100)
+    node_tree.links.new(factor_1.outputs[0], final_1.inputs[0])
+    node_tree.links.new(base_color_input, final_1.inputs[1])
+    node_tree.links.new(mix_subtract.outputs[0], final_1.inputs[2])
+
+    final_2 = new_mix("MIX", 900, 0)
+    node_tree.links.new(factor_2.outputs[0], final_2.inputs[0])
+    node_tree.links.new(base_color_input, final_2.inputs[1])
+    node_tree.links.new(mix_multiply.outputs[0], final_2.inputs[2])
+
+    final_3 = new_mix("MIX", 900, -100)
+    node_tree.links.new(factor_3.outputs[0], final_3.inputs[0])
+    node_tree.links.new(base_color_input, final_3.inputs[1])
+    node_tree.links.new(mix_darken.outputs[0], final_3.inputs[2])
+
+    final_4 = new_mix("MIX", 900, -200)
+    node_tree.links.new(factor_4.outputs[0], final_4.inputs[0])
+    node_tree.links.new(base_color_input, final_4.inputs[1])
+    node_tree.links.new(mix_add.outputs[0], final_4.inputs[2])
+
+    sum_01 = new_mix("ADD", 1100, 150)
+    node_tree.links.new(final_0.outputs[0], sum_01.inputs[1])
+    node_tree.links.new(final_1.outputs[0], sum_01.inputs[2])
+    sum_01.inputs[0].default_value = 1.0
+
+    sum_23 = new_mix("ADD", 1100, -50)
+    node_tree.links.new(final_2.outputs[0], sum_23.inputs[1])
+    node_tree.links.new(final_3.outputs[0], sum_23.inputs[2])
+    sum_23.inputs[0].default_value = 1.0
+
+    sum_0123 = new_mix("ADD", 1300, 50)
+    node_tree.links.new(sum_01.outputs[0], sum_0123.inputs[1])
+    node_tree.links.new(sum_23.outputs[0], sum_0123.inputs[2])
+    sum_0123.inputs[0].default_value = 1.0
+
+    final_sum = new_mix("ADD", 1500, 0)
+    node_tree.links.new(sum_0123.outputs[0], final_sum.inputs[1])
+    node_tree.links.new(final_4.outputs[0], final_sum.inputs[2])
+    final_sum.inputs[0].default_value = 1.0
+
+    return final_sum.outputs[0]
+
+
+class SR_OT_AddEffectCoordinatesNode(Operator):
     """
-    Add the edit to the material
+    Add the effect to the material
     """
 
     # at one point, this just added the Coordinates,
     # now it does everything but I can't be
     # faffed to rename it
-    bl_idname = "shading_rig.add_edit_coordinates_node"
-    bl_label = "Add Edit to Material"
-    bl_description = "Adds the ShadingRigEdit node group and sets up Attributes"
+    bl_idname = "shading_rig.add_effect_coordinates_node"
+    bl_label = "Add Effect to Material"
+    bl_description = "Adds the ShadingRigEffect node group and sets up Attributes"
 
     @classmethod
     def poll(cls, context):
@@ -46,16 +196,16 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         if active_item.added_to_material:
             return False
 
-        if "ShadingRigEdit" not in bpy.data.node_groups:
+        if "ShadingRigEffect" not in bpy.data.node_groups:
             return False
 
         al = context.active_object.location
         bl = active_item.empty_object.location
         distance = (al - bl).length
-        if distance > 1.5:
+        if distance > 2:
             cls.poll_message_set("Move the empty object closer to the active object")
             return False
-        elif distance < 0.1:
+        elif distance < 0.25:
             cls.poll_message_set("Move the empty object outside of the active object")
             return False
 
@@ -99,9 +249,9 @@ class SR_OT_AddEditCoordinatesNode(Operator):
         nodes = node_tree.nodes
         source_node = nodes.get("ShadingRig_Entry")
         dest_node = nodes.get("ShadingRig_Ramp")
-        edit_coords_group = bpy.data.node_groups[node_group_name]
+        effect_coords_group = bpy.data.node_groups[node_group_name]
         new_node = material.node_tree.nodes.new("ShaderNodeGroup")
-        new_node.node_tree = edit_coords_group
+        new_node.node_tree = effect_coords_group
         empty_obj = active_item.empty_object
 
         if not empty_obj:
@@ -140,26 +290,42 @@ class SR_OT_AddEditCoordinatesNode(Operator):
 
         mode_raw, mask_value, hardness_value = hansens_float_packer.unpack_nodes(
             attribute_node=attr_node,
-            edit_node=new_node,
+            effect_node=new_node,
             node_tree=node_tree,
             effect_empty=empty_obj,
         )
+
+        # if previous_link:
+        #     base_color_socket = previous_link.from_socket
+        # else:
+        #     base_color_socket = source_node.outputs[0]
+
+        # mix_node_lighten = node_tree.nodes.new("ShaderNodeMixRGB")
+        # mix_node_lighten.location.x = new_node.location.x - 200
+        # mix_node_lighten.location.y = new_y_pos - 200
+        # mix_node_lighten.blend_type = "LIGHTEN"
+
+        # node_tree.links.new(base_color_socket, mix_node_lighten.inputs[1])
+        # node_tree.links.new(new_node.outputs[0], mix_node_lighten.inputs[2])
+        # node_tree.links.new(hardness_value.outputs[0], mix_node_lighten.inputs[0])
+
+        # node_tree.links.new(mix_node_lighten.outputs[0], dest_node.inputs[0])
 
         if previous_link:
             base_color_socket = previous_link.from_socket
         else:
             base_color_socket = source_node.outputs[0]
 
-        mix_node_lighten = node_tree.nodes.new("ShaderNodeMixRGB")
-        mix_node_lighten.location.x = new_node.location.x - 200
-        mix_node_lighten.location.y = new_y_pos - 200
-        mix_node_lighten.blend_type = "LIGHTEN"
+        final_output = create_mode_mix_nodes(
+            node_tree=node_tree,
+            mode_value_output=mode_raw.outputs[0],
+            base_color_input=base_color_socket,
+            effect_color_output=new_node.outputs[0],
+            hardness_output=hardness_value.outputs[0],
+            location=Vector((new_node.location.x + 400, new_node.location.y)),
+        )
 
-        node_tree.links.new(base_color_socket, mix_node_lighten.inputs[1])
-        node_tree.links.new(new_node.outputs[0], mix_node_lighten.inputs[2])
-        node_tree.links.new(hardness_value.outputs[0], mix_node_lighten.inputs[0])
-
-        node_tree.links.new(mix_node_lighten.outputs[0], dest_node.inputs[0])
+        node_tree.links.new(final_output, dest_node.inputs[0])
 
         active_item.added_to_material = True
         self.report(
@@ -183,7 +349,9 @@ class SR_OT_SetupObject(Operator):
     def poll(cls, context):
         base_mat_name = "ShadingRig_Base"
         if base_mat_name not in bpy.data.materials:
-            cls.poll_message_set(f"Base material '{base_mat_name}' not found.")
+            cls.poll_message_set(
+                f"Base material '{base_mat_name}' not found! Please append the required nodes first."
+            )
             return False
 
         obj = context.active_object
@@ -204,15 +372,17 @@ class SR_OT_SetupObject(Operator):
 
         if not obj.material_slots:
             bpy.ops.object.material_slot_add()
+            self.report({"INFO"}, "Material slot added to the object.")
 
         new_material = base_mat.copy()
 
-        obj.material_slots[0].material = new_material
+        obj.material_slots[len(obj.material_slots) - 1].material = new_material
 
         context.scene.shading_rig_default_material = new_material
 
         self.report(
-            {"INFO"}, f"'{obj.name}' set up with material '{new_material.name}'."
+            {"INFO"},
+            f"'{obj.name}' set up with material '{new_material.name}' on slot {len(obj.material_slots)-1}.",
         )
         json_helpers.sync_scene_to_json(context.scene)
 
@@ -230,7 +400,7 @@ class SR_OT_AppendNodes(Operator):
 
     @classmethod
     def poll(cls, context):
-        if "ShadingRigEdit" in bpy.data.node_groups:
+        if "ShadingRigEffect" in bpy.data.node_groups:
             cls.poll_message_set("Required nodes already exist in this file.")
             return False
         if "ShadingRig_Base" in bpy.data.materials:
@@ -244,7 +414,9 @@ class SR_OT_AppendNodes(Operator):
         directory = os.path.dirname(script_file)
         blend_file_path = os.path.join(directory, "shading_rig_nodes.blend")
         if not os.path.exists(blend_file_path):
-            cls.poll_message_set("Bundled 'shading_rig_nodes.blend' not found.")
+            cls.poll_message_set(
+                "Bundled 'shading_rig_nodes.blend' not found. Reinstall the addon."
+            )
             return False
 
         return True

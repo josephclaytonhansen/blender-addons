@@ -18,7 +18,7 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
 
     Blender can only handle 8 attribute nodes per material,
     which is not enough for a shading rig. This algorithm
-    allows for 8 shading edits per shading rig per material,
+    allows for 8 shading effects per shading rig per material,
     which should be enough.
 
     Elong (-.999 to .999) 4d
@@ -72,7 +72,7 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
     return (red, green, blue)
 
 
-def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
+def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     def new_math(op, val=None):
         node = node_tree.nodes.new("ShaderNodeMath")
         node.operation = op
@@ -98,7 +98,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     red, green, blue = separate.outputs[0], separate.outputs[1], separate.outputs[2]
 
     """
-    Edit node inputs, in order:
+    Effect node inputs, in order:
     emptyVector
     Elongation
     Sharpness
@@ -111,7 +111,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     # Set the Object in the Texture Coordinate to effect_empty
     tex_coord = node_tree.nodes.new("ShaderNodeTexCoord")
     tex_coord.object = effect_empty
-    node_tree.links.new(tex_coord.outputs[3], edit_node.inputs[0])
+    node_tree.links.new(tex_coord.outputs[3], effect_node.inputs[0])
 
     # RED CHANNEL: elongation (4 digits) + sign (1 digit) + sharpness (3 digits)
     # Extract elongation value (first 4 digits)
@@ -132,14 +132,14 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
 
     # Apply sign to elongation
     elongation_signed = apply_sign(elongation_value, elongation_sign_raw)
-    node_tree.links.new(elongation_signed.outputs[0], edit_node.inputs[1])
+    node_tree.links.new(elongation_signed.outputs[0], effect_node.inputs[1])
 
     # Extract sharpness (last 3 digits)
     sharpness_raw = new_math("MODULO", 1000.0)
     node_tree.links.new(red, sharpness_raw.inputs[0])
     sharpness_value = new_math("DIVIDE", 1000.0)
     node_tree.links.new(sharpness_raw.outputs[0], sharpness_value.inputs[0])
-    node_tree.links.new(sharpness_value.outputs[0], edit_node.inputs[2])
+    node_tree.links.new(sharpness_value.outputs[0], effect_node.inputs[2])
 
     # GREEN CHANNEL: hardness (3 digits) + sign (1 digit) + bend (3 digits)
     # Extract hardness value (first 3 digits)
@@ -148,9 +148,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     hardness_raw = new_math("FLOOR")
     node_tree.links.new(hardness_div.outputs[0], hardness_raw.inputs[0])
     hardness_value = new_math("DIVIDE", 1000.0)
-    hardness_multiply = new_math("MULTIPLY", 2.0)
-    node_tree.links.new(hardness_raw.outputs[0], hardness_multiply.inputs[0])
-    node_tree.links.new(hardness_multiply.outputs[0], hardness_value.inputs[0])
+    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
 
     # Extract bend sign (4th digit)
     green_mod_10000 = new_math("MODULO", 10000.0)
@@ -168,7 +166,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
 
     # Apply sign to bend
     bend_signed = apply_sign(bend_value, bend_sign_raw)
-    node_tree.links.new(bend_signed.outputs[0], edit_node.inputs[4])
+    node_tree.links.new(bend_signed.outputs[0], effect_node.inputs[4])
 
     # BLUE CHANNEL: bulge (4 digits) + sign (1 digit) + mode (2 digits) + mask (2 digits)
     # Extract bulge value (first 4 digits)
@@ -189,7 +187,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
 
     # Apply sign to bulge
     bulge_signed = apply_sign(bulge_value, bulge_sign_raw)
-    node_tree.links.new(bulge_signed.outputs[0], edit_node.inputs[5])
+    node_tree.links.new(bulge_signed.outputs[0], effect_node.inputs[5])
 
     # Extract mode (next 2 digits)
     blue_mod_1000 = new_math("MODULO", 1000.0)
@@ -207,7 +205,7 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     # Make mask negative
     mask_sign = new_math("MULTIPLY", -1.0)
     node_tree.links.new(mask_value.outputs[0], mask_sign.inputs[0])
-    node_tree.links.new(mask_sign.outputs[0], edit_node.inputs[6])
+    node_tree.links.new(mask_sign.outputs[0], effect_node.inputs[6])
 
     return (mode_raw, mask_value, hardness_value)
 

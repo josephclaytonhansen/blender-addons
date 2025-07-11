@@ -7,11 +7,11 @@ from . import json_helpers
 
 
 class SR_OT_RigList_Add(Operator):
-    """Add a new edit to the list."""
+    """Add a new effect to the list."""
 
     bl_idname = "shading_rig.list_add"
-    bl_label = "Add Edit"
-    bl_description = "Create a new Empty as a new edit"
+    bl_label = "Add Effect"
+    bl_description = "Create a new Empty as a new effect"
 
     @classmethod
     def poll(cls, context):
@@ -49,7 +49,7 @@ class SR_OT_RigList_Add(Operator):
         new_item.empty_object = new_empty
 
         new_item.name = (
-            f"SR_Edit_{scene.shading_rig_chararacter_name}_{len(rig_list):03d}"
+            f"SR_Effect_{scene.shading_rig_chararacter_name}_{len(rig_list):03d}"
         )
 
         new_item.last_empty_name = new_item.name
@@ -130,19 +130,19 @@ class SR_OT_Correlation_Add(Operator):
             json_helpers.get_shading_rig_list_index() >= 0
             and len(scene.shading_rig_list) > 0
         ):
-            cls.poll_message_set("No edits in the list.")
+            cls.poll_message_set("No effects in the list.")
             return False
 
         if not scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ].light_object:
-            cls.poll_message_set("Active edit has no Light Object assigned.")
+            cls.poll_message_set("Active effect has no Light Object assigned.")
             return False
 
         if not scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ].empty_object:
-            cls.poll_message_set("Active edit has no Empty Object assigned.")
+            cls.poll_message_set("Active effect has no Empty Object assigned.")
             return False
 
         if not scene.shading_rig_chararacter_name:
@@ -152,7 +152,7 @@ class SR_OT_Correlation_Add(Operator):
         if not scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ].added_to_material:
-            cls.poll_message_set("Add the edit to a material first.")
+            cls.poll_message_set("Add the effect to a material first.")
             return False
 
         return True
@@ -169,7 +169,7 @@ class SR_OT_Correlation_Add(Operator):
 
             if not light_obj or not empty_obj:
                 self.report(
-                    {"ERROR"}, "Active edit has no Light or Empty Object assigned."
+                    {"ERROR"}, "Active effect has no Light or Empty Object assigned."
                 )
                 return {"CANCELLED"}
 
@@ -194,11 +194,11 @@ class SR_OT_Correlation_Add(Operator):
 
 
 class SR_OT_Correlation_Remove(Operator):
-    """Remove the selected correlation from the active edit."""
+    """Remove the selected correlation from the active effect."""
 
     bl_idname = "shading_rig.correlation_remove"
     bl_label = "Remove Correlation"
-    bl_description = "Remove the selected correlation from the active edit"
+    bl_description = "Remove the selected correlation from the active effect"
 
     @classmethod
     def poll(cls, context):
@@ -208,7 +208,7 @@ class SR_OT_Correlation_Remove(Operator):
             json_helpers.get_shading_rig_list_index() >= 0
             and len(scene.shading_rig_list) > 0
         ):
-            cls.poll_message_set("No edits in the list.")
+            cls.poll_message_set("No effects in the list.")
             return False
         active_rig_item = scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
@@ -233,7 +233,7 @@ class SR_OT_Correlation_Remove(Operator):
         else:
             active_rig_item.correlations_index = 0
 
-        self.report({"INFO"}, f"Removed correlation '{removed_name}' from edit.")
+        self.report({"INFO"}, f"Removed correlation '{removed_name}' from effect.")
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
 
@@ -242,9 +242,9 @@ class SR_OT_RigList_Remove(Operator):
     """Remove the selected rig from the list."""
 
     bl_idname = "shading_rig.list_remove"
-    bl_label = "Remove Edit"
+    bl_label = "Remove Effect"
     bl_description = (
-        "Remove the selected edit and its associated objects from the scene"
+        "Remove the selected effect and its associated objects from the scene"
     )
 
     @classmethod

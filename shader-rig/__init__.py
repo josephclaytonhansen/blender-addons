@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 32),
+    "version": (1, 3, 72),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -98,8 +98,8 @@ class SR_RigItem(PropertyGroup):
     """A single rig item containing an Empty and a Light object."""
 
     name: StringProperty(
-        name="Edit Name",
-        description="Name of the shading rig edit",
+        name="Effect Name",
+        description="Name of the shading rig effect",
         update=sr_rig_item_name_update,
     )
 
@@ -134,7 +134,7 @@ class SR_RigItem(PropertyGroup):
 
     added_to_material: BoolProperty(
         name="Node Group Added",
-        description="Tracks if the EditCoordinates node has been added to the material",
+        description="Tracks if the EffectCoordinates node has been added to the material",
         default=False,
     )
 
@@ -186,15 +186,15 @@ class SR_RigItem(PropertyGroup):
     mask: FloatProperty(
         name="Mask",
         default=0.5,
-        min=0.0,
-        max=1.0,
+        min=0,
+        max=1,
         step=0.05,
         update=update_helpers.property_update_sync,
     )
 
     mode: IntProperty(
         name="Mode",
-        description="Mode of the shading rig edit",
+        description="Mode of the shading rig effect",
         default=0,
         min=0,
         max=4,
@@ -252,7 +252,7 @@ class SR_UL_CorrelationList(UIList):
 class SR_PT_ShadingRigPanel(Panel):
     """Creates a Panel in the 3D Viewport's sidebar."""
 
-    bl_label = "Shading Rig Edits"
+    bl_label = "Shading Rig Effects"
     bl_idname = "SR_PT_shading_rig_panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -337,7 +337,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 active_item,
                 "show_active_settings",
                 icon="TRIA_DOWN" if active_item.show_active_settings else "TRIA_RIGHT",
-                text="Active Edit Settings",
+                text="Active Effect Settings",
                 emboss=False,
             )
 
@@ -399,14 +399,40 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "hardness")
                 col.prop(active_item, "bulge")
                 col.prop(active_item, "bend")
-                col.prop(active_item, "mask")
+                # col.prop(active_item, "mask")
                 col.prop(active_item, "mode")
 
                 if not active_item.added_to_material:
-                    col.operator(
-                        setup_helpers.SR_OT_AddEditCoordinatesNode.bl_idname,
-                        icon="NODETREE",
-                    )
+                    active_object = context.active_object
+                    if (
+                        active_object
+                        and active_object.type == "MESH"
+                        and active_item.material
+                        and active_item.material.node_tree
+                    ):
+                        if (
+                            active_object.dimensions.x > 2.0
+                            or active_object.dimensions.y > 2.0
+                            or active_object.dimensions.z > 2.0
+                        ):
+                            col.label(
+                                text="Active object is too large for shading rig effects to work properly.",
+                            )
+                            col.label(
+                                text="You must scale down your object, add the effect, and then rescale."
+                            )
+                            col.label(
+                                text="Shading Rig works best on human-sized characters."
+                            )
+                        else:
+                            col.operator(
+                                setup_helpers.SR_OT_AddEffectCoordinatesNode.bl_idname,
+                                icon="NODETREE",
+                            )
+                    else:
+                        col.label(
+                            text="Select a set-up mesh object",
+                        )
 
             box = layout.box()
             box.label(text="Correlations")
@@ -464,7 +490,7 @@ def update_shading_rig_handler(scene, depsgraph):
     2. Interpolates Empty transform based on Light rotation.
     """
     # realistically, though, something is almost certain
-    # to break if you rename an edit...
+    # to break if you rename an effect...
     # I'll probably fix that at some point
     for rig_item in scene.shading_rig_list:
         empty_obj = rig_item.empty_object
@@ -481,8 +507,8 @@ def update_shading_rig_handler(scene, depsgraph):
             if rig_item.material and rig_item.material.node_tree:
                 node_tree = rig_item.material.node_tree
 
-                old_shading_node_name = f"ShadingRigEdit_{old_empty_name}"
-                new_shading_node_name = f"ShadingRigEdit_{current_empty_name}"
+                old_shading_node_name = f"ShadingRigEffect_{old_empty_name}"
+                new_shading_node_name = f"ShadingRigEffect_{current_empty_name}"
                 shading_node = node_tree.nodes.get(old_shading_node_name)
                 if shading_node:
                     shading_node.name = new_shading_node_name
@@ -547,7 +573,7 @@ CLASSES = [
     SR_UL_RigList,
     SR_UL_CorrelationList,
     addremove_helpers.SR_OT_RigList_Add,
-    setup_helpers.SR_OT_AddEditCoordinatesNode,
+    setup_helpers.SR_OT_AddEffectCoordinatesNode,
     visual_helpers.SR_OT_SetEmptyDisplayType,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,

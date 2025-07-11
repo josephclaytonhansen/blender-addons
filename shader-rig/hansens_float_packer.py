@@ -148,7 +148,9 @@ def unpack_nodes(attribute_node, edit_node, node_tree, effect_empty):
     hardness_raw = new_math("FLOOR")
     node_tree.links.new(hardness_div.outputs[0], hardness_raw.inputs[0])
     hardness_value = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
+    hardness_multiply = new_math("MULTIPLY", 2.0)
+    node_tree.links.new(hardness_raw.outputs[0], hardness_multiply.inputs[0])
+    node_tree.links.new(hardness_multiply.outputs[0], hardness_value.inputs[0])
 
     # Extract bend sign (4th digit)
     green_mod_10000 = new_math("MODULO", 10000.0)

@@ -1050,17 +1050,17 @@
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a> / Shading Rig / Advanced Usage</p>
 <p>Showing Shading Rig on a test sphere is all fine and well, but it's obviously not a recreation of a production character. For this part of the docs, I'm going to use this bust, which already has a complex material with textures:
-<a href="../img/sr/srmt-1.png"><img src="../img/sr/srmt-1.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-1.jpeg"><img src="../img/sr/srmt-1.jpeg" width="100%"/></a></p>
 <p>My goal here is to integrate a shading rig on this bust without breaking the existing materials and show real production techniques.</p>
 <h3 id="adding-a-shading-rig-to-an-existing-material">Adding a Shading Rig to an Existing Material</h3>
 <p>When you have a complex material, you can still add a shading rig to it. You just have to add the neccesary nodes from the Shading Rig to your existing material.</p>
 <p>Click <strong>Set Up Shading Rig on Object</strong> like you normally would. </p>
 <p>When you <strong>Set Up Shading Rig on Object</strong>, you will have a new material slot added and a new material set to it:
-<a href="../img/sr/srmt-1a.png"><img src="../img/sr/srmt-1a.png" width="100%"/></a>
+<a href="../img/sr/srmt-1a.jpeg"><img src="../img/sr/srmt-1a.jpeg" width="100%"/></a>
 Your existing material(s) will be untouched. It is necessary to <strong>Set Up Shading Rig on Object</strong>, but you don't need to use this material. Let's get back to our existing material. Remove the slot and the material <code>ShadingRigBase_00x</code>. We're going to recreate the crucial elements of this material on our existing material.</p>
 <p>The Shadin Rig looks for <code>ShadingRig_Entry</code> and <code>ShadingRig_Ramp</code> nodes. <code>ShadingRig_Entry</code> is the diffuse, glossy, or otherwise pre-existing shading, converted to RGB. On your materials, this will likely mean renaming your Shader to RGB node to <code>ShadingRig_Entry</code>. Note that you must actually rename the node, not just change the label! </p>
 <p>In my case, I have a DiffuseToRGB shader group that outputs diffuse lighting as RGB, so I'm going to rename this node. You can change the name of a node in the Shader Editor sidebar:
-<a href="../img/sr/srmt-2.png"><img src="../img/sr/srmt-2.png" width="300px"/></a></p>
+<a href="../img/sr/srmt-2.jpeg"><img src="../img/sr/srmt-2.jpeg" width="300px"/></a></p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>What if want to use Glossy or something other than Diffuse? 
@@ -1068,36 +1068,36 @@ If you want to use Glossy or something other than Diffuse, you can do that. You 
 </div>
 <p>Next, I'll add a color ramp before the final, hard (constant) color ramp and name it <code>ShadingRig_Ramp</code>. 
 Now we have this:
-<a href="../img/sr/srmt-3.png"><img src="../img/sr/srmt-3.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-3.jpeg"><img src="../img/sr/srmt-3.jpeg" width="100%"/></a></p>
 <p>At this point, there should not be any nodes between <code>ShaderRig_Entry</code> and <code>ShadingRig_Ramp</code>. </p>
 <p>You are now ready to start using this material. Let's switch our Material in the <strong>Settings</strong>: 
-<a href="../img/sr/srmt-4.png"><img src="../img/sr/srmt-4.png" width="100%"/></a>
+<a href="../img/sr/srmt-4.jpeg"><img src="../img/sr/srmt-4.jpeg" width="100%"/></a>
 And add an Effect:
-<a href="../img/sr/srmt-5a.png"><img src="../img/sr/srmt-5a.png" width="100%"/></a>
+<a href="../img/sr/srmt-5a.jpeg"><img src="../img/sr/srmt-5a.jpeg" width="100%"/></a>
 When we <strong>Add Effect to Material</strong>, we will have a shading rig that works with our existing material. I've added three edits as an example: 
-<a href="../img/sr/srmt-6.png"><img src="../img/sr/srmt-6.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-6.jpeg"><img src="../img/sr/srmt-6.jpeg" width="100%"/></a></p>
 <h3 id="clamping">Clamping</h3>
 <p>When stacking multiple Effects, you will go outside of a normalized range of [0,1]. If an Effect is behaving strangely or you are having difficulty controlling it, you may need to clamp it. In your nodes, find the <code>ShadingRigEffect_SR_Effect_*</code> node. In my case, I've clamped <code>ShadingRigEffect_SR_Effect_Bust_003</code>:
-<a href="../img/sr/srmt-7.png"><img src="../img/sr/srmt-7.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-7.jpeg"><img src="../img/sr/srmt-7.jpeg" width="100%"/></a></p>
 <p>To do this, put a Math node set to Add (with second input 0) between <code>ShadingRigEffect_SR_Effect_Bust_003</code> and all of its outputs. It's much easier to do this if you add a reroute, as I've done. Then you can toggle clamping as desired. Compare clamping on:
-<a href="../img/sr/srmt-8.png"><img src="../img/sr/srmt-8.png" width="100%"/></a>
+<a href="../img/sr/srmt-8.jpeg"><img src="../img/sr/srmt-8.jpeg" width="100%"/></a>
 Versus clamping off:
-<a href="../img/sr/srmt-9.png"><img src="../img/sr/srmt-9.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-9.jpeg"><img src="../img/sr/srmt-9.jpeg" width="100%"/></a></p>
 <h3 id="isolating-an-effect">Isolating an Effect</h3>
 <p>Sometimes, it can be difficult to pinpoint exactly where an Effect is, especially on a complex mesh. Here, I am using the Blender realistic female basemesh as an example. I have an Effect, but I'm not sure it's doing what I want:
-<a href="../img/sr/srmt-10.png"><img src="../img/sr/srmt-10.png" width="350px"/></a></p>
+<a href="../img/sr/srmt-10.jpeg"><img src="../img/sr/srmt-10.jpeg" width="350px"/></a></p>
 <p>To preview <em>just</em> an Effect without everything else going on, find the <code>ShadingRigEffect_SR_Effect_*</code> node- in my case,  <code>ShadingRigEffect_SR_Effect_BlenderBasemesh_001</code> and Preview it by Ctrl + Shift + Left Click: 
-<a href="../img/sr/srmt-11.png"><img src="../img/sr/srmt-11.png" width="100%"/></a>
+<a href="../img/sr/srmt-11.jpeg"><img src="../img/sr/srmt-11.jpeg" width="100%"/></a>
 I want to add some shading to the arm around the elbow. I'm going to do this with careful manipulation of the Effect, including scale, location, and rotation. To get the shader back how it should be, find your ramps and connect the final ramp back to the Material Output: 
-<a href="../img/sr/srmt-12.png"><img src="../img/sr/srmt-12.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-12.jpeg"><img src="../img/sr/srmt-12.jpeg" width="100%"/></a></p>
 <p>Now my arm looks great, but the legs have undesired shading from the Effect. Effects affect the entire object, so you will generally need to split your object up into multiple materials. Here, I've separated the section I want this Effect to affect:
-<a href="../img/sr/srmt-13.png"><img src="../img/sr/srmt-13.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-13.jpeg"><img src="../img/sr/srmt-13.jpeg" width="100%"/></a></p>
 <p>I'm now going to modify both materials so they look identical. By giving my new material the required nodes, I can add Effects to this material as well. I'm going to copy four nodes from the other material:
-<a href="../img/sr/srmt-14.png"><img src="../img/sr/srmt-14.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-14.jpeg"><img src="../img/sr/srmt-14.jpeg" width="100%"/></a></p>
 <p>Compare:
-<a href="../img/sr/srmt-15.png"><img src="../img/sr/srmt-15.png" width="100%"/></a>
+<a href="../img/sr/srmt-15.jpeg"><img src="../img/sr/srmt-15.jpeg" width="100%"/></a>
 With: 
-<a href="../img/sr/srmt-16.png"><img src="../img/sr/srmt-16.png" width="100%"/></a></p>
+<a href="../img/sr/srmt-16.jpeg"><img src="../img/sr/srmt-16.jpeg" width="100%"/></a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 edits per material. With the simple two-material split I've done here, I can now have 16 total edits for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.</p>

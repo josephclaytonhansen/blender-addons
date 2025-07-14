@@ -6,6 +6,8 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=josephclaytonhansen/blender-addons&type=Date)](https://www.star-history.com/#josephclaytonhansen/blender-addons&Date)
 
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/josephclaytonhansen/blender-addons)
+
 ## Shading Rig + Cel Character Tools
 More information coming soon.
 

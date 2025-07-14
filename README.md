@@ -2,6 +2,10 @@
 [![Pylint](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml)
 [![CodeQL](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql)
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=josephclaytonhansen/blender-addons&type=Date)](https://www.star-history.com/#josephclaytonhansen/blender-addons&Date)
+
 ## Shading Rig + Cel Character Tools
 More information coming soon.
 

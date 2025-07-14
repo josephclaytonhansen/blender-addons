@@ -6,7 +6,7 @@ Shading Rig affects materials through **Effects**, which are connected to Lights
 - **Correlations** define how Effects respond to lighting changes. A correlation connects a Light rotation to an Effect position and scale. 
 ## Panel Overview
 Shading Rig is designed to be easy to use. However, it is a complex addon. Taking a moment to familiarize yourself with the panel will help you get a better workflow. The panel is arranged in the order in which you generally do things- move from top to bottom as you work on your shading rig.
-[<img src="../img/sr/start-panel 2.jpeg" width="250"/>](img/sr/start-panel 2.jpeg)
+[<img src="../img/sr/start-panel.jpeg" width="250"/>](img/sr/start-panel.jpeg)
 
 ### Step 1: Set a Character Name
 Let's start from scratch, with a blank file. 

@@ -29,7 +29,7 @@ At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a shader 
 [<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif" width="100%"/>](https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif)
 
 ### Shape effects with precision
-[<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-2.png" width="100%"/>](https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-2.png)
+[<img src="https://i.postimg.cc/rwF0Xwgr/srf-2.png" width="100%"/>](https://i.postimg.cc/rwF0Xwgr/srf-2.png)
 
 Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Licensing terms below.
 

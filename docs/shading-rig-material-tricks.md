@@ -1,86 +1,66 @@
 # Material Tricks
 Showing Shading Rig on a test sphere is all fine and well, but it's obviously not a recreation of a production character. For this part of the docs, I'm going to use this bust, which already has a complex material with textures:
-[<img src="../img/sr/bust2.png" width="100%"/>](img/sr/bust2.png)
+[<img src="../img/sr/srmt-1.jpeg" width="100%"/>](img/sr/srmt-1.jpeg)
 
 My goal here is to integrate a shading rig on this bust without breaking the existing materials and show real production techniques.
 
 ## Adding a Shading Rig to an Existing Material
 When you have a complex material, you can still add a shading rig to it. You just have to add the neccesary nodes from the Shading Rig to your existing material.
 
-In this case, I've **Added Edit to Material** on our character, which has added a new material that looks bad:
-[<img src="../img/sr/bust3.png" width="100%"/>](img/sr/bust3.png)
+Click **Set Up Shading Rig on Object** like you normally would. 
 
-We need to copy some nodes over from the Shading Rig material to our existing material. Specifically, we need to copy **DiffuseToRGB_ShadingRig** and **DiffuseToRGB_ShadingRig**.
+When you **Set Up Shading Rig on Object**, you will have a new material slot added and a new material set to it:
+[<img src="../img/sr/srmt-1a.jpeg" width="100%"/>](img/sr/srmt-1a.jpeg)
+Your existing material(s) will be untouched. It is necessary to **Set Up Shading Rig on Object**, but you don't need to use this material. Let's get back to our existing material. Remove the slot and the material `ShadingRigBase_00x`. We're going to recreate the crucial elements of this material on our existing material.
 
-Copy those two nodes and switch back to your original material. Paste them: 
-[<img src="../img/sr/nodes-to-copy.png" width="100%"/>](img/sr/nodes-to-copy.png)
+The Shadin Rig looks for `ShadingRig_Entry` and `ShadingRig_Ramp` nodes. `ShadingRig_Entry` is the diffuse, glossy, or otherwise pre-existing shading, converted to RGB. On your materials, this will likely mean renaming your Shader to RGB node to `ShadingRig_Entry`. Note that you must actually rename the node, not just change the label! 
 
-In order to know how to add these in, we need to know what they do. 
+In my case, I have a DiffuseToRGB shader group that outputs diffuse lighting as RGB, so I'm going to rename this node. You can change the name of a node in the Shader Editor sidebar:
+[<img src="../img/sr/srmt-2.jpeg" width="300px"/>](img/sr/srmt-2.jpeg)
 
-### DiffuseToRGB_ShadingRig
-This node is a node group containing a Diffuse BSDF and a Shader To RGB node. 
-[<img src="../img/sr/dtr.png" width="100%"/>](img/sr/dtr.png)
+INFO:  What if want to use Glossy or something other than Diffuse? 
+If you want to use Glossy or something other than Diffuse, you can do that. You just need to make sure that the final node is named `ShaderRig_Entry`. 
 
-I assume you're familar with how cel shading works in Blender, these nodes should be very familiar to you. 
+Next, I'll add a color ramp before the final, hard (constant) color ramp and name it `ShadingRig_Ramp`. 
+Now we have this:
+[<img src="../img/sr/srmt-3.jpeg" width="100%"/>](img/sr/srmt-3.jpeg)
 
-NOTE: If you have complex or non-diffuse shading, that's fine- I will address how to incorporate this in a later section. 
-
-However, the actual node here doesn't matter, just the name. All that matters is that **DiffuseToRGB_ShadingRig** outputs RGB information about lighting. 
-
-In my case, my cel shader already has a DiffuseToRGB shader group that is essentially identical to the one in the Shading Rig.The important thing is the *name* of the node. The Shading Rig relies on the name of these two nodes. You can either rename your existing Shader to RGB node to match the name, or you can swap the DiffuseToRGB_ShadingRig node with your existing Shader to RGB node. I'm going to use both methods here in the docs to show you how they work. I'm going to start with a swap. This is my current node setup: 
-[<img src="../img/sr/node-swap1.png" width="100%"/>](img/sr/node-swap1.png)
-
-I'm going to link my inputs and outputs to the DiffuseToRGB_ShadingRig node:
-[<img src="../img/sr/node-swap2.png" width="100%"/>](img/sr/node-swap2.png)
-
-Then I can remove the old node and rearrange: 
-[<img src="../img/sr/node-swap3.png" width="100%"/>](img/sr/node-swap3.png)
-
-### What if want to use Glossy or something other than Diffuse? 
-If you want to use Glossy or something other than Diffuse, you can do that. You just need to make sure that the final node is named **DiffuseToRGB_ShadingRig**. Like this:
-[<img src="../img/sr/glossy.png" width="100%"/>](img/sr/glossy.png)
-Here, I've renamed a Shader to RGB node.
-
-INFO: This is the easiest way- just build your shader and rename the last Shader to RGB node to **DiffuseToRGB_ShadingRig**.
-
-### ColorRamp_ShadingRig
-
-This node is a Color Ramp node that is used for better blending. Unlike **DiffuseToRGB_ShadingRig**, you should not modify or replace this node. Instead, integrate it with your existing nodes. Generally, you will put this node directly before the color ramp that splits your shading into hard shadow and light areas. 
-
-Currently, I have this:
-[<img src="../img/sr/bust4.png" width="100%"/>](img/sr/bust4.png)
-
-I'm going to attach the **ColorRamp_ShadingRig** node:
-[<img src="../img/sr/bust5.png" width="100%"/>](img/sr/bust5.png)
-
-At this point, there should not be any nodes between **DiffuseToRGB_ShadingRig** and **ColorRamp_ShadingRig**. 
+At this point, there should not be any nodes between `ShaderRig_Entry` and `ShadingRig_Ramp`. 
 
 You are now ready to start using this material. Let's switch our Material in the **Settings**: 
-[<img src="../img/sr/bust6.png" width="100%"/>](img/sr/bust6.png)
+[<img src="../img/sr/srmt-4.jpeg" width="100%"/>](img/sr/srmt-4.jpeg)
+And add an Effect:
+[<img src="../img/sr/srmt-5a.jpeg" width="100%"/>](img/sr/srmt-5a.jpeg)
+When we **Add Effect to Material**, we will have a shading rig that works with our existing material. I've added three edits as an example: 
+[<img src="../img/sr/srmt-6.jpeg" width="100%"/>](img/sr/srmt-6.jpeg)
 
-Now, when we add an Edit and **Add Edit to Material**, we will have a shading rig that works with our existing material:
-[<img src="../img/sr/bust7.png" width="100%"/>](img/sr/bust7.png)
+## Clamping
+When stacking multiple Effects, you will go outside of a normalized range of [0,1]. If an Effect is behaving strangely or you are having difficulty controlling it, you may need to clamp it. In your nodes, find the `ShadingRigEffect_SR_Effect_*` node. In my case, I've clamped `ShadingRigEffect_SR_Effect_Bust_003`:
+[<img src="../img/sr/srmt-7.jpeg" width="100%"/>](img/sr/srmt-7.jpeg)
 
-## Changing the Influence of the Shading Rig
-Now, we have something like this (after some tweaking):
-[<img src="../img/sr/bust8.png" width="350px"/>](img/sr/bust8.png)
+To do this, put a Math node set to Add (with second input 0) between `ShadingRigEffect_SR_Effect_Bust_003` and all of its outputs. It's much easier to do this if you add a reroute, as I've done. Then you can toggle clamping as desired. Compare clamping on:
+[<img src="../img/sr/srmt-8.jpeg" width="100%"/>](img/sr/srmt-8.jpeg)
+Versus clamping off:
+[<img src="../img/sr/srmt-9.jpeg" width="100%"/>](img/sr/srmt-9.jpeg)
 
-I like the patch of light on her cheek, but I don't like what's happening with the forehead. I want to add shadow in using an Edit. How can I do this? 
+## Isolating an Effect
+Sometimes, it can be difficult to pinpoint exactly where an Effect is, especially on a complex mesh. Here, I am using the Blender realistic female basemesh as an example. I have an Effect, but I'm not sure it's doing what I want:
+[<img src="../img/sr/srmt-10.jpeg" width="350px"/>](img/sr/srmt-10.jpeg)
 
-First, I'm going to add a second edit: 
-[<img src="../img/sr/bust9.png" width="350px"/>](img/sr/bust9.png)
+To preview *just* an Effect without everything else going on, find the `ShadingRigEffect_SR_Effect_*` node- in my case,  `ShadingRigEffect_SR_Effect_BlenderBasemesh_001` and Preview it by Ctrl + Shift + Left Click: 
+[<img src="../img/sr/srmt-11.jpeg" width="100%"/>](img/sr/srmt-11.jpeg)
+I want to add some shading to the arm around the elbow. I'm going to do this with careful manipulation of the Effect, including scale, location, and rotation. To get the shader back how it should be, find your ramps and connect the final ramp back to the Material Output: 
+[<img src="../img/sr/srmt-12.jpeg" width="100%"/>](img/sr/srmt-12.jpeg)
 
-In my material, I have nodes for both edits:
-[<img src="../img/sr/bust10.png" width="100%"/>](img/sr/bust10.png)
+Now my arm looks great, but the legs have undesired shading from the Effect. Effects affect the entire object, so you will generally need to split your object up into multiple materials. Here, I've separated the section I want this Effect to affect:
+[<img src="../img/sr/srmt-13.jpeg" width="100%"/>](img/sr/srmt-13.jpeg)
 
-I'm going to change the **Lighten** node to **Subtract** for the second edit:
-[<img src="../img/sr/bust11.png" width="100%"/>](img/sr/bust11.png)
+I'm now going to modify both materials so they look identical. By giving my new material the required nodes, I can add Effects to this material as well. I'm going to copy four nodes from the other material:
+[<img src="../img/sr/srmt-14.jpeg" width="100%"/>](img/sr/srmt-14.jpeg)
 
-**Multiply** also works well- here, I wanted more shadow on the side of the face, and I added a third edit with the blend set to **Multiply**: 
-<div style = "display:flex">
-<img src="../img/sr/bust12.png" />
-<img src="../img/sr/bust13.png" />
-</div>
-(The third edit is visible on the right.)
+Compare:
+[<img src="../img/sr/srmt-15.jpeg" width="100%"/>](img/sr/srmt-15.jpeg)
+With: 
+[<img src="../img/sr/srmt-16.jpeg" width="100%"/>](img/sr/srmt-16.jpeg)
 
-Ultimately, you can play around with different blending modes and see what feels right. 
+NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 edits per material. With the simple two-material split I've done here, I can now have 16 total edits for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.

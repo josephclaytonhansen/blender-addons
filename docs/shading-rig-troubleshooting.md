@@ -19,7 +19,7 @@ There are things you can play with in the shader and **things you cannot**. Anyt
 [<img src="../img/sr/touch-this.png" width="100%"/>](img/sr/touch-this.png)
 [<img src="../img/sr/touch-this2.png" width="100%"/>](img/sr/touch-this2.png)
 
-You can change, modify, rename, or do whatever with the **You Can Touch This** nodes. You cannot in any way alter the red **Do not touch this!** node after it. Don't look at it. Don't think about it. Purge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes in between the two forbidden nodes, *you will break everything permanently.* The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it. 
+You can change, modify, rename, or do whatever with the **You Can Touch This** nodes. You cannot in any way alter the red **Do not touch this!** node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes in between the two forbidden nodes, *you will break everything permanently.* The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it. 
 
 One last time, just for safety: **don't touch anything between and including red Do Not Touch This! nodes!!**
 

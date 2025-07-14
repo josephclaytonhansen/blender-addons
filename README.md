@@ -11,7 +11,25 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/josephclaytonhansen/blender-addons)
 
 ## Shading Rig + Cel Character Tools
-More information coming soon.
+
+### Customize light and shadow exactly how you want it
+[<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-1.png" width="100%"/>](img/sr/srf-1.png)
+
+### What is Shading Rig?
+> Shading Rig is a new framework for art-directing dynamic 3D toon shading. It lets artists add illustrative details and animate how they respond to lighting changes in real time...  we achieve this with a "rig" of shadow editing primitives designed based on fundamental artistic shading principles. These primitives can be animated to achieve highly stylised shading under dynamic lighting.
+
+> [Lohit Petikam et al.](https://lohit.dev/ShadingRig/)
+
+[<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/a94a47e4-bea5-4c86-8ea8-ab6ad6165494" />
+](https://youtu.be/-gr0a0wAI5E)
+
+At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a shader rig for cel shaded characters.  However, this presentation was almost entirely theory and lacked technical or practical implementation. A functional implementation has never been made until now. I've both _implemented_ and _improved_ the original ideas presented in the paper, approaching it from an art-direction perspective and coming up with creative solutions to make sure it is production-usable. Much of the math in the paper didn't end up working outside of specific test cases, so I've significantly reworked major portions. The final result is wholly unique and extremely powerful.
+
+### Automatic smooth blending for a more natural look
+[<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif" width="100%"/>](https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif)
+
+### Shape effects with precision
+[<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-2.png" width="100%"/>](https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-2.png)
 
 Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Licensing terms below.
 

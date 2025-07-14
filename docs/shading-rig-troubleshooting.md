@@ -7,7 +7,7 @@ Here, my Effect was not showing up. I reset the rotation, and it shows up.
 ### Check Distance from Object
 If that doesn't do it, move the empty closer to your object. The distance from the object matters:
 [<img src="../img/sr/qsrw-11.gif" width="100%"/>](img/sr/qsrw-11.gif)
-Keep your edits close to your object for best results. 
+Keep your effects close to your object for best results. 
 ### Check Parameters
 Increase the Hardness. At lower values, the Effect may not always show up.
 ### Did you change, disconnect, or rename something in the shader? 

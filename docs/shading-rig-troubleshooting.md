@@ -23,6 +23,47 @@ You can change, modify, rename, or do whatever with the **You Can Touch This** n
 
 One last time, just for safety: **don't touch anything between and including red Do Not Touch This! nodes!!**
 
+## I add another effect and suddenly everything turns white/black!
+You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try clamping. (See [Material Tricks](shading-rig-material-tricks.md) for details.) Be especially careful with combining multiple *Add* and *Subtract* mode effects. If you *Add* to an *Add*, you have now moved your data from a [0,1] range to a [1,2] range. If you *Subtract* from a *Subtract*, your data is now in a [-1,0] range. In either case, you will see only white or only black. 
+
+## I add an effect and my material doesn't show any shading?
+Scale down your Effect. If the scale is too large, it will flood the whole object. 
+
+## I can't append the required nodes?
+Set a **Character Name**.
+
+## I can't add a correspondence?
+Your Effect doesn't have a light set.
+
+## Parameter X doesn't seem to do anything when I change it?
+Some values only show up when you scale or rotate the effect. Reset your rotation, then rotate. Play around. 
+
+## All the parameters do nothing?
+You've most likely broken the custom properties on your object. This happens from time to time if you aggressively undo or otherwise screw with your data. You can tell really easily, pull up the custom properties on your object:
+[<img src="../img/sr/srt-2.jpeg" width="100%"/>](img/sr/srt-2.jpeg)
+Adjust parameters:
+[<img src="../img/sr/srt-1.jpeg" width="100%"/>](img/sr/srt-1.jpeg)
+If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.
+
+## My Effect is jumping suddenly between correlations as I rotate the light?
+The reason for this behavior is explained in [Correlations](shading-rig-correlations.md). Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. 
+
+## I get a popup error `AttributeError: 'NoneType' object has no attribute 'get'` when I try to add/edit/remove an effect!
+Remember in the **Quick Start** when I said: 
+
+DANGER: You must never, under any circumstances, delete this empty `ShaderRigProperties_{character name}`?
+
+Well, this empty has been deleted. Yikes. Undo if you can. If that doesn't work- all you can do now to fix this is reset everything- remove any custom properties from any objects, delete all effects, effect materials, and export all objects into a new scene and new Blender file. Your current Blender file is permanently broken now. You can only move forward by resetting and moving your objects to a new file. 
+
+## I try and add a correlation but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
+See the previous answer.
+
+Your Blender file is permanently broken. Reset into a new file. 
+
+## I try and do X but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
+
+You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file. 
+
 
 
 

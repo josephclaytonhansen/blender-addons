@@ -20,7 +20,8 @@
 
 > [Lohit Petikam et al.](https://lohit.dev/ShadingRig/)
 
-[https://youtu.be/-gr0a0wAI5E]
+[<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/a94a47e4-bea5-4c86-8ea8-ab6ad6165494" />
+](https://youtu.be/-gr0a0wAI5E)
 
 At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a shader rig for cel shaded characters.  However, this presentation was almost entirely theory and lacked technical or practical implementation. A functional implementation has never been made until now. I've both _implemented_ and _improved_ the original ideas presented in the paper, approaching it from an art-direction perspective and coming up with creative solutions to make sure it is production-usable. Much of the math in the paper didn't end up working outside of specific test cases, so I've significantly reworked major portions. The final result is wholly unique and extremely powerful.
 

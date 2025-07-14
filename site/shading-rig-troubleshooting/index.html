@@ -1022,6 +1022,9 @@
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a> / Shading Rig / Advanced Usage</p>
+<p>Shading Rig is designed for intermediate to advanced users. It doesn't provide magic buttons- rather, it adds tools that enhance existing Blender functionality. </p>
+<p>To work effectively with Shading Rig, you need to be comfortable navigating and using the shader editor. You also need to be familiar with material assignments, material slots, and custom properties. You don't need in-depth experience with any of this, but you need to understand the basics. If you are a beginner to Blender, you should hold off on using Shading Rig until you are more comfortable with Blender as a whole. </p>
+<p>If you have a problem not addressed below, I will help you solve it if you have a seat license. Otherwise, you will have to find an answer through trial and error or elsewhere in the docs. </p>
 <h3 id="why-am-i-not-seeing-an-effect">Why am I not seeing an effect?</h3>
 <h4 id="reset-rotation">Reset Rotation</h4>
 <p>The most common problem I've encountered as people test this is that the Effect isn't showing. In 99% of cases I've observed, the problem is with <strong>rotation</strong> of the empty controlling the Effect. The first thing you should when troubleshooting is <strong>reset the rotation of the Empty</strong> (you can do this with Alt + R):
@@ -1033,6 +1036,8 @@ Here, my Effect was not showing up. I reset the rotation, and it shows up. </p>
 Keep your effects close to your object for best results. </p>
 <h4 id="check-parameters">Check Parameters</h4>
 <p>Increase the Hardness. At lower values, the Effect may not always show up.</p>
+<h4 id="check-mode">Check Mode</h4>
+<p>When in doubt, switch back to Mode 0, which will always show up.</p>
 <h4 id="did-you-change-disconnect-or-rename-something-in-the-shader">Did you change, disconnect, or rename something in the shader?</h4>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -1061,6 +1066,11 @@ Adjust parameters:
 If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.</p>
 <h3 id="my-effect-is-jumping-suddenly-between-correlations-as-i-rotate-the-light">My Effect is jumping suddenly between correlations as I rotate the light?</h3>
 <p>The reason for this behavior is explained in <a href="../shading-rig-correlations/">Correlations</a>. Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. </p>
+<h3 id="i-deleted-the-shaderrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up">I deleted the <code>ShaderRigBase_00x</code> material from my object, now I cannot get the Effects to show up!</h3>
+<p>Make sure whatever material you are using has the two required nodes (see <a href="../shading-rig-material-tricks/">Material Tricks</a>). Note that it's the node <em>name</em>, not the node <em>label</em> that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
+<a href="../img/sr/srt-3.jpeg"><img src="../img/sr/srt-3.jpeg" width="100%"/></a></p>
+<p>This will <strong>not</strong> work:
+<a href="img/sr/srt-34.jpeg"><img src="../img/sr/srt-4.jpeg" width="100%"/></a></p>
 <h3 id="i-get-a-popup-error-attributeerror-nonetype-object-has-no-attribute-get-when-i-try-to-addeditremove-an-effect">I get a popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code> when I try to add/edit/remove an effect!</h3>
 <p>Remember in the <strong>Quick Start</strong> when I said: </p>
 <div class="admonition danger">
@@ -1069,8 +1079,7 @@ If the custom property changes, everything is fine. Reset your rotation and scal
 </div>
 <p>Well, this empty has been deleted. Yikes. Undo if you can. If that doesn't work- all you can do now to fix this is reset everything- remove any custom properties from any objects, delete all effects, effect materials, and export all objects into a new scene and new Blender file. Your current Blender file is permanently broken now. You can only move forward by resetting and moving your objects to a new file. </p>
 <h3 id="i-try-and-add-a-correlation-but-i-get-the-popup-error-attributeerror-nonetype-object-has-no-attribute-get">I try and add a correlation but I get the popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code>?</h3>
-<p>See the previous answer.</p>
-<p>Your Blender file is permanently broken. Reset into a new file. </p>
+<p>See the previous answer. Your Blender file is permanently broken. Reset into a new file. </p>
 <h3 id="i-try-and-do-x-but-i-get-the-popup-error-attributeerror-nonetype-object-has-no-attribute-get">I try and do X but I get the popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code>?</h3>
 <p>You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file. </p>
     </div>
@@ -1792,6 +1801,12 @@ If the custom property changes, everything is fine. Reset your rotation and scal
             Check Parameters
         </a>
         
+        <a href="#check-mode"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Check Mode
+        </a>
+        
         <a href="#did-you-change-disconnect-or-rename-something-in-the-shader"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="3">
@@ -1853,6 +1868,14 @@ If the custom property changes, everything is fine. Reset your rotation and scal
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
             My Effect is jumping suddenly between correlations as I rotate the light?
+        </a>
+        
+
+        
+        <a href="#i-deleted-the-shaderrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            I deleted the ShaderRigBase_00x material from my object, now I cannot get the Effects to show up!
         </a>
         
 

@@ -1,4 +1,10 @@
 # Troubleshooting
+Shading Rig is designed for intermediate to advanced users. It doesn't provide magic buttons- rather, it adds tools that enhance existing Blender functionality. 
+
+To work effectively with Shading Rig, you need to be comfortable navigating and using the shader editor. You also need to be familiar with material assignments, material slots, and custom properties. You don't need in-depth experience with any of this, but you need to understand the basics. If you are a beginner to Blender, you should hold off on using Shading Rig until you are more comfortable with Blender as a whole. 
+
+If you have a problem not addressed below, I will help you solve it if you have a seat license. Otherwise, you will have to find an answer through trial and error or elsewhere in the docs. 
+
 ## Why am I not seeing an effect? 
 ### Reset Rotation
 The most common problem I've encountered as people test this is that the Effect isn't showing. In 99% of cases I've observed, the problem is with **rotation** of the empty controlling the Effect. The first thing you should when troubleshooting is **reset the rotation of the Empty** (you can do this with Alt + R):
@@ -10,8 +16,10 @@ If that doesn't do it, move the empty closer to your object. The distance from t
 Keep your effects close to your object for best results. 
 ### Check Parameters
 Increase the Hardness. At lower values, the Effect may not always show up.
-### Did you change, disconnect, or rename something in the shader? 
+### Check Mode
+When in doubt, switch back to Mode 0, which will always show up.
 
+### Did you change, disconnect, or rename something in the shader? 
 WARNING: Don't!
 
 There are things you can play with in the shader and **things you cannot**. Anything between the two red **Do not touch this!** frames, you must not alter in any way!
@@ -48,6 +56,13 @@ If the custom property changes, everything is fine. Reset your rotation and scal
 ## My Effect is jumping suddenly between correlations as I rotate the light?
 The reason for this behavior is explained in [Correlations](shading-rig-correlations.md). Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. 
 
+## I deleted the `ShaderRigBase_00x` material from my object, now I cannot get the Effects to show up!
+Make sure whatever material you are using has the two required nodes (see [Material Tricks](shading-rig-material-tricks.md)). Note that it's the node *name*, not the node *label* that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
+[<img src="../img/sr/srt-3.jpeg" width="100%"/>](img/sr/srt-3.jpeg)
+
+This will **not** work:
+[<img src="../img/sr/srt-4.jpeg" width="100%"/>](img/sr/srt-34.jpeg)
+
 ## I get a popup error `AttributeError: 'NoneType' object has no attribute 'get'` when I try to add/edit/remove an effect!
 Remember in the **Quick Start** when I said: 
 
@@ -56,9 +71,8 @@ DANGER: You must never, under any circumstances, delete this empty `ShaderRigPro
 Well, this empty has been deleted. Yikes. Undo if you can. If that doesn't work- all you can do now to fix this is reset everything- remove any custom properties from any objects, delete all effects, effect materials, and export all objects into a new scene and new Blender file. Your current Blender file is permanently broken now. You can only move forward by resetting and moving your objects to a new file. 
 
 ## I try and add a correlation but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
-See the previous answer.
 
-Your Blender file is permanently broken. Reset into a new file. 
+See the previous answer. Your Blender file is permanently broken. Reset into a new file. 
 
 ## I try and do X but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
 

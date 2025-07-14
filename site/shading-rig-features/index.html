@@ -1009,6 +1009,8 @@
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a> / Shading Rig / Start Here</p>
+<h3 id="customize-light-and-shadow-exactly-how-you-want-it">Customize light and shadow exactly how you want it</h3>
+<p><a href="../img/sr/srf-1.png"><img src="../img/sr/srf-1.png" width="100%"/></a></p>
 <h3 id="what-is-shading-rig">What is Shading Rig?</h3>
 <blockquote>
 <p>Shading Rig is a new framework for art-directing dynamic 3D toon shading. It lets artists add illustrative details and animate how they respond to lighting changes in real time...  we achieve this with a "rig" of shadow editing primitives designed based on fundamental artistic shading principles. These primitives can be animated to achieve highly stylised shading under dynamic lighting.</p>
@@ -1016,8 +1018,11 @@
 </blockquote>
 <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/-gr0a0wAI5E?si=qCk0PBxgy472h7OQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-<p>At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a novel idea in the form of a shader rig for cel shaded characters.  However, this presentation was almost entirely theory and lacked technical or practical implementation. A functional implementation has never been made until now. I've both <em>implemented</em> and <em>improved</em> the original ideas presented in the paper, approaching it from an art-direction perspective and coming up with creative solutions to make sure it is production-usable.</p>
-<h3 id="features">Features</h3>
+<p>At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a shader rig for cel shaded characters.  However, this presentation was almost entirely theory and lacked technical or practical implementation. A functional implementation has never been made until now. I've both <em>implemented</em> and <em>improved</em> the original ideas presented in the paper, approaching it from an art-direction perspective and coming up with creative solutions to make sure it is production-usable. Much of the math in the paper didn't end up working outside of specific test cases, so I've significantly reworked major portions. The final result is wholly unique and extremely powerful.</p>
+<h3 id="automatic-smooth-blending-for-a-more-natural-look">Automatic smooth blending for a more natural look</h3>
+<p><a href="../img/sr/sr-hardness.gif"><img src="../img/sr/sr-hardness.gif" width="100%"/></a></p>
+<h3 id="shape-effects-with-precision">Shape effects with precision</h3>
+<p><a href="../img/sr/srf-2.png"><img src="../img/sr/srf-2.png" width="100%"/></a></p>
     </div>
 </article>
                                 <div class="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -1699,6 +1704,14 @@
         
         
         
+        <a href="#customize-light-and-shadow-exactly-how-you-want-it"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Customize light and shadow exactly how you want it
+        </a>
+        
+
+        
         <a href="#what-is-shading-rig"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
@@ -1707,10 +1720,18 @@
         
 
         
-        <a href="#features"
+        <a href="#automatic-smooth-blending-for-a-more-natural-look"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
-            Features
+            Automatic smooth blending for a more natural look
+        </a>
+        
+
+        
+        <a href="#shape-effects-with-precision"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Shape effects with precision
         </a>
         
 

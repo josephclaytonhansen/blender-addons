@@ -110,35 +110,8 @@
         <header class="bg-background sticky top-0 z-50 w-full">
     <div class="container-wrapper 3xl:fixed:px-0 px-6">
         <div class="3xl:fixed:container flex h-(--header-height) items-center gap-2 **:data-[slot=separator]:!h-4">
-            <button id="menu-button" data-slot="popover-trigger" onclick="onMobileMenuButtonClick(event)"
-                class="group whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground px-4 py-2 has-[&gt;svg]:px-3 extend-touch-target h-8 touch-manipulation items-center justify-start gap-2.5 !p-0 hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 active:bg-transparent dark:hover:bg-transparent flex lg:hidden"
-                type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-«Rmplb»"
-                data-state="closed">
-                <div class="relative flex h-8 w-4 items-center justify-center">
-                    <div class="relative size-4">
-                        <!-- 16px x 16px -->
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="0" x2="16" y1="5" y2="5"
-                                class="group-data-[state=open]:translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:rotate-45 transition-all duration-300 origin-center" />
-                            <line x1="0" x2="16" y1="11" y2="11"
-                                class="group-data-[state=open]:-translate-y-[2.25px] group-data-[state=open]:-translate-x-[2.25px] group-data-[state=open]:-rotate-45 transition-all duration-300 origin-center" />
-                        </svg>
-                    </div>
-                    <!-- <div class="relative size-4 hidden group-data-[state=open]:block">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="3 3 18 18" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="lucide lucide-x-icon lucide-x">
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                        </svg>
-                    </div> -->
-                    <span class="sr-only">Toggle Menu</span>
-                </div>
-                <span class="flex h-8 items-center text-lg leading-none font-medium">Menu</span>
-            </button>
             <a data-slot="button"
-                class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 hidden h-8 lg:flex"
+                class="items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 flex"
                 href="/">
                 <span class="size-8 flex flex-row justify-center items-center">
                     
@@ -1081,7 +1054,657 @@
     </a>
     
 </div>
-                                
+                                <div class = "lg:hidden sm:block md:block">
+    <div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2">
+        
+        <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
+            
+            <li>
+                <div class="sidebar-item">Shading Rig</div>
+                
+                <ul class="pl-4">
+                       <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; ">
+	  Start Here      
+	<ul class="pl-4">
+		   <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-features/">
+		
+		Overview    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-installation/">
+		
+		Installation    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-quick-start/">
+		
+		Quick Start    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-licensing/">
+		
+		Licensing    
+	</a>
+	 
+</li>  
+	</ul>
+	
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; ">
+	  Advanced Usage      
+	<ul class="pl-4">
+		   <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-edit-settings/">
+		
+		Effect Settings    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-correlations/">
+		
+		Correlations    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-material-tricks/">
+		
+		Material Tricks    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-linking-and-appending/">
+		
+		Linking and Appending    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-multiple-characters/">
+		
+		Multiple Characters    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../shading-rig-troubleshooting/">
+		
+		Troubleshooting    
+	</a>
+	 
+</li>  
+	</ul>
+	
+</li> 
+                </ul>
+                
+            </li>
+            
+            <li>
+                <div class="sidebar-item">Cel Character Tools</div>
+                
+                <ul class="pl-4">
+                       <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cel-character-tools-features/">
+		
+		Features    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cel-character-tools-quick-start/">
+		
+		Quick Start    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cel-character-tools-troubleshooting/">
+		
+		Troubleshooting    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cel-character-tools-installation/">
+		
+		Installation    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cel-character-tools-licensing/">
+		
+		Licensing    
+	</a>
+	 
+</li> 
+                </ul>
+                
+            </li>
+            
+            <li>
+                <div class="sidebar-item">Other Addons</div>
+                
+                <ul class="pl-4">
+                       <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../audio-2-face-weight-import/">
+		
+		A2F Weight Import    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../cloth-sim-on-2s/">
+		
+		Cloth Sim on 2s    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../delete-object-with-children/">
+		
+		Delete Object Hierarchy    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../multikey/">
+		
+		Multikey    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../qcb/">
+		
+		QCB    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../render-notify/">
+		
+		Render Notify    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../searchable-vertex-groups/">
+		
+		Searchable Vertex Groups    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../select-by-uvmap/">
+		
+		Select by UV Map    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../silhouette-view/">
+		
+		Silhouette View    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../transfer-shape-keys/">
+		
+		Transfer Shape Keys    
+	</a>
+	 
+</li> 
+                </ul>
+                
+            </li>
+            
+            <li>
+                <div class="sidebar-item">Misc</div>
+                
+                <ul class="pl-4">
+                       <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../about/">
+		
+		About    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="true"
+		
+		href="./">
+		
+		Contact    
+	</a>
+	 
+</li>    <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  2rem ; ">
+	  Other Projects      
+	<ul class="pl-4">
+		   <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../web/">
+		
+		Web    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../game-development/">
+		
+		Game Development    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../art/">
+		
+		Art    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../writing/">
+		
+		Writing    
+	</a>
+	 
+</li>     <li
+	data-slot="sidebar-menu-item"
+	data-sidebar="menu-item"
+	class="group/menu-item relative  text-xs "
+	style="line-height:  1.75rem ; color: oklch(0.556 0 0); ">
+	
+	<a
+		data-slot="sidebar-menu-button"
+		data-sidebar="menu-button"
+		data-size="default"
+		class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md"
+		data-active="false"
+		
+		href="../self-hosted/">
+		
+		Self Hosted    
+	</a>
+	 
+</li>  
+	</ul>
+	
+</li> 
+                </ul>
+                
+            </li>
+            
+        </ul>
+        
+    </div>
+</div>
                             </div>
                             <div
                                 class="sticky top-[calc(var(--header-height)+1px)] z-30 ml-auto hidden h-[calc(100svh-var(--header-height)-var(--footer-height))] w-72 flex-col gap-4 overflow-hidden overscroll-none pb-8 xl:flex">

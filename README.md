@@ -2,6 +2,14 @@
 [![Pylint](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml)
 [![CodeQL](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql)
 
+[![Gumroad](https://img.shields.io/badge/GUMROAD-36a9ae?style=for-the-badge&logo=gumroad&logoColor=white)](https://josephhansen.gumroad.com/l/shading-rig-seat)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=josephclaytonhansen/blender-addons&type=Date)](https://www.star-history.com/#josephclaytonhansen/blender-addons&Date)
+
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/josephclaytonhansen/blender-addons)
+
 ## Shading Rig + Cel Character Tools
 More information coming soon.
 

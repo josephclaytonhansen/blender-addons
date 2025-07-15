@@ -2,6 +2,7 @@
 [![Pylint](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml)
 [![CodeQL](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql)
 ![Static Badge](https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/josephclaytonhansen/blender-addons)
 
 [![Gumroad](https://img.shields.io/badge/GUMROAD-36a9ae?style=for-the-badge&logo=gumroad&logoColor=white)](https://josephhansen.gumroad.com/l/shading-rig-seat)
 

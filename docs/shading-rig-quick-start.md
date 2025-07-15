@@ -13,10 +13,10 @@ Let's start from scratch, with a blank file.
 
 In **Section 1**, the Settings sub-panel, you can set a character name and a default light. The character name is used to identify the shading rig- you'll need to set this first. For this example, I'm going to name my character "Sphere".
 
-Once you set a character name, you can **Append Required Nodes**, and you'll have an empty added to your scene called `ShaderRigProperties_{character name}`:
+Once you set a character name, you can **Append Required Nodes**, and you'll have an empty added to your scene called `ShadingRigProperties_{character name}`:
 [<img src="../img/sr/character-name.jpeg" width="100%"/>](img/sr/character-name.jpeg)
 
-DANGER: You must never, under any circumstances, delete this empty `ShaderRigProperties_{character name}`. You're welcome to hide it or move it, but it's an essential component for getting multiple Shader Rigs to work in tandem.
+DANGER: You must never, under any circumstances, delete this empty `ShadingRigProperties_{character name}`. You're welcome to hide it or move it, but it's an essential component for getting multiple Shading Rigs to work in tandem.
 
 You can set a light per effect, but if you want all the effects to use the same light, you can save a step by setting a default light here.
 

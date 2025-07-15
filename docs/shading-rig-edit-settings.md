@@ -77,7 +77,7 @@ Here you can change the empty object that the Effect uses. There's not generally
 ### Light Object
 An Effect is tied to the rotation of one Light. If a specific light is not set, this field will automatically fill with the default light set in the Settings sub-panel. If you set a specific light, the Effect will instead respond to that light's rotation. 
 
-NOTE: You don't technically *have* to add a light object- if you don't, your Effect will remain statically positioned and rotated. You won't be able to add correspondences. I'm not sure why this would be useful, but there may a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.
+NOTE: You don't technically *have* to add a light object- if you don't, your Effect will remain statically positioned and rotated. You won't be able to add correspondences. I'm not sure why this would be useful, but there may be a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.
 
 ### Material
 An Effect affects one Material. This way, you can have multiple materials affected by Effects. 

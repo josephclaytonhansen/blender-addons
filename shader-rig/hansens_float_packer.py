@@ -9,9 +9,9 @@ def clamp(minimum, x, maximum):
     return max(minimum, min(x, maximum))
 
 
-def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
+def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mode, clamp_val, rotation):
     """
-    This packing algorithm combines 7 distinct attributes
+    This packing algorithm combines 8 distinct attributes
     into a single RGB value, so that Blender can use this
     information in a single Attribute node (with 7 digits
     of precision to spare if more attributes are needed!)
@@ -26,18 +26,19 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
     benD (-.999 to .999) 4d
     bUlge (-.999 to 999) 4d
     Hardness (0 to .999) 3d
-    masK (0 to .99) 2d
+    Clamp (0 or 1) 1d
+    Rotation (0 to 9) 1d
     Mode (0 (Lighten), 1 (Subtract), 2 (Multiply), 3 (Darken), 4 (Add)) 1d
 
     EEE-SSS
     DDD-AAA
-    UUU-MKK
+    UUU-MCR
     """
 
     pairs = {
         "red": ["elongation", "sharpness"],
         "green": ["bend", "hardness"],
-        "blue": ["bulge", "mask", "mode"],
+        "blue": ["bulge", "clamp_val", "mode", "rotation"],
     }
     vals = {}
     signs = {}
@@ -52,12 +53,19 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
             elif attr in ["sharpness", "hardness"]:
                 # these are 0.0 to 0.999
                 vals[attr] = math.floor(clamp(0.0, locals()[attr], 0.999) * 1000)
-            elif attr == "mask":
-                # this is 0.0 to 0.99
-                vals[attr] = math.floor(clamp(0.0, locals()[attr], 0.99) * 100)
+            elif attr == "clamp_val":
+                # this is 0 or 1, as a Boolean (t/f)
+                vals[attr] = locals()[attr]
+                if vals[attr] == True:
+                    vals[attr] = 1
+                else: 
+                    vals[attr] = 0
             elif attr == "mode":
                 # this is 0 to 4
-                vals[attr] = clamp(0, locals()[attr], 4)
+                vals[attr] = int(clamp(0, locals()[attr], 4))
+            elif attr == "rotation":
+                # this is 0 to 9
+                vals[attr] = int(clamp(0, locals()[attr], 9))
 
     red = vals["elongation"] * 10000 + signs["elongation"] * 1000 + vals["sharpness"]
 
@@ -66,7 +74,8 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mask, mode):
         vals["bulge"] * 10000
         + signs["bulge"] * 1000
         + vals["mode"] * 100
-        + vals["mask"]
+        + vals["clamp_val"] * 10
+        + vals["rotation"]
     )
 
     return (red, green, blue)
@@ -106,6 +115,7 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     Bend
     Bulge
     Mask
+    Clamp
     """
     # Empty vector: add a Texture Coordinate node, and use the Object output
     # Set the Object in the Texture Coordinate to effect_empty
@@ -137,20 +147,21 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     # Extract sharpness (last 3 digits)
     sharpness_raw = new_math("MODULO", 1000.0)
     node_tree.links.new(red, sharpness_raw.inputs[0])
-    sharpness_value = new_math("DIVIDE", 1000.0)
+    sharpness_value = new_math("DIVIDE", 940.0)
     node_tree.links.new(sharpness_raw.outputs[0], sharpness_value.inputs[0])
     node_tree.links.new(sharpness_value.outputs[0], effect_node.inputs[2])
 
-    # GREEN CHANNEL: hardness (3 digits) + sign (1 digit) + bend (3 digits)
-    # Extract hardness value (first 3 digits)
-    hardness_div = new_math("DIVIDE", 10000.0)
-    node_tree.links.new(green, hardness_div.inputs[0])
-    hardness_raw = new_math("FLOOR")
-    node_tree.links.new(hardness_div.outputs[0], hardness_raw.inputs[0])
-    hardness_value = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
+    # GREEN CHANNEL: bend (3 value + 1 sign) + hardness (3 value)
+    # Packing format: BBBSHHH
 
-    # Extract bend sign (4th digit)
+    # --- Extract Bend (first 4 digits) ---
+    bend_div = new_math("DIVIDE", 10000.0)
+    node_tree.links.new(green, bend_div.inputs[0])
+    bend_raw = new_math("FLOOR")
+    node_tree.links.new(bend_div.outputs[0], bend_raw.inputs[0])
+    bend_value = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(bend_raw.outputs[0], bend_value.inputs[0])
+
     green_mod_10000 = new_math("MODULO", 10000.0)
     node_tree.links.new(green, green_mod_10000.inputs[0])
     bend_sign_div = new_math("DIVIDE", 1000.0)
@@ -158,17 +169,17 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     bend_sign_raw = new_math("FLOOR")
     node_tree.links.new(bend_sign_div.outputs[0], bend_sign_raw.inputs[0])
 
-    # Extract bend (last 3 digits)
-    bend_raw = new_math("MODULO", 1000.0)
-    node_tree.links.new(green, bend_raw.inputs[0])
-    bend_value = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(bend_raw.outputs[0], bend_value.inputs[0])
-
-    # Apply sign to bend
     bend_signed = apply_sign(bend_value, bend_sign_raw)
-    node_tree.links.new(bend_signed.outputs[0], effect_node.inputs[4])
+    node_tree.links.new(bend_signed.outputs[0], effect_node.inputs[4])  # Connect to Bend input
 
-    # BLUE CHANNEL: bulge (4 digits) + sign (1 digit) + mode (2 digits) + mask (2 digits)
+    # --- Extract Hardness (last 3 digits) ---
+    hardness_raw = new_math("MODULO", 1000.0)
+    node_tree.links.new(green, hardness_raw.inputs[0])
+    hardness_value = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
+
+    # BLUE CHANNEL: bulge (3 val + 1 sign) + mode (1) + clamp (1) + rotation (1)
+    # Packing format: UUU S M C R
     # Extract bulge value (first 4 digits)
     bulge_div = new_math("DIVIDE", 10000.0)
     node_tree.links.new(blue, bulge_div.inputs[0])
@@ -189,7 +200,7 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     bulge_signed = apply_sign(bulge_value, bulge_sign_raw)
     node_tree.links.new(bulge_signed.outputs[0], effect_node.inputs[5])
 
-    # Extract mode (next 2 digits)
+    # Extract mode (from the 100s place)
     blue_mod_1000 = new_math("MODULO", 1000.0)
     node_tree.links.new(blue, blue_mod_1000.inputs[0])
     mode_div = new_math("DIVIDE", 100.0)
@@ -197,18 +208,23 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     mode_raw = new_math("FLOOR")
     node_tree.links.new(mode_div.outputs[0], mode_raw.inputs[0])
 
-    # Extract mask (last 2 digits)
-    mask_raw = new_math("MODULO", 100.0)
-    node_tree.links.new(blue, mask_raw.inputs[0])
-    mask_value = new_math("DIVIDE", 100.0)
-    node_tree.links.new(mask_raw.outputs[0], mask_value.inputs[0])
-    # Make mask negative
-    mask_sign = new_math("MULTIPLY", -1.0)
-    node_tree.links.new(mask_value.outputs[0], mask_sign.inputs[0])
-    node_tree.links.new(mask_sign.outputs[0], effect_node.inputs[6])
+    # Extract clamp (from the 10s place)
+    blue_mod_100 = new_math("MODULO", 100.0)
+    node_tree.links.new(blue, blue_mod_100.inputs[0])
+    clamp_div = new_math("DIVIDE", 10.0)
+    node_tree.links.new(blue_mod_100.outputs[0], clamp_div.inputs[0])
+    clamp_raw = new_math("FLOOR")
+    node_tree.links.new(clamp_div.outputs[0], clamp_raw.inputs[0])
+    node_tree.links.new(clamp_raw.outputs[0], effect_node.inputs[7])
 
-    return (mode_raw, mask_value, hardness_value)
+    # Extract rotation (from the 1s place) and scale to 0.0-0.9
+    rotation_raw = new_math("MODULO", 10.0)
+    node_tree.links.new(blue, rotation_raw.inputs[0])
+    rotation_value = new_math("DIVIDE", 10.0)
+    node_tree.links.new(rotation_raw.outputs[0], rotation_value.inputs[0])
+    node_tree.links.new(rotation_value.outputs[0], effect_node.inputs[3])
 
+    return (mode_raw, hardness_value)
 
 # Congratulations, you read through this whole thing! By the time
 # you're reading this, hopefully it's obselete and they've

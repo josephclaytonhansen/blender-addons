@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 74),
+    "version": (1, 3, 116),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -33,6 +33,7 @@ _previous_light_rotations = {}
 from bpy.props import (
     BoolProperty,
     CollectionProperty,
+    EnumProperty,
     FloatProperty,
     FloatVectorProperty,
     IntProperty,
@@ -87,6 +88,32 @@ class SR_CorrelationItem(PropertyGroup):
     # Fergalicious definition?
 
 
+def get_blend_mode_items(self, _context):
+    """Dynamically generate blend mode items for the EnumProperty."""
+    # This list of identifiers MUST match the order in setup_helpers.create_mode_mix_nodes
+    blend_mode_identifiers = ["LIGHTEN", "SUBTRACT", "MULTIPLY", "DARKEN", "ADD"]
+
+    icon_map = {
+        "LIGHTEN": "OUTLINER_OB_LIGHT",
+        "SUBTRACT": "REMOVE",
+        "MULTIPLY": "PANEL_CLOSE",
+        "DARKEN": "LIGHT",
+        "ADD": "ADD",
+    }
+
+    items = []
+    for i, identifier in enumerate(blend_mode_identifiers):
+        # Format for UI display (e.g., "LIGHTEN" -> "Lighten")
+        name = identifier.title()
+        description = f"Set blend mode to {name}"
+        icon = icon_map.get(identifier, "NONE")
+
+        # The full tuple: (identifier, name, description, icon, number)
+        items.append((identifier, name, description, icon, i))
+
+    return items
+
+
 def sr_rig_item_name_update(self, context):
     """When the rig item is renamed, rename the associated empty object."""
     if self.empty_object and self.name != self.empty_object.name:
@@ -122,7 +149,7 @@ class SR_RigItem(PropertyGroup):
         description="The object to which the Empty will be parented",
         type=bpy.types.Object,
         poll=lambda self, obj: obj.type in {"MESH", "CURVE", "EMPTY"},
-        update=addremove_helpers.update_parent_object,
+        update=update_helpers.update_parent_object,
     )
 
     material: PointerProperty(
@@ -192,12 +219,27 @@ class SR_RigItem(PropertyGroup):
         update=update_helpers.property_update_sync,
     )
 
-    mode: IntProperty(
+    mode: EnumProperty(
         name="Mode",
         description="Mode of the shading rig effect",
+        items=get_blend_mode_items,
+        default=0,
+        update=update_helpers.property_update_sync,
+    )
+
+    clamp: BoolProperty(
+        name="Clamp",
+        description="Clamp the effect to a normalized 0-1 range",
+        default=False,
+        update=update_helpers.property_update_sync,
+    )
+    
+    rotation: IntProperty(
+        name="Spin",
+        description="Rotate the Effect around its center",
         default=0,
         min=0,
-        max=4,
+        max=9,
         update=update_helpers.property_update_sync,
     )
 
@@ -400,7 +442,9 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "bulge")
                 col.prop(active_item, "bend")
                 # col.prop(active_item, "mask")
+                col.prop(active_item, "rotation")
                 col.prop(active_item, "mode")
+                col.prop(active_item, "clamp")
 
                 if not active_item.added_to_material:
                     active_object = context.active_object

@@ -30,8 +30,9 @@ def serialize_rig_list_to_json(rig_list):
             "hardness": rig.hardness,
             "bulge": rig.bulge,
             "bend": rig.bend,
-            "mask": rig.mask,
             "mode": rig.mode,
+            "clamp": rig.clamp,
+            "rotation": rig.rotation,
             "added_to_material": rig.added_to_material,
             "correlations_index": rig.correlations_index,
             "empty_object_name": empty_object_name,
@@ -92,6 +93,8 @@ def sync_json_to_scene(scene):
         new_rig.bend = rig_data["bend"]
         new_rig.mask = rig_data["mask"]
         new_rig.mode = rig_data["mode"]
+        new_rig.clamp = rig_data["clamp"]
+        new_rig.rotation = rig_data["rotation"]
         new_rig.added_to_material = rig_data["added_to_material"]
         new_rig.correlations_index = rig_data["correlations_index"]
 

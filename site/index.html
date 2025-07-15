@@ -996,18 +996,33 @@
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a></p>
-<p>For full documentation visit <a href="https://www.mkdocs.org">mkdocs.org</a>.</p>
-<h3 id="commands">Commands</h3>
-<ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs -h</code> - Print help message and exit.</li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a callout</p>
-</div>
+<p><a class="glightbox" href="https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Static Badge" src="https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal" /></a></p>
+<p><a href="https://josephhansen.gumroad.com/l/shading-rig-seat"><img alt="Gumroad" src="https://img.shields.io/badge/GUMROAD-36a9ae?style=for-the-badge&amp;logo=gumroad&amp;logoColor=white" /></a></p>
+<h3 id="shading-rig">Shading Rig</h3>
+<p><strong>Customize light and shadow exactly how you want it</strong>
+<a href="img/sr/srf-1.png"><img src="img/sr/srf-1.png" width="100%"/></a></p>
+<h3 id="cel-character-tools">Cel Character Tools</h3>
+<p>Coming soon</p>
+<h3 id="audio-2-face-weight-import">audio-2-face-weight-import</h3>
+<p>Used with NVIDIA Audio2Face; adds a A2F JSON file as a NLA track (or animation layer) in Blender.</p>
+<h3 id="cloth-sim-on-2s">cloth-sim-on-2s</h3>
+<p>Interpolates a baked (on-disk cache) cloth sim to be animated on twos</p>
+<h3 id="delete-object-with-children">delete-object-with-children</h3>
+<p>As written, replaces the default deletion behavior, instead deleting the children of a parent when deleting the parent. I don't use it, but apparently it's a Maya thing, made it for a co-worker</p>
+<h3 id="multikey">multikey</h3>
+<p>Allows for adjusting and animating same-named shapekeys on multiple objects at once; for example, to make a "blink" key that uses Head, Eyebrows, and Eyelashes objects.</p>
+<h3 id="qcb">qcb</h3>
+<p>Makes corrective blendshapes based on the angle or distance between two bone transform values- essentially a quick and dirty RBF node setup</p>
+<h3 id="rendernotify">rendernotify</h3>
+<p>Plays a sound of your choosing when a rendering is complete</p>
+<h3 id="searchable-vertex-groups">searchable-vertex-groups</h3>
+<p>Allows to filter and select vertex groups by name</p>
+<h3 id="select-by-uvmap">select-by-uvmap</h3>
+<p>Select objects by UV map name</p>
+<h3 id="silhouette-view">silhouette-view</h3>
+<p>Adds a silhouette toggle to the shading header</p>
+<h3 id="transfer-shape-keys">transfer-shape-keys</h3>
+<p>Transfers shape keys between objects of identical topologies</p>
     </div>
 </article>
                                 <div class="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -1675,6 +1690,102 @@
         
         
         
+        
+        <a href="#shading-rig"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Shading Rig
+        </a>
+        
+
+        
+        <a href="#cel-character-tools"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Cel Character Tools
+        </a>
+        
+
+        
+        <a href="#audio-2-face-weight-import"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            audio-2-face-weight-import
+        </a>
+        
+
+        
+        <a href="#cloth-sim-on-2s"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            cloth-sim-on-2s
+        </a>
+        
+
+        
+        <a href="#delete-object-with-children"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            delete-object-with-children
+        </a>
+        
+
+        
+        <a href="#multikey"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            multikey
+        </a>
+        
+
+        
+        <a href="#qcb"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            qcb
+        </a>
+        
+
+        
+        <a href="#rendernotify"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            rendernotify
+        </a>
+        
+
+        
+        <a href="#searchable-vertex-groups"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            searchable-vertex-groups
+        </a>
+        
+
+        
+        <a href="#select-by-uvmap"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            select-by-uvmap
+        </a>
+        
+
+        
+        <a href="#silhouette-view"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            silhouette-view
+        </a>
+        
+
+        
+        <a href="#transfer-shape-keys"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            transfer-shape-keys
+        </a>
+        
+
         
         
         

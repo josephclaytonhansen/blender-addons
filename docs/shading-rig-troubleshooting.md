@@ -22,14 +22,14 @@ When in doubt, switch back to Mode 0, which will always show up.
 ### Did you change, disconnect, or rename something in the shader? 
 WARNING: Don't!
 
-There are things you can play with in the shader and **things you cannot**. Anything between the two red **Do not touch this!** frames, you must not alter in any way!
+There are things you can play with in the shader and **things you cannot**. Anything between the two red "**Do not touch this!**" frames, you must not alter in any way!
 
 [<img src="../img/sr/touch-this.jpeg" width="100%"/>](img/sr/touch-this.jpeg)
 [<img src="../img/sr/touch-this2.jpeg" width="100%"/>](img/sr/touch-this2.jpeg)
 
-You can change, modify, rename, or do whatever with the **You Can Touch This** nodes. You cannot in any way alter the red **Do not touch this!** node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes in between the two forbidden nodes, *you will break everything permanently.* The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it. 
+You can change, modify, rename, or do whatever with the "**You Can Touch This**" nodes. You cannot in any way alter the red "**Do not touch this!**" node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes _in-between_ the two forbidden nodes, *you will break everything permanently.* The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it.
 
-One last time, just for safety: **don't touch anything between and including red Do Not Touch This! nodes!!**
+One last time, just for safety: **don't touch anything between and including red "Do Not Touch This!" nodes!!**
 
 ## I add another effect and suddenly everything turns white/black!
 You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try clamping. (See [Material Tricks](shading-rig-material-tricks.md) for details.) Be especially careful with combining multiple *Add* and *Subtract* mode effects. If you *Add* to an *Add*, you have now moved your data from a [0,1] range to a [1,2] range. If you *Subtract* from a *Subtract*, your data is now in a [-1,0] range. In either case, you will see only white or only black. 
@@ -56,7 +56,7 @@ If the custom property changes, everything is fine. Reset your rotation and scal
 ## My Effect is jumping suddenly between correlations as I rotate the light?
 The reason for this behavior is explained in [Correlations](shading-rig-correlations.md). Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. 
 
-## I deleted the `ShaderRigBase_00x` material from my object, now I cannot get the Effects to show up!
+## I deleted the `ShadingRigBase_00x` material from my object, now I cannot get the Effects to show up!
 Make sure whatever material you are using has the two required nodes (see [Material Tricks](shading-rig-material-tricks.md)). Note that it's the node *name*, not the node *label* that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
 [<img src="../img/sr/srt-3.jpeg" width="100%"/>](img/sr/srt-3.jpeg)
 
@@ -66,7 +66,7 @@ This will **not** work:
 ## I get a popup error `AttributeError: 'NoneType' object has no attribute 'get'` when I try to add/edit/remove an effect!
 Remember in the **Quick Start** when I said: 
 
-DANGER: You must never, under any circumstances, delete this empty `ShaderRigProperties_{character name}`?
+DANGER: You must never, under any circumstances, delete this empty `ShadingRigProperties_{character name}`?
 
 Well, this empty has been deleted. Yikes. Undo if you can. If that doesn't work- all you can do now to fix this is reset everything- remove any custom properties from any objects, delete all effects, effect materials, and export all objects into a new scene and new Blender file. Your current Blender file is permanently broken now. You can only move forward by resetting and moving your objects to a new file. 
 
@@ -76,9 +76,6 @@ See the previous answer. Your Blender file is permanently broken. Reset into a n
 
 ## I try and do X but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
 
-You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file. 
-
-
-
+You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file.
 
 

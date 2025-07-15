@@ -20,13 +20,13 @@ INFO: Positive Elongation combined with Sharpness creates a diamond shape.
 Hardness changes the way the Effect blends with other shading. An Hardness of 1 means the Effect will have hard edges and move like a decal. A lower hardness means the Effect will blend with the shading more, creating a smooth effect not unlike what you see with SDF modeling or metaballs. It's difficult to describe, so please compare and contrast what happens when this Effect is moved with an hardness of .1, .3, and 1:
 [<img src="../img/sr/sr-hardness.gif" width="100%"/>](img/sr/sr-hardness.gif)
 
-For hard highlights or shadows, such as a "eyelight", Rembrandt triangle, or an under-nose shadow, you will want a higher value. For more generalized shading, a lower value will work better. 
+For hard highlights or shadows, such as a "eyelight" (a highlight in the eyes), Rembrandt triangle, or an under-the-nose shadow, you will want a higher value. For more generalized shading, a lower value will work better. 
 
 ### Bulge
 [<img src="../img/sr/sr-bulge.gif" width="100%"/>](img/sr/sr-bulge.gif)
 Bulge thickens one end of the Effect, creating a pear-shaped effect. 
 
-NOTE: Bulge applies along a diagonal access. You can use Rotation to correct this. 
+NOTE: Bulge applies along a diagonal axis. You can use Rotation to correct this. 
 
 ### Bend
 Bend thickens the effect similar to Bulge, but it applies on the opposite diagonal axis.
@@ -77,7 +77,7 @@ Here you can change the empty object that the Effect uses. There's not generally
 ### Light Object
 An Effect is tied to the rotation of one Light. If a specific light is not set, this field will automatically fill with the default light set in the Settings sub-panel. If you set a specific light, the Effect will instead respond to that light's rotation. 
 
-NOTE: You don't technically *have* to add a light object- if you don't, your Effect will remain statically positioned and rotated. You won't be able to add correspondences. I'm not sure why this would be useful, but there may be a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.
+NOTE: You don't technically *have* to add a light object- if you don't, your Effect will remain statically positioned and rotated, and you won't be able to add correspondences. I'm not sure why this would be useful, but there may be a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.
 
 ### Material
 An Effect affects one Material. This way, you can have multiple materials affected by Effects. 
@@ -86,15 +86,15 @@ WARNING: You probably should avoid changing this unless you have a specific reas
 
 Note that if you change the material, you need to re-attach the Effect to the material. Click **Add Effect to Material** to do this. 
 ### Display Type
-This sets the viewport display shape of the Effect's empty. 
+This sets the viewport display shape of the Effect's empty. This will not affect the shape of the empty in any way — it is just a way to help visually distinguish between different Effects.
 
 ### Parent Object
-In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Correlations here- just set the Parent Object to the character's object. 
+In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Correlations here — just set the Parent Object to the character's object. 
 
-WARNING: Please don't parent an Effect directly to something- it won't work and you will be sad. Use the Parent Object field to set up this relationship exclusively. 
+WARNING: Please don't parent an Effect directly to something — it won't work and you will be sad. Use the Parent Object field to set up this relationship exclusively. 
 
 ### Renaming an Effect
-You can double-click on an Effect in the effects list to rename it.
+You can double-click on an Effect in the Effects list to rename it.
 
 ### Removing an Effect
-Click the - button while an Effect is selected in the effects list to remove it.
+Click the - button while an Effect is selected in the Effects list to remove it.

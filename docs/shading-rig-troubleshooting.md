@@ -76,9 +76,6 @@ See the previous answer. Your Blender file is permanently broken. Reset into a n
 
 ## I try and do X but I get the popup error `AttributeError: 'NoneType' object has no attribute 'get'`? 
 
-You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file. 
-
-
-
+You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file.
 
 

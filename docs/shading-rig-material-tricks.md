@@ -65,6 +65,6 @@ Compare:
 With: 
 [<img src="../img/sr/srmt-16.jpeg" width="100%"/>](img/sr/srmt-16.jpeg)
 
-NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work around the limitation of having only 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. So, for best results, split your object into major "chunks" by material.
+NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work around the limitation of having only 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. So, for best results, split your object into major "chunks" by material (i.e. hair, head, shirt, pants, shoes, etc).
 
 I know this way is not ideal, but until Blender fixes this particular issue, this is the best way to work with the Shading Rig.

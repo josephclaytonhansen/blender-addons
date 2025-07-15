@@ -144,7 +144,7 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     # Extract rotation tens digit
     rot_tens_div = new_math("DIVIDE", 1000.0)
     node_tree.links.new(red, rot_tens_div.inputs[0])
-    rot_tens_mod = new_math("MODULO", 1.0)
+    rot_tens_mod = new_math("MODULO", 10.0)
     node_tree.links.new(rot_tens_div.outputs[0], rot_tens_mod.inputs[0])
     rot_tens_raw = new_math("FLOOR")
     node_tree.links.new(rot_tens_mod.outputs[0], rot_tens_raw.inputs[0])
@@ -228,15 +228,15 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
 
     # Combine tens and ones digits for rotation
     # (rot_tens * 10) + rot_ones
-    rot_tens_mult = new_math("MULTIPLY", 10.0)
-    node_tree.links.new(rot_tens_raw.outputs[0], rot_tens_mult.inputs[0])
+    rot_tens_scaled = new_math("MULTIPLY", 10.0)
+    node_tree.links.new(rot_tens_raw.outputs[0], rot_tens_scaled.inputs[0])
 
-    rot_full_value = new_math("ADD")
-    node_tree.links.new(rot_tens_mult.outputs[0], rot_full_value.inputs[0])
-    node_tree.links.new(rot_ones_raw.outputs[0], rot_full_value.inputs[1])
+    full_rotation = new_math("ADD")
+    node_tree.links.new(rot_tens_scaled.outputs[0], full_rotation.inputs[0])
+    node_tree.links.new(rot_ones_raw.outputs[0], full_rotation.inputs[1])
 
-    rotation_value = new_math("DIVIDE", 10.0) # Scale to 0.0-9.9
-    node_tree.links.new(rot_full_value.outputs[0], rotation_value.inputs[0])
+    rotation_value = new_math("DIVIDE", 10.0)  # Scale to 0.0-9.9
+    node_tree.links.new(full_rotation.outputs[0], rotation_value.inputs[0])
     node_tree.links.new(rotation_value.outputs[0], effect_node.inputs[3])
 
     return (mode_raw, hardness_value)

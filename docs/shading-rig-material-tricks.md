@@ -4,6 +4,8 @@ Showing Shading Rig on a test sphere is all fine and well, but it's obviously no
 
 My goal here is to integrate a shading rig on this bust without breaking the existing materials and show real production techniques.
 
+NOTE: Due to the limitations of Blender, you can only have 8 edits per material. In this section, we'll go over how to get around this limitation.
+
 ## Adding a Shading Rig to an Existing Material
 When you have a complex material, you can still add a shading rig to it. You just have to add the neccesary nodes from the Shading Rig to your existing material.
 
@@ -63,4 +65,6 @@ Compare:
 With: 
 [<img src="../img/sr/srmt-16.jpeg" width="100%"/>](img/sr/srmt-16.jpeg)
 
-NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.
+NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work around the limitation of having only 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. So, for best results, split your object into major "chunks" by material.
+
+I know this way is not ideal, but until Blender fixes this particular issue, this is the best way to work with the Shading Rig.

@@ -1,7 +1,7 @@
 [![Deploy docs to josephclaytonhansen.github.io/blender-addons](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/static.yml/badge.svg?branch=main)](https://josephclaytonhansen.github.io/blender-addons/)
 [![Pylint](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/pylint.yml)
 [![CodeQL](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/josephclaytonhansen/blender-addons/actions/workflows/github-code-scanning/codeql)
-![Static Badge](https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-brightgreen)
+![Static Badge](https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal)
 
 [![Gumroad](https://img.shields.io/badge/GUMROAD-36a9ae?style=for-the-badge&logo=gumroad&logoColor=white)](https://josephhansen.gumroad.com/l/shading-rig-seat)
 

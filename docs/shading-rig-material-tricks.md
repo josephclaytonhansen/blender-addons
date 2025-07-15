@@ -63,4 +63,4 @@ Compare:
 With: 
 [<img src="../img/sr/srmt-16.jpeg" width="100%"/>](img/sr/srmt-16.jpeg)
 
-NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 edits per material. With the simple two-material split I've done here, I can now have 16 total edits for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.
+NOTE: It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.

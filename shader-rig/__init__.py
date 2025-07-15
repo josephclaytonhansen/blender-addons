@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 124),
+    "version": (1, 3, 126),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -20,6 +20,7 @@ from . import (
     setup_helpers,
     update_helpers,
     visual_helpers,
+    node_helpers
 )
 
 bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer

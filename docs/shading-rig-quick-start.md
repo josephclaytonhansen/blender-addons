@@ -13,14 +13,14 @@ Let's start from scratch, with a blank file.
 
 In **Section 1**, the Settings sub-panel, you can set a character name and a default light. The character name is used to identify the shading rig- you'll need to set this first. For this example, I'm going to name my character "Sphere".
 
-Once you set a character name, you can **Append Required Nodes**, and you'll have an empty added to your scene called `ShaderRigProperties_{character name}`:
+Once you set a character name, you can **Append Required Nodes**, and you'll have an empty added to your scene called `ShadingRigProperties_{character name}`:
 [<img src="../img/sr/character-name.jpeg" width="100%"/>](img/sr/character-name.jpeg)
 
-DANGER: You must never, under any circumstances, delete this empty `ShaderRigProperties_{character name}`. You're welcome to hide it or move it, but it's an essential component for getting multiple Shader Rigs to work in tandem.
+DANGER: You must never, under any circumstances, delete this empty `ShadingRigProperties_{character name}`. You're welcome to hide it or move it, but it's an essential component for getting multiple Shading Rigs to work in tandem.
 
 You can set a light per effect, but if you want all the effects to use the same light, you can save a step by setting a default light here.
 
-You now have a button in **Section 2** that says "Append Required Nodes" clickable. You should click it 😁
+You now have a button in **Section 2** that says "Append Required Nodes" clickable. Click it! 😁
 
 ### Step 2: Append Required Nodes
 You'll get a helpful notification: `Appended 4 node groups and 1 material(s).` 🤘🏻
@@ -50,17 +50,17 @@ The **Active Effect Settings** control the parameters of your new Effect. We wil
 In the panel at the bottom of the **Active Effect Settings**, you'll see **Select a set-up mesh object**. For us, this is our sphere. Let's select it and see what happens:
 [<img src="../img/sr/qsrw-4.jpeg" width="100%"/>](img/sr/qsrw-4.jpeg)
 
-If you're working on a correctly sized human, you probably won't see this. Shading Rig works best on roughly human-sized characters. Our sphere is a bit too big. I'm going to scale it down until I have a **Add Effect to Material** button instead:
+Shading Rig works best on roughly human-sized character, so if you're working on a correctly sized human, you probably won't see this.. Our sphere is a bit too big, so I'm going to scale it down until I see an **Add Effect to Material** button:
 [<img src="../img/sr/qsrw-5.jpeg" width="100%"/>](img/sr/qsrw-5.jpeg)
 
-INFO: Don't worry about the object scale- it will be automatically applied or frozen when you **Add Effect to Material**.
+INFO: Don't worry about the object scale- it will be automatically applied when you **Add Effect to Material**.
 
-Now, we see the button, but we can't click it. Hovering over the button tells us why- the empty needs to be closer to the object. The proximity of the empty to the object affects the size. If it is too far away, the Effect will be too small to see. Let's move it closer, until we can click that button, which we will then click: 
+Now, we see the button, but we can't click it. Hovering over the button tells us why — the empty needs to be closer to the object. The proximity of the empty to the object affects the size of the Effect. If it is too far away, the Effect will be too small to see. Let's move it closer, until we can click that button, which we will then click: 
 [<img src="../img/sr/qsrw-6.jpeg" width="100%"/>](img/sr/qsrw-6.jpeg)
 
-Wow! the Effect!
+Wow! The Effect!
 
-You can start playing around with the Effect immediately- it updates in realtime. You can move it around, rotate it, scale it, and change the parameters in the **Active Effect Settings**. 
+You can start playing around with the Effect immediately — it updates in realtime. You can move it around, rotate it, scale it, and change the parameters in the **Active Effect Settings**. 
 
 ### Step 6: Add Correlations
 In **Section 4**, the Correlations list, you have a + button. This adds a new correlation. Before you click it, though, here's how correlations work. 
@@ -69,5 +69,7 @@ When you click the + button, the current Light rotation and the current Effect p
 
 This is much easier to demonstrate visually: 
 [<img src="../img/sr/two-correlations.gif" width="100%"/>](img/sr/two-correlations.gif)
+
+Although it is _not_ a driver-driven relationship, it does act like one. 
 
 That's all you need to know to get started. For more advanced usage and settings, please continue through the documentation.

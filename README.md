@@ -35,7 +35,7 @@ Studio or professional users **must** purchase seat licenses of Shading Rig + Ce
 Used with NVIDIA Audio2Face; adds a A2F JSON file as a NLA track (or animation layer) in Blender.
 
 ### cloth-sim-on-2s
-Interpolates a baked (on-disk cache) cloth sim to be animated on twos
+Interpolates a baked (on-disk cache) cloth sim to be animated on twos.
 
 ### delete-object-with-children
 As written, replaces the default deletion behavior, instead deleting the children of a parent when deleting the parent. I don't use it, but apparently it's a Maya thing, made it for a co-worker

@@ -1025,6 +1025,10 @@
 <p>Showing Shading Rig on a test sphere is all fine and well, but it's obviously not a recreation of a production character. For this part of the docs, I'm going to use this bust, which already has a complex material with textures:
 <a href="../img/sr/srmt-1.jpeg"><img src="../img/sr/srmt-1.jpeg" width="100%"/></a></p>
 <p>My goal here is to integrate a shading rig on this bust without breaking the existing materials and show real production techniques.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Due to the limitations of Blender, you can only have 8 edits per material. In this section, we'll go over how to get around this limitation.</p>
+</div>
 <h3 id="adding-a-shading-rig-to-an-existing-material">Adding a Shading Rig to an Existing Material</h3>
 <p>When you have a complex material, you can still add a shading rig to it. You just have to add the neccesary nodes from the Shading Rig to your existing material.</p>
 <p>Click <strong>Set Up Shading Rig on Object</strong> like you normally would. </p>
@@ -1049,9 +1053,6 @@ And add an Effect:
 <a href="../img/sr/srmt-5a.jpeg"><img src="../img/sr/srmt-5a.jpeg" width="100%"/></a>
 When we <strong>Add Effect to Material</strong>, we will have a shading rig that works with our existing material. I've added three edits as an example: 
 <a href="../img/sr/srmt-6.jpeg"><img src="../img/sr/srmt-6.jpeg" width="100%"/></a></p>
-<h3 id="clamping">Clamping</h3>
-<p>When stacking multiple Effects, you will go outside of a normalized range of [0,1]. If an Effect is behaving strangely or you are having difficulty controlling it, you may need to clamp it. In your nodes, find the <code>ShadingRigEffect_SR_Effect_*</code> node. In my case, I've clamped <code>ShadingRigEffect_SR_Effect_Bust_003</code>:
-<a href="../img/sr/srmt-7.jpeg"><img src="../img/sr/srmt-7.jpeg" width="100%"/></a></p>
 <p>To do this, put a Math node set to Add (with second input 0) between <code>ShadingRigEffect_SR_Effect_Bust_003</code> and all of its outputs. It's much easier to do this if you add a reroute, as I've done. Then you can toggle clamping as desired. Compare clamping on:
 <a href="../img/sr/srmt-8.jpeg"><img src="../img/sr/srmt-8.jpeg" width="100%"/></a>
 Versus clamping off:
@@ -1073,8 +1074,9 @@ With:
 <a href="../img/sr/srmt-16.jpeg"><img src="../img/sr/srmt-16.jpeg" width="100%"/></a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work with Shading Rig, especially because you can only have 8 edits per material. With the simple two-material split I've done here, I can now have 16 total edits for this object. With just one material, I would be limited to 8. For best results, split your object into major "chunks" by material.</p>
+<p>It may feel strange to consider breaking your object up into many materials that look and behave the same. However, this is the best way to work around the limitation of having only 8 Effects per material. With the simple two-material split I've done here, I can now have 16 total Effects for this object. So, for best results, split your object into major "chunks" by material (i.e. hair, head, shirt, pants, shoes, etc).</p>
 </div>
+<p>I know this way is not ideal, but until Blender fixes this particular issue, this is the best way to work with the Shading Rig.</p>
     </div>
 </article>
                                 <div class="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -1773,14 +1775,6 @@ With:
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
             Adding a Shading Rig to an Existing Material
-        </a>
-        
-
-        
-        <a href="#clamping"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2">
-            Clamping
         </a>
         
 

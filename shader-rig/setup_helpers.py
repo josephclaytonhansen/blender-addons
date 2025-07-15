@@ -6,112 +6,10 @@ from bpy.types import (
 )
 from mathutils import Matrix, Vector
 
-from . import hansens_float_packer, json_helpers
-
+from . import hansens_float_packer, json_helpers, node_helpers
 
 def update_material(self, context):
     self.added_to_material = False
-
-
-def create_mode_mix_nodes(
-    node_tree,
-    mode_value_output,
-    base_color_input,
-    effect_mask_socket,
-    hardness_output,
-    location,
-):
-
-    def new_math(op, val=None, x_offset=0, y_offset=0):
-        node = node_tree.nodes.new("ShaderNodeMath")
-        node.operation = op
-        if val is not None:
-            node.inputs[1].default_value = val
-        node.location = location + Vector((x_offset, y_offset))
-        return node
-
-    def new_mix(blend_type, fac=1.0, x_offset=0, y_offset=0):
-        node = node_tree.nodes.new("ShaderNodeMixRGB")
-        node.blend_type = blend_type
-        if fac is not None:
-            node.inputs[0].default_value = fac
-        node.location = location + Vector((x_offset, y_offset))
-        return node
-
-    # --- 1. Calculate all 5 blend modes, blended by hardness ---
-    blend_modes = ["LIGHTEN", "SUBTRACT", "MULTIPLY", "DARKEN", "ADD"]
-    blend_nodes = []
-    y_pos = 200
-    for i, mode_name in enumerate(blend_modes):
-        # Don't set a default fac, as it will be linked from hardness
-        mix_node = new_mix(mode_name, fac=None, x_offset=0, y_offset=y_pos)
-        node_tree.links.new(hardness_output, mix_node.inputs[0])
-        node_tree.links.new(base_color_input, mix_node.inputs[1])
-        node_tree.links.new(effect_mask_socket, mix_node.inputs[2])
-        blend_nodes.append(mix_node)
-        y_pos -= 120
-
-    # --- 2. Create selection logic based on mode input ---
-    # Round and clamp the mode value to be safe
-    mode_rounded = new_math("ROUND", x_offset=200, y_offset=100)
-    node_tree.links.new(mode_value_output, mode_rounded.inputs[0])
-
-    # Clamp the mode value between 0 and 4 using MIN and MAX, since Math node has no CLAMP
-    mode_max = new_math("MAXIMUM", 0.0, x_offset=350, y_offset=100)
-    node_tree.links.new(mode_rounded.outputs[0], mode_max.inputs[0])
-
-    mode_clamped = new_math("MINIMUM", 4.0, x_offset=500, y_offset=100)
-    node_tree.links.new(mode_max.outputs[0], mode_clamped.inputs[0])
-
-    compare_nodes = []
-    y_pos = 200
-    x_pos = 650
-    for i in range(5):
-        compare = new_math("COMPARE", float(i), x_pos, y_pos)
-        compare.inputs[2].default_value = 0.01  # Epsilon for float comparison
-        node_tree.links.new(mode_clamped.outputs[0], compare.inputs[0])
-        compare_nodes.append(compare)
-        y_pos -= 120
-
-    # --- 3. Isolate the result of the selected blend mode ---
-    selected_results = []
-    y_pos = 200
-    x_pos = 850
-    for i, blend_node in enumerate(blend_nodes):
-        select_mix = new_mix("MIX", x_offset=x_pos, y_offset=y_pos)
-        select_mix.inputs[1].default_value = (0, 0, 0, 1)  # Color1 = Black
-        node_tree.links.new(blend_node.outputs[0], select_mix.inputs[2])
-        node_tree.links.new(compare_nodes[i].outputs[0], select_mix.inputs[0])
-        selected_results.append(select_mix)
-        y_pos -= 120
-
-    # --- 4. Add the isolated results together ---
-    # Since only one result is non-black, adding them is equivalent to choosing one.
-    # We use Math nodes instead of MixRGB(Add) to avoid color-related clamping issues.
-    add_node_x = 1050
-    last_output = selected_results[0].outputs[0]
-    
-    # Chain Math(Add) nodes to sum the 5 results
-    add_1 = new_math("ADD", x_offset=add_node_x, y_offset=140)
-    node_tree.links.new(last_output, add_1.inputs[0])
-    node_tree.links.new(selected_results[1].outputs[0], add_1.inputs[1])
-
-    add_2 = new_math("ADD", x_offset=add_node_x + 200, y_offset=80)
-    node_tree.links.new(add_1.outputs[0], add_2.inputs[0])
-    node_tree.links.new(selected_results[2].outputs[0], add_2.inputs[1])
-
-    add_3 = new_math("ADD", x_offset=add_node_x + 400, y_offset=20)
-    node_tree.links.new(add_2.outputs[0], add_3.inputs[0])
-    node_tree.links.new(selected_results[3].outputs[0], add_3.inputs[1])
-
-    selected_blend_result = new_math("ADD", x_offset=add_node_x + 600, y_offset=-40)
-    node_tree.links.new(add_3.outputs[0], selected_blend_result.inputs[0])
-    node_tree.links.new(selected_results[4].outputs[0], selected_blend_result.inputs[1])
-
-    # The selected result, which was already blended by hardness, is the final output.
-    # The final mixing stage is no longer needed.
-    return selected_blend_result.outputs[0]
-
 
 class SR_OT_AddEffectCoordinatesNode(Operator):
     """
@@ -240,35 +138,19 @@ class SR_OT_AddEffectCoordinatesNode(Operator):
         attr_node.location.x = new_node.location.x - 200
         attr_node.location.y = new_y_pos - 200
 
-        mode_raw, hardness_value = hansens_float_packer.unpack_nodes(
+        mode_raw, hardness_value = node_helpers.unpack_nodes(
             attribute_node=attr_node,
             effect_node=new_node,
             node_tree=node_tree,
             effect_empty=empty_obj,
         )
 
-        # if previous_link:
-        #     base_color_socket = previous_link.from_socket
-        # else:
-        #     base_color_socket = source_node.outputs[0]
-
-        # mix_node_lighten = node_tree.nodes.new("ShaderNodeMixRGB")
-        # mix_node_lighten.location.x = new_node.location.x - 200
-        # mix_node_lighten.location.y = new_y_pos - 200
-        # mix_node_lighten.blend_type = "LIGHTEN"
-
-        # node_tree.links.new(base_color_socket, mix_node_lighten.inputs[1])
-        # node_tree.links.new(new_node.outputs[0], mix_node_lighten.inputs[2])
-        # node_tree.links.new(hardness_value.outputs[0], mix_node_lighten.inputs[0])
-
-        # node_tree.links.new(mix_node_lighten.outputs[0], dest_node.inputs[0])
-
         if previous_link:
             base_color_socket = previous_link.from_socket
         else:
             base_color_socket = source_node.outputs[0]
 
-        final_output = create_mode_mix_nodes(
+        final_output = node_helpers.create_mode_mix_nodes(
             node_tree=node_tree,
             mode_value_output=mode_raw.outputs[0],
             base_color_input=base_color_socket,

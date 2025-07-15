@@ -32,7 +32,7 @@ You can change, modify, rename, or do whatever with the "**You Can Touch This**"
 One last time, just for safety: **don't touch anything between and including red "Do Not Touch This!" nodes!!**
 
 ## I add another effect and suddenly everything turns white/black!
-You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try clamping. (See [Material Tricks](shading-rig-material-tricks.md) for details.) Be especially careful with combining multiple *Add* and *Subtract* mode effects. If you *Add* to an *Add*, you have now moved your data from a [0,1] range to a [1,2] range. If you *Subtract* from a *Subtract*, your data is now in a [-1,0] range. In either case, you will see only white or only black. 
+You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try toggling clamping. Be especially careful with combining multiple *Add* and *Subtract* mode effects. If you *Add* to an *Add*, you have now moved your data from a [0,1] range to a [1,2] range. If you *Subtract* from a *Subtract*, your data is now in a [-1,0] range. In either case, you will see only white or only black. 
 
 ## I add an effect and my material doesn't show any shading?
 Scale down your Effect. If the scale is too large, it will flood the whole object. 

@@ -21,37 +21,41 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mode, clamp_
     allows for 8 shading effects per shading rig per material,
     which should be enough.
 
-    Elong (-.999 to .999) 4d
+    Elong (0 to .999) 3d
     Sharp (0 to .999) 3d
+    roTation (0 to 99) 1d (first digit)
     benD (-.999 to .999) 4d
     bUlge (-.999 to 999) 4d
     Hardness (0 to .999) 3d
     Clamp (0 or 1) 1d
-    Rotation (0 to 9) 1d
+    Rotation (0 to 99) 2d
     Mode (0 (Lighten), 1 (Subtract), 2 (Multiply), 3 (Darken), 4 (Add)) 1d
 
-    EEE-SSS
+    EEETSSS
     DDD-AAA
     UUU-MCR
     """
 
     pairs = {
-        "red": ["elongation", "sharpness"],
+        "red": ["elongation", "rotation", "sharpness"],
         "green": ["bend", "hardness"],
-        "blue": ["bulge", "clamp_val", "mode", "rotation"],
+        "blue": ["bulge", "clamp_val", "mode"],
     }
     vals = {}
     signs = {}
 
     for color, attributes in pairs.items():
         for attr in attributes:
-            if attr in ["elongation", "bend", "bulge"]:
+            if attr in ["bend", "bulge"]:
                 # all of these are -0.999 to 0.999
                 vals[attr] = math.floor(clamp(-0.999, locals()[attr], 0.999) * 1000)
                 signs[attr] = 1 if vals[attr] >= 0 else 0
                 vals[attr] = abs(vals[attr])
             elif attr in ["sharpness", "hardness"]:
                 # these are 0.0 to 0.999
+                vals[attr] = math.floor(clamp(0.0, locals()[attr], 0.999) * 1000)
+            elif attr == "elongation":
+                # this is 0.0 to 0.999
                 vals[attr] = math.floor(clamp(0.0, locals()[attr], 0.999) * 1000)
             elif attr == "clamp_val":
                 # this is 0 or 1, as a Boolean (t/f)
@@ -64,18 +68,22 @@ def packing_algorithm(elongation, sharpness, bulge, bend, hardness, mode, clamp_
                 # this is 0 to 4
                 vals[attr] = int(clamp(0, locals()[attr], 4))
             elif attr == "rotation":
-                # this is 0 to 9
-                vals[attr] = int(clamp(0, locals()[attr], 9))
+                # this is 0 to 99
+                vals[attr] = int(clamp(0, locals()[attr], 99))
 
-    red = vals["elongation"] * 10000 + signs["elongation"] * 1000 + vals["sharpness"]
+    # red: elongation (3) + rot_tens (1) + sharpness (3)
+    rot_tens = math.floor(vals["rotation"] / 10)
+    red = vals["elongation"] * 10000 + rot_tens * 1000 + vals["sharpness"]
 
     green = vals["bend"] * 10000 + signs["bend"] * 1000 + vals["hardness"]
+    # blue: bulge (3) + bulge_sign (1) + mode (1) + clamp (1) + rot_ones (1)
+    rot_ones = vals["rotation"] % 10
     blue = (
         vals["bulge"] * 10000
         + signs["bulge"] * 1000
         + vals["mode"] * 100
         + vals["clamp_val"] * 10
-        + vals["rotation"]
+        + rot_ones
     )
 
     return (red, green, blue)
@@ -123,32 +131,29 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     tex_coord.object = effect_empty
     node_tree.links.new(tex_coord.outputs[3], effect_node.inputs[0])
 
-    # RED CHANNEL: elongation (4 digits) + sign (1 digit) + sharpness (3 digits)
-    # Extract elongation value (first 4 digits)
+    # RED CHANNEL: EEETSSS
+    # Extract elongation
     elongation_div = new_math("DIVIDE", 10000.0)
     node_tree.links.new(red, elongation_div.inputs[0])
     elongation_raw = new_math("FLOOR")
     node_tree.links.new(elongation_div.outputs[0], elongation_raw.inputs[0])
     elongation_value = new_math("DIVIDE", 1000.0)
     node_tree.links.new(elongation_raw.outputs[0], elongation_value.inputs[0])
+    node_tree.links.new(elongation_value.outputs[0], effect_node.inputs[1])
 
-    # Extract elongation sign (5th digit)
-    red_mod_10000 = new_math("MODULO", 10000.0)
-    node_tree.links.new(red, red_mod_10000.inputs[0])
-    elongation_sign_div = new_math("DIVIDE", 1000.0)
-    node_tree.links.new(red_mod_10000.outputs[0], elongation_sign_div.inputs[0])
-    elongation_sign_raw = new_math("FLOOR")
-    node_tree.links.new(elongation_sign_div.outputs[0], elongation_sign_raw.inputs[0])
+    # Extract rotation tens digit
+    rot_tens_div = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(red, rot_tens_div.inputs[0])
+    rot_tens_mod = new_math("MODULO", 10.0)
+    node_tree.links.new(rot_tens_div.outputs[0], rot_tens_mod.inputs[0])
+    rot_tens_raw = new_math("FLOOR")
+    node_tree.links.new(rot_tens_mod.outputs[0], rot_tens_raw.inputs[0])
 
-    # Apply sign to elongation
-    elongation_signed = apply_sign(elongation_value, elongation_sign_raw)
-    node_tree.links.new(elongation_signed.outputs[0], effect_node.inputs[1])
-
-    # Extract sharpness (last 3 digits)
-    sharpness_raw = new_math("MODULO", 1000.0)
-    node_tree.links.new(red, sharpness_raw.inputs[0])
-    sharpness_value = new_math("DIVIDE", 940.0)
-    node_tree.links.new(sharpness_raw.outputs[0], sharpness_value.inputs[0])
+    # Extract sharpness
+    sharpness_mod = new_math("MODULO", 1000.0)
+    node_tree.links.new(red, sharpness_mod.inputs[0])
+    sharpness_value = new_math("DIVIDE", 1000.0)
+    node_tree.links.new(sharpness_mod.outputs[0], sharpness_value.inputs[0])
     node_tree.links.new(sharpness_value.outputs[0], effect_node.inputs[2])
 
     # GREEN CHANNEL: bend (3 value + 1 sign) + hardness (3 value)
@@ -178,8 +183,8 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     hardness_value = new_math("DIVIDE", 1000.0)
     node_tree.links.new(hardness_raw.outputs[0], hardness_value.inputs[0])
 
-    # BLUE CHANNEL: bulge (3 val + 1 sign) + mode (1) + clamp (1) + rotation (1)
-    # Packing format: UUU S M C R
+    # BLUE CHANNEL: bulge (3 val + 1 sign) + mode (1) + clamp (1) + rotation ones (1)
+    # Packing format: UUU S M C R_
     # Extract bulge value (first 4 digits)
     bulge_div = new_math("DIVIDE", 10000.0)
     node_tree.links.new(blue, bulge_div.inputs[0])
@@ -217,11 +222,21 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     node_tree.links.new(clamp_div.outputs[0], clamp_raw.inputs[0])
     node_tree.links.new(clamp_raw.outputs[0], effect_node.inputs[7])
 
-    # Extract rotation (from the 1s place) and scale to 0.0-0.9
-    rotation_raw = new_math("MODULO", 10.0)
-    node_tree.links.new(blue, rotation_raw.inputs[0])
-    rotation_value = new_math("DIVIDE", 10.0)
-    node_tree.links.new(rotation_raw.outputs[0], rotation_value.inputs[0])
+    # Extract rotation ones digit and combine with tens digit
+    rot_ones_raw = new_math("MODULO", 10.0)
+    node_tree.links.new(blue, rot_ones_raw.inputs[0])
+
+    # Combine tens and ones digits for rotation
+    # (rot_tens * 10) + rot_ones
+    rot_tens_scaled = new_math("MULTIPLY", 10.0)
+    node_tree.links.new(rot_tens_raw.outputs[0], rot_tens_scaled.inputs[0])
+
+    full_rotation = new_math("ADD")
+    node_tree.links.new(rot_tens_scaled.outputs[0], full_rotation.inputs[0])
+    node_tree.links.new(rot_ones_raw.outputs[0], full_rotation.inputs[1])
+
+    rotation_value = new_math("DIVIDE", 10.0)  # Scale to 0.0-9.9
+    node_tree.links.new(full_rotation.outputs[0], rotation_value.inputs[0])
     node_tree.links.new(rotation_value.outputs[0], effect_node.inputs[3])
 
     return (mode_raw, hardness_value)

@@ -17,150 +17,100 @@ def create_mode_mix_nodes(
     node_tree,
     mode_value_output,
     base_color_input,
-    effect_color_output,
+    effect_mask_socket,
     hardness_output,
     location,
 ):
 
-    def new_math(op, val=None):
+    def new_math(op, val=None, x_offset=0, y_offset=0):
         node = node_tree.nodes.new("ShaderNodeMath")
         node.operation = op
         if val is not None:
             node.inputs[1].default_value = val
-        return node
-
-    def new_mix(blend_type, x_offset=0, y_offset=0):
-        node = node_tree.nodes.new("ShaderNodeMixRGB")
-        node.blend_type = blend_type
         node.location = location + Vector((x_offset, y_offset))
         return node
 
-    # Create all blend mode mix nodes
-    mix_lighten = new_mix("LIGHTEN", 0, 200)  # mode 0
-    mix_subtract = new_mix("SUBTRACT", 0, 100)  # mode 1
-    mix_multiply = new_mix("MULTIPLY", 0, 0)  # mode 2
-    mix_darken = new_mix("DARKEN", 0, -100)  # mode 3
-    mix_add = new_mix("ADD", 0, -200)  # mode 4
+    def new_mix(blend_type, fac=1.0, x_offset=0, y_offset=0):
+        node = node_tree.nodes.new("ShaderNodeMixRGB")
+        node.blend_type = blend_type
+        if fac is not None:
+            node.inputs[0].default_value = fac
+        node.location = location + Vector((x_offset, y_offset))
+        return node
 
-    # Connect inputs to all blend modes
-    for mix_node in [mix_lighten, mix_subtract, mix_multiply, mix_darken, mix_add]:
-        node_tree.links.new(base_color_input, mix_node.inputs[1])  # Color1
-        node_tree.links.new(effect_color_output, mix_node.inputs[2])  # Color2
-        node_tree.links.new(hardness_output, mix_node.inputs[0])  # Fac
+    # --- 1. Calculate all 5 blend modes, blended by hardness ---
+    blend_modes = ["LIGHTEN", "SUBTRACT", "MULTIPLY", "DARKEN", "ADD"]
+    blend_nodes = []
+    y_pos = 200
+    for i, mode_name in enumerate(blend_modes):
+        # Don't set a default fac, as it will be linked from hardness
+        mix_node = new_mix(mode_name, fac=None, x_offset=0, y_offset=y_pos)
+        node_tree.links.new(hardness_output, mix_node.inputs[0])
+        node_tree.links.new(base_color_input, mix_node.inputs[1])
+        node_tree.links.new(effect_mask_socket, mix_node.inputs[2])
+        blend_nodes.append(mix_node)
+        y_pos -= 120
 
-    # Round the mode value to nearest integer
-    mode_rounded = new_math("ROUND")
-    mode_rounded.location = location + Vector((200, 300))
+    # --- 2. Create selection logic based on mode input ---
+    # Round and clamp the mode value to be safe
+    mode_rounded = new_math("ROUND", x_offset=200, y_offset=100)
     node_tree.links.new(mode_value_output, mode_rounded.inputs[0])
 
-    # Clamp mode between 0 and 4
-    mode_clamped = new_math("MAXIMUM", 0.0)
-    mode_clamped.location = location + Vector((300, 300))
-    node_tree.links.new(mode_rounded.outputs[0], mode_clamped.inputs[0])
+    # Clamp the mode value between 0 and 4 using MIN and MAX, since Math node has no CLAMP
+    mode_max = new_math("MAXIMUM", 0.0, x_offset=350, y_offset=100)
+    node_tree.links.new(mode_rounded.outputs[0], mode_max.inputs[0])
 
-    mode_clamped2 = new_math("MINIMUM", 4.0)
-    mode_clamped2.location = location + Vector((400, 300))
-    node_tree.links.new(mode_clamped.outputs[0], mode_clamped2.inputs[0])
+    mode_clamped = new_math("MINIMUM", 4.0, x_offset=500, y_offset=100)
+    node_tree.links.new(mode_max.outputs[0], mode_clamped.inputs[0])
 
-    mode_0_check = new_math("COMPARE", 0.0)
-    mode_0_check.location = location + Vector((500, 200))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_0_check.inputs[0])
+    compare_nodes = []
+    y_pos = 200
+    x_pos = 650
+    for i in range(5):
+        compare = new_math("COMPARE", float(i), x_pos, y_pos)
+        compare.inputs[2].default_value = 0.01  # Epsilon for float comparison
+        node_tree.links.new(mode_clamped.outputs[0], compare.inputs[0])
+        compare_nodes.append(compare)
+        y_pos -= 120
 
-    mode_1_check = new_math("COMPARE", 1.0)
-    mode_1_check.location = location + Vector((500, 100))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_1_check.inputs[0])
+    # --- 3. Isolate the result of the selected blend mode ---
+    selected_results = []
+    y_pos = 200
+    x_pos = 850
+    for i, blend_node in enumerate(blend_nodes):
+        select_mix = new_mix("MIX", x_offset=x_pos, y_offset=y_pos)
+        select_mix.inputs[1].default_value = (0, 0, 0, 1)  # Color1 = Black
+        node_tree.links.new(blend_node.outputs[0], select_mix.inputs[2])
+        node_tree.links.new(compare_nodes[i].outputs[0], select_mix.inputs[0])
+        selected_results.append(select_mix)
+        y_pos -= 120
 
-    mode_2_check = new_math("COMPARE", 2.0)
-    mode_2_check.location = location + Vector((500, 0))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_2_check.inputs[0])
+    # --- 4. Add the isolated results together ---
+    # Since only one result is non-black, adding them is equivalent to choosing one.
+    # We use Math nodes instead of MixRGB(Add) to avoid color-related clamping issues.
+    add_node_x = 1050
+    last_output = selected_results[0].outputs[0]
+    
+    # Chain Math(Add) nodes to sum the 5 results
+    add_1 = new_math("ADD", x_offset=add_node_x, y_offset=140)
+    node_tree.links.new(last_output, add_1.inputs[0])
+    node_tree.links.new(selected_results[1].outputs[0], add_1.inputs[1])
 
-    mode_3_check = new_math("COMPARE", 3.0)
-    mode_3_check.location = location + Vector((500, -100))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_3_check.inputs[0])
+    add_2 = new_math("ADD", x_offset=add_node_x + 200, y_offset=80)
+    node_tree.links.new(add_1.outputs[0], add_2.inputs[0])
+    node_tree.links.new(selected_results[2].outputs[0], add_2.inputs[1])
 
-    mode_4_check = new_math("COMPARE", 4.0)
-    mode_4_check.location = location + Vector((500, -200))
-    node_tree.links.new(mode_clamped2.outputs[0], mode_4_check.inputs[0])
+    add_3 = new_math("ADD", x_offset=add_node_x + 400, y_offset=20)
+    node_tree.links.new(add_2.outputs[0], add_3.inputs[0])
+    node_tree.links.new(selected_results[3].outputs[0], add_3.inputs[1])
 
-    # Create selection factors by multiplying mode check with hardness
-    # This ensures hardness is properly applied to the selected mode
+    selected_blend_result = new_math("ADD", x_offset=add_node_x + 600, y_offset=-40)
+    node_tree.links.new(add_3.outputs[0], selected_blend_result.inputs[0])
+    node_tree.links.new(selected_results[4].outputs[0], selected_blend_result.inputs[1])
 
-    # Multiply mode selection by hardness to get the actual blend factor
-    factor_0 = new_math("MULTIPLY")
-    factor_0.location = location + Vector((700, 200))
-    node_tree.links.new(mode_0_check.outputs[0], factor_0.inputs[0])
-    node_tree.links.new(hardness_output, factor_0.inputs[1])
-
-    factor_1 = new_math("MULTIPLY")
-    factor_1.location = location + Vector((700, 100))
-    node_tree.links.new(mode_1_check.outputs[0], factor_1.inputs[0])
-    node_tree.links.new(hardness_output, factor_1.inputs[1])
-
-    factor_2 = new_math("MULTIPLY")
-    factor_2.location = location + Vector((700, 0))
-    node_tree.links.new(mode_2_check.outputs[0], factor_2.inputs[0])
-    node_tree.links.new(hardness_output, factor_2.inputs[1])
-
-    factor_3 = new_math("MULTIPLY")
-    factor_3.location = location + Vector((700, -100))
-    node_tree.links.new(mode_3_check.outputs[0], factor_3.inputs[0])
-    node_tree.links.new(hardness_output, factor_3.inputs[1])
-
-    factor_4 = new_math("MULTIPLY")
-    factor_4.location = location + Vector((700, -200))
-    node_tree.links.new(mode_4_check.outputs[0], factor_4.inputs[0])
-    node_tree.links.new(hardness_output, factor_4.inputs[1])
-
-    # Mix each blend result with the base color using the hardness-adjusted factor
-    # This properly applies hardness to each mode
-    final_0 = new_mix("MIX", 900, 200)
-    node_tree.links.new(
-        factor_0.outputs[0], final_0.inputs[0]
-    )  # Hardness * mode_selection
-    node_tree.links.new(base_color_input, final_0.inputs[1])  # Base color
-    node_tree.links.new(mix_lighten.outputs[0], final_0.inputs[2])  # Blend result
-
-    final_1 = new_mix("MIX", 900, 100)
-    node_tree.links.new(factor_1.outputs[0], final_1.inputs[0])
-    node_tree.links.new(base_color_input, final_1.inputs[1])
-    node_tree.links.new(mix_subtract.outputs[0], final_1.inputs[2])
-
-    final_2 = new_mix("MIX", 900, 0)
-    node_tree.links.new(factor_2.outputs[0], final_2.inputs[0])
-    node_tree.links.new(base_color_input, final_2.inputs[1])
-    node_tree.links.new(mix_multiply.outputs[0], final_2.inputs[2])
-
-    final_3 = new_mix("MIX", 900, -100)
-    node_tree.links.new(factor_3.outputs[0], final_3.inputs[0])
-    node_tree.links.new(base_color_input, final_3.inputs[1])
-    node_tree.links.new(mix_darken.outputs[0], final_3.inputs[2])
-
-    final_4 = new_mix("MIX", 900, -200)
-    node_tree.links.new(factor_4.outputs[0], final_4.inputs[0])
-    node_tree.links.new(base_color_input, final_4.inputs[1])
-    node_tree.links.new(mix_add.outputs[0], final_4.inputs[2])
-
-    sum_01 = new_mix("ADD", 1100, 150)
-    node_tree.links.new(final_0.outputs[0], sum_01.inputs[1])
-    node_tree.links.new(final_1.outputs[0], sum_01.inputs[2])
-    sum_01.inputs[0].default_value = 1.0
-
-    sum_23 = new_mix("ADD", 1100, -50)
-    node_tree.links.new(final_2.outputs[0], sum_23.inputs[1])
-    node_tree.links.new(final_3.outputs[0], sum_23.inputs[2])
-    sum_23.inputs[0].default_value = 1.0
-
-    sum_0123 = new_mix("ADD", 1300, 50)
-    node_tree.links.new(sum_01.outputs[0], sum_0123.inputs[1])
-    node_tree.links.new(sum_23.outputs[0], sum_0123.inputs[2])
-    sum_0123.inputs[0].default_value = 1.0
-
-    final_sum = new_mix("ADD", 1500, 0)
-    node_tree.links.new(sum_0123.outputs[0], final_sum.inputs[1])
-    node_tree.links.new(final_4.outputs[0], final_sum.inputs[2])
-    final_sum.inputs[0].default_value = 1.0
-
-    return final_sum.outputs[0]
+    # The selected result, which was already blended by hardness, is the final output.
+    # The final mixing stage is no longer needed.
+    return selected_blend_result.outputs[0]
 
 
 class SR_OT_AddEffectCoordinatesNode(Operator):
@@ -199,15 +149,17 @@ class SR_OT_AddEffectCoordinatesNode(Operator):
         if "ShadingRigEffect" not in bpy.data.node_groups:
             return False
 
-        al = context.active_object.location
-        bl = active_item.empty_object.location
-        distance = (al - bl).length
-        if distance > 2:
-            cls.poll_message_set("Move the empty object closer to the active object")
-            return False
-        elif distance < 0.25:
-            cls.poll_message_set("Move the empty object outside of the active object")
-            return False
+        # This poll method can be called in contexts without an active object (like startup).
+        if context.active_object and active_item.empty_object:
+            al = context.active_object.location
+            bl = active_item.empty_object.location
+            distance = (al - bl).length
+            if distance > 2:
+                cls.poll_message_set("Move the empty object closer to the active object")
+                return False
+            elif distance < 0.25:
+                cls.poll_message_set("Move the empty object outside of the active object")
+                return False
 
         mat = active_item.material
         if mat and mat.node_tree:
@@ -288,7 +240,7 @@ class SR_OT_AddEffectCoordinatesNode(Operator):
         attr_node.location.x = new_node.location.x - 200
         attr_node.location.y = new_y_pos - 200
 
-        mode_raw, mask_value, hardness_value = hansens_float_packer.unpack_nodes(
+        mode_raw, hardness_value = hansens_float_packer.unpack_nodes(
             attribute_node=attr_node,
             effect_node=new_node,
             node_tree=node_tree,
@@ -320,7 +272,7 @@ class SR_OT_AddEffectCoordinatesNode(Operator):
             node_tree=node_tree,
             mode_value_output=mode_raw.outputs[0],
             base_color_input=base_color_socket,
-            effect_color_output=new_node.outputs[0],
+            effect_mask_socket=new_node.outputs[0],
             hardness_output=hardness_value.outputs[0],
             location=Vector((new_node.location.x + 400, new_node.location.y)),
         )

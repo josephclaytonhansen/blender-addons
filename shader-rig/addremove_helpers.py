@@ -16,13 +16,11 @@ class SR_OT_RigList_Add(Operator):
     @classmethod
     def poll(cls, context):
         if json_helpers.get_scene_properties_object() is None:
-            cls.poll_message_set(
-                "Please set a character name and append required nodes"
-            )
+            # This can happen at startup, so don't set a poll message
             return False
 
         if not context.scene.shading_rig_default_material:
-            cls.poll_message_set("Please set up shading rig on an object")
+            cls.poll_message_set("Please set up a default material for the rig first.")
             return False
 
         return True
@@ -81,20 +79,22 @@ class SR_OT_RigList_Add(Operator):
                 var_names = [
                     "elongation",
                     "sharpness",
-                    "bend",
                     "bulge",
+                    "bend",
                     "hardness",
-                    "mask",
                     "mode",
+                    "clamp",
+                    "rotation"
                 ]
                 var_paths = [
                     f"shading_rig_list[{rig_index}].elongation",
                     f"shading_rig_list[{rig_index}].sharpness",
-                    f"shading_rig_list[{rig_index}].hardness",
                     f"shading_rig_list[{rig_index}].bulge",
                     f"shading_rig_list[{rig_index}].bend",
-                    f"shading_rig_list[{rig_index}].mask",
+                    f"shading_rig_list[{rig_index}].hardness",
                     f"shading_rig_list[{rig_index}].mode",
+                    f"shading_rig_list[{rig_index}].clamp",
+                    f"shading_rig_list[{rig_index}].rotation",
                 ]
 
                 # Create driver variables
@@ -108,7 +108,7 @@ class SR_OT_RigList_Add(Operator):
                 # Set the expression to use the input variables
                 driver.expression = (
                     f"bpy.packing_algorithm("
-                    f"elongation, sharpness, bulge, bend, hardness, mask, mode)[{channel}]"
+                    f"elongation, sharpness, bulge, bend, hardness, mode, clamp, rotation)[{channel}]"
                 )
 
         json_helpers.sync_scene_to_json(context.scene)
@@ -284,26 +284,3 @@ class SR_OT_RigList_Remove(Operator):
         json_helpers.sync_scene_to_json(context.scene)
 
         return {"FINISHED"}
-
-
-def update_parent_object(self, context):
-    """Create or update a child of constraint on the empty object, to parent_object"""
-    active_rig_item = self
-
-    if not active_rig_item.empty_object:
-        return
-
-    empty_obj = active_rig_item.empty_object
-    parent_obj = active_rig_item.parent_object
-
-    constraint_name = "ShadingRig Parent"
-    child_of_constraint = empty_obj.constraints.get(constraint_name)
-
-    if parent_obj:
-        if not child_of_constraint:
-            child_of_constraint = empty_obj.constraints.new(type="CHILD_OF")
-            child_of_constraint.name = constraint_name
-        child_of_constraint.target = parent_obj
-    else:
-        if child_of_constraint:
-            empty_obj.constraints.remove(child_of_constraint)

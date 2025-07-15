@@ -1043,13 +1043,13 @@ Keep your effects close to your object for best results. </p>
 <p class="admonition-title">Warning</p>
 <p>Don't!</p>
 </div>
-<p>There are things you can play with in the shader and <strong>things you cannot</strong>. Anything between the two red <strong>Do not touch this!</strong> frames, you must not alter in any way!</p>
+<p>There are things you can play with in the shader and <strong>things you cannot</strong>. Anything between the two red "<strong>Do not touch this!</strong>" frames, you must not alter in any way!</p>
 <p><a href="../img/sr/touch-this.jpeg"><img src="../img/sr/touch-this.jpeg" width="100%"/></a>
 <a href="../img/sr/touch-this2.jpeg"><img src="../img/sr/touch-this2.jpeg" width="100%"/></a></p>
-<p>You can change, modify, rename, or do whatever with the <strong>You Can Touch This</strong> nodes. You cannot in any way alter the red <strong>Do not touch this!</strong> node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes in between the two forbidden nodes, <em>you will break everything permanently.</em> The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it. </p>
-<p>One last time, just for safety: <strong>don't touch anything between and including red Do Not Touch This! nodes!!</strong></p>
+<p>You can change, modify, rename, or do whatever with the "<strong>You Can Touch This</strong>" nodes. You cannot in any way alter the red "<strong>Do not touch this!</strong>" node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes <em>in-between</em> the two forbidden nodes, <em>you will break everything permanently.</em> The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it.</p>
+<p>One last time, just for safety: <strong>don't touch anything between and including red "Do Not Touch This!" nodes!!</strong></p>
 <h3 id="i-add-another-effect-and-suddenly-everything-turns-whiteblack">I add another effect and suddenly everything turns white/black!</h3>
-<p>You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try clamping. (See <a href="../shading-rig-material-tricks/">Material Tricks</a> for details.) Be especially careful with combining multiple <em>Add</em> and <em>Subtract</em> mode effects. If you <em>Add</em> to an <em>Add</em>, you have now moved your data from a [0,1] range to a [1,2] range. If you <em>Subtract</em> from a <em>Subtract</em>, your data is now in a [-1,0] range. In either case, you will see only white or only black. </p>
+<p>You've moved your data to a range beyond what can be displayed. Change the mode of your effect, and try toggling clamping. Be especially careful with combining multiple <em>Add</em> and <em>Subtract</em> mode effects. If you <em>Add</em> to an <em>Add</em>, you have now moved your data from a [0,1] range to a [1,2] range. If you <em>Subtract</em> from a <em>Subtract</em>, your data is now in a [-1,0] range. In either case, you will see only white or only black. </p>
 <h3 id="i-add-an-effect-and-my-material-doesnt-show-any-shading">I add an effect and my material doesn't show any shading?</h3>
 <p>Scale down your Effect. If the scale is too large, it will flood the whole object. </p>
 <h3 id="i-cant-append-the-required-nodes">I can't append the required nodes?</h3>
@@ -1066,7 +1066,7 @@ Adjust parameters:
 If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.</p>
 <h3 id="my-effect-is-jumping-suddenly-between-correlations-as-i-rotate-the-light">My Effect is jumping suddenly between correlations as I rotate the light?</h3>
 <p>The reason for this behavior is explained in <a href="../shading-rig-correlations/">Correlations</a>. Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. </p>
-<h3 id="i-deleted-the-shaderrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up">I deleted the <code>ShaderRigBase_00x</code> material from my object, now I cannot get the Effects to show up!</h3>
+<h3 id="i-deleted-the-shadingrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up">I deleted the <code>ShadingRigBase_00x</code> material from my object, now I cannot get the Effects to show up!</h3>
 <p>Make sure whatever material you are using has the two required nodes (see <a href="../shading-rig-material-tricks/">Material Tricks</a>). Note that it's the node <em>name</em>, not the node <em>label</em> that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
 <a href="../img/sr/srt-3.jpeg"><img src="../img/sr/srt-3.jpeg" width="100%"/></a></p>
 <p>This will <strong>not</strong> work:
@@ -1075,13 +1075,13 @@ If the custom property changes, everything is fine. Reset your rotation and scal
 <p>Remember in the <strong>Quick Start</strong> when I said: </p>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
-<p>You must never, under any circumstances, delete this empty <code>ShaderRigProperties_{character name}</code>?</p>
+<p>You must never, under any circumstances, delete this empty <code>ShadingRigProperties_{character name}</code>?</p>
 </div>
 <p>Well, this empty has been deleted. Yikes. Undo if you can. If that doesn't work- all you can do now to fix this is reset everything- remove any custom properties from any objects, delete all effects, effect materials, and export all objects into a new scene and new Blender file. Your current Blender file is permanently broken now. You can only move forward by resetting and moving your objects to a new file. </p>
 <h3 id="i-try-and-add-a-correlation-but-i-get-the-popup-error-attributeerror-nonetype-object-has-no-attribute-get">I try and add a correlation but I get the popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code>?</h3>
 <p>See the previous answer. Your Blender file is permanently broken. Reset into a new file. </p>
 <h3 id="i-try-and-do-x-but-i-get-the-popup-error-attributeerror-nonetype-object-has-no-attribute-get">I try and do X but I get the popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code>?</h3>
-<p>You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file. </p>
+<p>You deleted the undeletable empty. Your Blender file is permanently broken. Reset into a new file.</p>
     </div>
 </article>
                                 <div class="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -1872,10 +1872,10 @@ If the custom property changes, everything is fine. Reset your rotation and scal
         
 
         
-        <a href="#i-deleted-the-shaderrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up"
+        <a href="#i-deleted-the-shadingrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
-            I deleted the ShaderRigBase_00x material from my object, now I cannot get the Effects to show up!
+            I deleted the ShadingRigBase_00x material from my object, now I cannot get the Effects to show up!
         </a>
         
 

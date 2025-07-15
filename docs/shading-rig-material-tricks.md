@@ -36,10 +36,6 @@ And add an Effect:
 When we **Add Effect to Material**, we will have a shading rig that works with our existing material. I've added three edits as an example: 
 [<img src="../img/sr/srmt-6.jpeg" width="100%"/>](img/sr/srmt-6.jpeg)
 
-## Clamping
-When stacking multiple Effects, you will go outside of a normalized range of [0,1]. If an Effect is behaving strangely or you are having difficulty controlling it, you may need to clamp it. In your nodes, find the `ShadingRigEffect_SR_Effect_*` node. In my case, I've clamped `ShadingRigEffect_SR_Effect_Bust_003`:
-[<img src="../img/sr/srmt-7.jpeg" width="100%"/>](img/sr/srmt-7.jpeg)
-
 To do this, put a Math node set to Add (with second input 0) between `ShadingRigEffect_SR_Effect_Bust_003` and all of its outputs. It's much easier to do this if you add a reroute, as I've done. Then you can toggle clamping as desired. Compare clamping on:
 [<img src="../img/sr/srmt-8.jpeg" width="100%"/>](img/sr/srmt-8.jpeg)
 Versus clamping off:

@@ -1034,14 +1034,14 @@
 <h4 id="step-1-set-a-character-name">Step 1: Set a Character Name</h4>
 <p>Let's start from scratch, with a blank file. </p>
 <p>In <strong>Section 1</strong>, the Settings sub-panel, you can set a character name and a default light. The character name is used to identify the shading rig- you'll need to set this first. For this example, I'm going to name my character "Sphere".</p>
-<p>Once you set a character name, you can <strong>Append Required Nodes</strong>, and you'll have an empty added to your scene called <code>ShaderRigProperties_{character name}</code>:
+<p>Once you set a character name, you can <strong>Append Required Nodes</strong>, and you'll have an empty added to your scene called <code>ShadingRigProperties_{character name}</code>:
 <a href="../img/sr/character-name.jpeg"><img src="../img/sr/character-name.jpeg" width="100%"/></a></p>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
-<p>You must never, under any circumstances, delete this empty <code>ShaderRigProperties_{character name}</code>. You're welcome to hide it or move it, but it's an essential component for getting multiple Shader Rigs to work in tandem.</p>
+<p>You must never, under any circumstances, delete this empty <code>ShadingRigProperties_{character name}</code>. You're welcome to hide it or move it, but it's an essential component for getting multiple Shading Rigs to work in tandem.</p>
 </div>
 <p>You can set a light per effect, but if you want all the effects to use the same light, you can save a step by setting a default light here.</p>
-<p>You now have a button in <strong>Section 2</strong> that says "Append Required Nodes" clickable. You should click it 😁</p>
+<p>You now have a button in <strong>Section 2</strong> that says "Append Required Nodes" clickable. Click it! 😁</p>
 <h4 id="step-2-append-required-nodes">Step 2: Append Required Nodes</h4>
 <p>You'll get a helpful notification: <code>Appended 4 node groups and 1 material(s).</code> 🤘🏻</p>
 <h4 id="step-3-add-an-object-to-shade">Step 3: Add an Object to Shade</h4>
@@ -1060,21 +1060,22 @@
 <h4 id="step-5-add-the-effect-to-the-material">Step 5: Add the Effect to the Material</h4>
 <p>In the panel at the bottom of the <strong>Active Effect Settings</strong>, you'll see <strong>Select a set-up mesh object</strong>. For us, this is our sphere. Let's select it and see what happens:
 <a href="../img/sr/qsrw-4.jpeg"><img src="../img/sr/qsrw-4.jpeg" width="100%"/></a></p>
-<p>If you're working on a correctly sized human, you probably won't see this. Shading Rig works best on roughly human-sized characters. Our sphere is a bit too big. I'm going to scale it down until I have a <strong>Add Effect to Material</strong> button instead:
+<p>Shading Rig works best on roughly human-sized character, so if you're working on a correctly sized human, you probably won't see this.. Our sphere is a bit too big, so I'm going to scale it down until I see an <strong>Add Effect to Material</strong> button:
 <a href="../img/sr/qsrw-5.jpeg"><img src="../img/sr/qsrw-5.jpeg" width="100%"/></a></p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>Don't worry about the object scale- it will be automatically applied or frozen when you <strong>Add Effect to Material</strong>.</p>
+<p>Don't worry about the object scale- it will be automatically applied when you <strong>Add Effect to Material</strong>.</p>
 </div>
-<p>Now, we see the button, but we can't click it. Hovering over the button tells us why- the empty needs to be closer to the object. The proximity of the empty to the object affects the size. If it is too far away, the Effect will be too small to see. Let's move it closer, until we can click that button, which we will then click: 
+<p>Now, we see the button, but we can't click it. Hovering over the button tells us why — the empty needs to be closer to the object. The proximity of the empty to the object affects the size of the Effect. If it is too far away, the Effect will be too small to see. Let's move it closer, until we can click that button, which we will then click: 
 <a href="../img/sr/qsrw-6.jpeg"><img src="../img/sr/qsrw-6.jpeg" width="100%"/></a></p>
-<p>Wow! the Effect!</p>
-<p>You can start playing around with the Effect immediately- it updates in realtime. You can move it around, rotate it, scale it, and change the parameters in the <strong>Active Effect Settings</strong>. </p>
+<p>Wow! The Effect!</p>
+<p>You can start playing around with the Effect immediately — it updates in realtime. You can move it around, rotate it, scale it, and change the parameters in the <strong>Active Effect Settings</strong>. </p>
 <h4 id="step-6-add-correlations">Step 6: Add Correlations</h4>
 <p>In <strong>Section 4</strong>, the Correlations list, you have a + button. This adds a new correlation. Before you click it, though, here's how correlations work. </p>
 <p>When you click the + button, the current Light rotation and the current Effect position/scale are saved as a 1:1 pair. If you have two correlations, the Effect will move between the two positions as the light rotates between the two rotations. If you have more correlations, the Effect will move between all of them as the light rotates through all of them. </p>
 <p>This is much easier to demonstrate visually: 
 <a href="../img/sr/two-correlations.gif"><img src="../img/sr/two-correlations.gif" width="100%"/></a></p>
+<p>Although it is <em>not</em> a driver-driven relationship, it does act like one. </p>
 <p>That's all you need to know to get started. For more advanced usage and settings, please continue through the documentation.</p>
     </div>
 </article>

@@ -1022,9 +1022,10 @@
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a> / Shading Rig / Advanced Usage</p>
-<p>Setting up an effect gives you a circular effect, which is nice, but you probably will want more control and complexity fairly quickly. Each Effect can be customized to exactly what you need.</p>
+<p>Setting up an effect gives you a circular effect, which is nice, but you probably will want more control and complexity fairly quickly. Each Effect can be customized to exactly what you need.
+<a href="../img/sr/sr-es.jpeg"><img src="../img/sr/sr-es.jpeg" width="300"/></a></p>
 <h3 id="parameters">Parameters</h3>
-<p>You'll want to combine these parameters to create the effect you want, most effects require altering all of these parameters.</p>
+<p>You'll want to combine these parameters to create the effect you want, most effects require altering many of these parameters.</p>
 <h4 id="elongation">Elongation</h4>
 <p><a href="../img/sr/sr-elongation.gif"><img src="../img/sr/sr-elongation.gif" width="100%"/></a>
 Elongation changes the width to height ratio of the Effect. </p>
@@ -1042,13 +1043,13 @@ Sharpness "puckers" the horizontal corners of the Effect, or draws them as sharp
 <h4 id="hardness">Hardness</h4>
 <p>Hardness changes the way the Effect blends with other shading. An Hardness of 1 means the Effect will have hard edges and move like a decal. A lower hardness means the Effect will blend with the shading more, creating a smooth effect not unlike what you see with SDF modeling or metaballs. It's difficult to describe, so please compare and contrast what happens when this Effect is moved with an hardness of .1, .3, and 1:
 <a href="../img/sr/sr-hardness.gif"><img src="../img/sr/sr-hardness.gif" width="100%"/></a></p>
-<p>For hard highlights or shadows, such as a "eyelight", Rembrandt triangle, or an under-nose shadow, you will want a higher value. For more generalized shading, a lower value will work better. </p>
+<p>For hard highlights or shadows, such as a "eyelight" (a highlight in the eyes), Rembrandt triangle, or an under-the-nose shadow, you will want a higher value. For more generalized shading, a lower value will work better. </p>
 <h4 id="bulge">Bulge</h4>
 <p><a href="../img/sr/sr-bulge.gif"><img src="../img/sr/sr-bulge.gif" width="100%"/></a>
 Bulge thickens one end of the Effect, creating a pear-shaped effect. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Bulge applies along a diagonal access. You can use Rotation to correct this. </p>
+<p>Bulge applies along a diagonal axis. You can use Rotation to correct this. </p>
 </div>
 <h4 id="bend">Bend</h4>
 <p>Bend thickens the effect similar to Bulge, but it applies on the opposite diagonal axis.
@@ -1083,6 +1084,8 @@ It's very difficult to explain Bulge and Bend, but they work well in combination
 <p class="admonition-title">Info</p>
 <p>The correct mode for an Effect varies. For example, combining multiple Effects with <strong>Subtract</strong> or <strong>Add</strong> mode will generally give you an all black or all white result as values end up in some strange range like [-2,-1]. I recommend using <strong>Lighten</strong> and <strong>Multiply</strong> as your first choices, and experimenting with other modes as desired. </p>
 </div>
+<h3 id="clamping">Clamping</h3>
+<p>When stacking multiple Effects, you will go outside of a normalized range of [0,1]. Clamping it constrains it to the [0,1] range. Clamping is turned on by default, since things behave more intuitively when it is turned on. You can toggle it per Effect with the Clamp checkbox. </p>
 <h3 id="effect-rotation">Effect Rotation</h3>
 <p>The rotation of the empty has a <strong>major</strong> effect on the shape of the Effect. 
 <a href="../img/sr/qsrw-9.gif"><img src="../img/sr/qsrw-9.gif" width="100%"/></a></p>
@@ -1102,7 +1105,7 @@ The first three fields are for the empty object, light object, and affected mate
 <p>An Effect is tied to the rotation of one Light. If a specific light is not set, this field will automatically fill with the default light set in the Settings sub-panel. If you set a specific light, the Effect will instead respond to that light's rotation. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You don't technically <em>have</em> to add a light object- if you don't, your Effect will remain statically positioned and rotated. You won't be able to add correspondences. I'm not sure why this would be useful, but there may be a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.</p>
+<p>You don't technically <em>have</em> to add a light object- if you don't, your Effect will remain statically positioned and rotated, and you won't be able to add correspondences. I'm not sure why this would be useful, but there may be a use case I haven't considered. Regardless, I recommend adding a light object even if you want a static Effect, in case you change your mind later.</p>
 </div>
 <h4 id="material">Material</h4>
 <p>An Effect affects one Material. This way, you can have multiple materials affected by Effects. </p>
@@ -1112,17 +1115,17 @@ The first three fields are for the empty object, light object, and affected mate
 </div>
 <p>Note that if you change the material, you need to re-attach the Effect to the material. Click <strong>Add Effect to Material</strong> to do this. </p>
 <h4 id="display-type">Display Type</h4>
-<p>This sets the viewport display shape of the Effect's empty. </p>
+<p>This sets the viewport display shape of the Effect's empty. This will not affect the shape of the empty in any way — it is just a way to help visually distinguish between different Effects.</p>
 <h4 id="parent-object">Parent Object</h4>
-<p>In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Correlations here- just set the Parent Object to the character's object. </p>
+<p>In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Correlations here — just set the Parent Object to the character's object. </p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Please don't parent an Effect directly to something- it won't work and you will be sad. Use the Parent Object field to set up this relationship exclusively. </p>
+<p>Please don't parent an Effect directly to something — it won't work and you will be sad. Use the Parent Object field to set up this relationship exclusively. </p>
 </div>
 <h4 id="renaming-an-effect">Renaming an Effect</h4>
-<p>You can double-click on an Effect in the effects list to rename it.</p>
+<p>You can double-click on an Effect in the Effects list to rename it.</p>
 <h4 id="removing-an-effect">Removing an Effect</h4>
-<p>Click the - button while an Effect is selected in the effects list to remove it.</p>
+<p>Click the - button while an Effect is selected in the Effects list to remove it.</p>
     </div>
 </article>
                                 <div class="mx-auto flex h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -1860,6 +1863,14 @@ The first three fields are for the empty object, light object, and affected mate
             Mode
         </a>
         
+        
+
+        
+        <a href="#clamping"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Clamping
+        </a>
         
 
         

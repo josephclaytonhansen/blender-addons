@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 126),
+    "version": (1, 3, 128),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -169,7 +169,7 @@ class SR_RigItem(PropertyGroup):
     elongation: FloatProperty(
         name="Elongation",
         default=0.0,
-        min=-1,
+        min=0,
         max=1,
         step=0.05,
         update=update_helpers.property_update_sync,

@@ -170,7 +170,7 @@ def unpack_nodes(attribute_node, effect_node, node_tree, effect_empty):
     # Extract sharpness
     sharpness_mod = new_math("MODULO", 1000.0)
     node_tree.links.new(red, sharpness_mod.inputs[0])
-    sharpness_value = new_math("DIVIDE", 940.0)
+    sharpness_value = new_math("DIVIDE", 900.0)
     node_tree.links.new(sharpness_mod.outputs[0], sharpness_value.inputs[0])
     node_tree.links.new(sharpness_value.outputs[0], effect_node.inputs[2])
 

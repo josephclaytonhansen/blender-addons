@@ -1029,7 +1029,7 @@
 <p>Double-click a correlation in the list to rename it.</p>
 <h3 id="correlation-limits">Correlation Limits</h3>
 <p>There is no limit to the number of correlations you can have per effect. That said, the higher the amount, the less smooth the interpolation will be. With two correlations, the Effect will move smoothly along a line between two points. With three, it will gracefully curve around a triangle. At numbers higher than 3, you run the risk of overlap, which will cause the Effect to jump around in unexpected ways. That is to say- if you visualize the Effect positions as points in space, vertices of an n-gon, the n-gon will either be manifold (no crossing/overlapping edges) or non-manifold:
- <a href="../img/sr/hexagons.jpeg"><img src="../img/sr/hexagons.jpeg" width="250"/></a></p>
+<a href="../img/sr/hexagons.jpeg"><img src="../img/sr/hexagons.jpeg" width="300"/></a></p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>If this is hurting your head, don't worry about it. Just know that the higher the number of correlations, the higher the risk of the Effect jumping erratically. </p>
@@ -1048,10 +1048,10 @@ This is true, but it's a surface level explanation. Understanding how the effect
 <h3 id="the-math-and-the-nitty-gritty">The Math and the Nitty-Gritty</h3>
 <p>The basic idea is that given a list of light rotations -&gt; empty positions and a current light rotation, we need to interpolate the empty position. This is a <strong>weighting</strong> problem, not dissimilar to how bones interact with vertex groups. It helps to think of this as two triangles. Given 3 correlations, A, B, and C, there is a Light Rotation triangle with points A, B, and C, and an Empty Position triangle with points A, B, and C. (Because the light rotation is just a 3D vector, it can be mapped into space as a triangle just the same as the position.)</p>
 <p>Let us say the current light rotation is Point N, represented by this black dot: 
-<a href="../img/sr/cor-triangles.jpeg"><img src="../img/sr/cor-triangles.jpeg" width="250"/></a></p>
+<a href="../img/sr/cor-triangles.jpeg"><img src="../img/sr/cor-triangles.jpeg" width="300"/></a></p>
 <p>We can easily visually see where the correlation is for Point N in the Empty position triangle. As N is nearly halfway between A and B, and point N is nearly at B and far from C, the Empty point N should also be nearly halfway between A and B, and nearly at B and far from C. </p>
 <p>The above triangles are identical. What if they're not? We can still visually interpolate the position of N in the Empty triangle with a similar process: 
-<a href="../img/sr/cor-triangles-2.jpeg"><img src="../img/sr/cor-triangles-2.jpeg" width="250"/></a></p>
+<a href="../img/sr/cor-triangles-2.jpeg"><img src="../img/sr/cor-triangles-2.jpeg" width="300"/></a></p>
 <p>What we're doing visually here is what's being done mathematically, just with normalized inverse distance weights and "n-gons" instead of "triangles" (truly, there's no visual elements involved at all.) </p>
 <p>Since we're also storing the scale, this is technically interpolating between a set of 3D vectors and a set of 4D vectors, but that's impossible to visualize.</p>
     </div>

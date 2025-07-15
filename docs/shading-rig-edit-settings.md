@@ -1,8 +1,10 @@
 # Effect Settings
 Setting up an effect gives you a circular effect, which is nice, but you probably will want more control and complexity fairly quickly. Each Effect can be customized to exactly what you need.
+[<img src="../img/sr/sr-es.jpeg" width="300"/>](img/sr/sr-es.jpeg)
+
 
 ## Parameters
-You'll want to combine these parameters to create the effect you want, most effects require altering all of these parameters.
+You'll want to combine these parameters to create the effect you want, most effects require altering many of these parameters.
 
 ### Elongation
 [<img src="../img/sr/sr-elongation.gif" width="100%"/>](img/sr/sr-elongation.gif)
@@ -56,6 +58,9 @@ This next example shows the different modes when Hardness is set to full 1.0 str
 [<img src="../img/sr/qsrw-8.gif" width="100%"/>](img/sr/qsrw-8.gif)
 
 INFO: The correct mode for an Effect varies. For example, combining multiple Effects with **Subtract** or **Add** mode will generally give you an all black or all white result as values end up in some strange range like [-2,-1]. I recommend using **Lighten** and **Multiply** as your first choices, and experimenting with other modes as desired. 
+
+## Clamping
+When stacking multiple Effects, you will go outside of a normalized range of [0,1]. Clamping it constrains it to the [0,1] range. Clamping is turned on by default, since things behave more intuitively when it is turned on. You can toggle it per Effect with the Clamp checkbox. 
 
 ## Effect Rotation
 The rotation of the empty has a **major** effect on the shape of the Effect. 

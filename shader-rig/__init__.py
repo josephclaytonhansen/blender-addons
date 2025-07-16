@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
-    "version": (1, 3, 140),
+    "version": (1, 3, 142),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -36,7 +36,7 @@ PRESETS = {
         "rotation": 0,
     },
     "BOWL": {
-        "name": "BOWL",
+        "name": "Bowl",
         "elongation": 0.91,
         "sharpness": 0.77,
         "hardness": 0.27,
@@ -129,7 +129,7 @@ PRESETS = {
 def get_preset_items(self, context):
     """Generates the items for the preset EnumProperty."""
     items = []
-    for identifier, settings in presets_helpers.PRESETS.items():
+    for identifier, settings in PRESETS.items():
         name = settings.get("name", identifier.replace("_", " ").title())
         items.append((identifier, name, f"Apply the {name} preset"))
     return items
@@ -166,7 +166,7 @@ class SR_OT_ApplyPreset(bpy.types.Operator):
         active_item = scene.shading_rig_list[scene.shading_rig_list_index]
 
         if active_item.preset:
-            presets_helpers.apply_preset(active_item, active_item.preset)
+            apply_preset(active_item, active_item.preset)
             self.report({"INFO"}, f"Applied preset: {active_item.preset}")
 
         return {"FINISHED"}

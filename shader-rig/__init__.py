@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
-    "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 128),
+    "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
+    "version": (1, 3, 142),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -20,8 +20,156 @@ from . import (
     setup_helpers,
     update_helpers,
     visual_helpers,
-    node_helpers
+    node_helpers,
 )
+
+PRESETS = {
+    "BEAN": {
+        "name": "Bean",
+        "elongation": .95,
+        "sharpness": 0,
+        "hardness": 0.40,
+        "bulge": -1.0,
+        "bend": -1.0,
+        "mode": "ADD",
+        "clamp": True,
+        "rotation": 0,
+    },
+    "BOWL": {
+        "name": "Bowl",
+        "elongation": 0.91,
+        "sharpness": 0.77,
+        "hardness": 0.27,
+        "bulge": 0,
+        "bend": 0,
+        "mode": "ADD",
+        "clamp": True,
+        "rotation": 0,
+    },
+    "LEAF": {
+        "name": "Leaf",
+        "elongation": 0.28,
+        "sharpness": 1.0,
+        "hardness": 0.28,
+        "bulge": 0,
+        "bend": 0,
+        "mode": "ADD",
+        "clamp": True,
+        "rotation": 0,
+    },
+    "WORM": {
+        "name": "Worm",
+        "elongation": 1.0,
+        "sharpness": 0,
+        "hardness": 0.76,
+        "bulge": 1.0,
+        "bend": 1.0,
+        "mode": "ADD",
+        "clamp": True,
+        "rotation": 30,
+    },
+    "CAPSULE": {
+        "name": "Capsule",
+        "elongation": .88,
+        "sharpness": 0.06,
+        "hardness": 0.46,
+        "bulge": -1.0,
+        "bend": 1.0,
+        "mode": "LIGHTEN",
+        "clamp": True,
+        "rotation": 0,
+    },
+    "CRESCENT": {
+        "name": "Crescent",
+        "elongation": .92,
+        "sharpness": 1.00,
+        "hardness": 1.00,
+        "bulge": -1.0,
+        "bend": -1.0,
+        "mode": "LIGHTEN",
+        "clamp": True,
+        "rotation": 0,
+    },
+    "TRIANGLE": {
+        "name": "Triangle",
+        "elongation": .60,
+        "sharpness": .98,
+        "hardness": .25,
+        "bulge": -0.92,
+        "bend": -0.8,
+        "mode": "LIGHTEN",
+        "clamp": True,
+        "rotation": 9,
+    },
+    "PARABOLA": {
+        "name": "Parabola",
+        "elongation": .78,
+        "sharpness": .58,
+        "hardness": .25,
+        "bulge": -0.92,
+        "bend": -0.8,
+        "mode": "LIGHTEN",
+        "clamp": True,
+        "rotation": 9,
+    },
+    "BUTTE": {
+        "name": "Butte",
+        "elongation": .78,
+        "sharpness": .58,
+        "hardness": .25,
+        "bulge": -0.92,
+        "bend": -0.8,
+        "mode": "ADD",
+        "clamp": True,
+        "rotation": 9,
+    },
+    
+}
+
+def get_preset_items(self, context):
+    """Generates the items for the preset EnumProperty."""
+    items = []
+    for identifier, settings in PRESETS.items():
+        name = settings.get("name", identifier.replace("_", " ").title())
+        items.append((identifier, name, f"Apply the {name} preset"))
+    return items
+
+def apply_preset(rig_item, preset_identifier):
+    """Applies a preset's values to a given rig item."""
+    if preset_identifier not in PRESETS:
+        print(f"Shading Rig Error: Preset '{preset_identifier}' not found.")
+        return
+
+    preset_values = PRESETS[preset_identifier]
+
+    for prop, value in preset_values.items():
+        if hasattr(rig_item, prop):
+            setattr(rig_item, prop, value)
+
+class SR_OT_ApplyPreset(bpy.types.Operator):
+    """Applies the selected preset to the active rig item."""
+    bl_idname = "shading_rig.apply_preset"
+    bl_label = "Apply Preset"
+    bl_description = "Apply the selected preset's values to the active effect"
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        if not scene.shading_rig_list:
+            return False
+        if scene.shading_rig_list_index >= len(scene.shading_rig_list):
+            return False
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        active_item = scene.shading_rig_list[scene.shading_rig_list_index]
+
+        if active_item.preset:
+            apply_preset(active_item, active_item.preset)
+            self.report({"INFO"}, f"Applied preset: {active_item.preset}")
+
+        return {"FINISHED"}
 
 bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 # this has to be globally assigned to work consistently
@@ -47,8 +195,6 @@ from bpy.types import (
     UIList,
 )
 
-
-# -------------------------------- Definitions ------------------------------- #
 class SR_CorrelationItem(PropertyGroup):
     """A single correlation item."""
 
@@ -113,7 +259,6 @@ def get_blend_mode_items(self, _context):
         items.append((identifier, name, description, icon, i))
 
     return items
-
 
 def sr_rig_item_name_update(self, context):
     """When the rig item is renamed, rename the associated empty object."""
@@ -225,6 +370,13 @@ class SR_RigItem(PropertyGroup):
         description="Mode of the shading rig effect",
         items=get_blend_mode_items,
         default=0,
+        update=update_helpers.property_update_sync,
+    )
+
+    preset: EnumProperty(
+        name="Preset",
+        description="Load a predefined set of values for the effect",
+        items=get_preset_items,
         update=update_helpers.property_update_sync,
     )
 
@@ -446,6 +598,12 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "rotation")
                 col.prop(active_item, "mode")
                 col.prop(active_item, "clamp")
+                
+                preset_row = col.row(align=True)
+                preset_row.prop(active_item, "preset", text="")
+                preset_row.operator(SR_OT_ApplyPreset.bl_idname, text="Apply Preset")
+
+                col.separator()
 
                 if not active_item.added_to_material:
                     active_object = context.active_object
@@ -620,6 +778,7 @@ CLASSES = [
     addremove_helpers.SR_OT_RigList_Add,
     setup_helpers.SR_OT_AddEffectCoordinatesNode,
     visual_helpers.SR_OT_SetEmptyDisplayType,
+    SR_OT_ApplyPreset,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,
     externaldata_helpers.SR_OT_SyncExternalData,

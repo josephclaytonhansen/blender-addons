@@ -8,11 +8,11 @@ If you have a problem not addressed below, I will help you solve it if you have 
 ## Why am I not seeing an effect? 
 ### Reset Rotation
 The most common problem I've encountered as people test this is that the Effect isn't showing. In 99% of cases I've observed, the problem is with **rotation** of the empty controlling the Effect. The first thing you should when troubleshooting is **reset the rotation of the Empty** (you can do this with Alt + R):
-[<img src="../img/sr/qsrw-10.gif" width="100%"/>](img/sr/qsrw-10.gif)
+<img src="../img/sr/qsrw-10.gif" width="100%"/>
 Here, my Effect was not showing up. I reset the rotation, and it shows up. 
 ### Check Distance from Object
 If that doesn't do it, move the empty closer to your object. The distance from the object matters:
-[<img src="../img/sr/qsrw-11.gif" width="100%"/>](img/sr/qsrw-11.gif)
+<img src="../img/sr/qsrw-11.gif" width="100%"/>
 Keep your effects close to your object for best results. 
 ### Check Parameters
 Increase the Hardness. At lower values, the Effect may not always show up.
@@ -24,8 +24,8 @@ WARNING: Don't!
 
 There are things you can play with in the shader and **things you cannot**. Anything between the two red "**Do not touch this!**" frames, you must not alter in any way!
 
-[<img src="../img/sr/touch-this.jpeg" width="100%"/>](img/sr/touch-this.jpeg)
-[<img src="../img/sr/touch-this2.jpeg" width="100%"/>](img/sr/touch-this2.jpeg)
+<img src="../img/sr/touch-this.jpeg" width="100%"/>
+<img src="../img/sr/touch-this2.jpeg" width="100%"/>
 
 You can change, modify, rename, or do whatever with the "**You Can Touch This**" nodes. You cannot in any way alter the red "**Do not touch this!**" node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes _in-between_ the two forbidden nodes, *you will break everything permanently.* The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it.
 
@@ -48,9 +48,9 @@ Some values only show up when you scale or rotate the effect. Reset your rotatio
 
 ## All the parameters do nothing?
 You've most likely broken the custom properties on your object. This happens from time to time if you aggressively undo or otherwise screw with your data. You can tell really easily, pull up the custom properties on your object:
-[<img src="../img/sr/srt-2.jpeg" width="100%"/>](img/sr/srt-2.jpeg)
+<img src="../img/sr/srt-2.jpeg" width="100%"/>
 Adjust parameters:
-[<img src="../img/sr/srt-1.jpeg" width="100%"/>](img/sr/srt-1.jpeg)
+<img src="../img/sr/srt-1.jpeg" width="100%"/>
 If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.
 
 ## My Effect is jumping suddenly between correlations as I rotate the light?
@@ -58,10 +58,10 @@ The reason for this behavior is explained in [Correlations](shading-rig-correlat
 
 ## I deleted the `ShadingRigBase_00x` material from my object, now I cannot get the Effects to show up!
 Make sure whatever material you are using has the two required nodes (see [Material Tricks](shading-rig-material-tricks.md)). Note that it's the node *name*, not the node *label* that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
-[<img src="../img/sr/srt-3.jpeg" width="100%"/>](img/sr/srt-3.jpeg)
+<img src="../img/sr/srt-3.jpeg" width="100%"/>
 
 This will **not** work:
-[<img src="../img/sr/srt-4.jpeg" width="100%"/>](img/sr/srt-34.jpeg)
+<img src="../img/sr/srt-4.jpeg" width="100%"/>
 
 ## I get a popup error `AttributeError: 'NoneType' object has no attribute 'get'` when I try to add/edit/remove an effect!
 Remember in the **Quick Start** when I said: 

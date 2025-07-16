@@ -6,7 +6,7 @@
 
 ## Shading Rig 
 **Customize light and shadow exactly how you want it**
-[<img src="img/sr/srf-1.png" width="100%"/>](img/sr/srf-1.png)
+<img src="img/sr/srf-1.png" width="100%"/>
 
 ## Cel Character Tools
 Coming soon

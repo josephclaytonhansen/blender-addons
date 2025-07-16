@@ -1023,18 +1023,18 @@
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
         <p><a href="/blender-addons/">Home</a> / Shading Rig / Advanced Usage</p>
 <p>Setting up an effect gives you a circular effect, which is nice, but you probably will want more control and complexity fairly quickly. Each Effect can be customized to exactly what you need.
-<a href="../img/sr/sr-es.jpeg"><img src="../img/sr/sr-es.jpeg" width="300"/></a></p>
+<a class="glightbox" href="../img/sr/sr-es.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-es.jpeg" width="300"/></a></p>
 <h3 id="parameters">Parameters</h3>
 <p>You'll want to combine these parameters to create the effect you want, most effects require altering many of these parameters.</p>
 <h4 id="elongation">Elongation</h4>
-<p><a href="../img/sr/sr-elongation.gif"><img src="../img/sr/sr-elongation.gif" width="100%"/></a>
+<p><a class="glightbox" href="../img/sr/sr-elongation.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-elongation.gif" width="100%"/></a>
 Elongation changes the width to height ratio of the Effect. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In the original paper, this is referred to as Anisotropy. However, it's not actually Anisotropy, and Elongation felt more accurate. </p>
 </div>
 <h4 id="sharpness">Sharpness</h4>
-<p><a href="../img/sr/sr-sharpness.gif"><img src="../img/sr/sr-sharpness.gif" width="100%"/></a>
+<p><a class="glightbox" href="../img/sr/sr-sharpness.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-sharpness.gif" width="100%"/></a>
 Sharpness "puckers" the horizontal corners of the Effect, or draws them as sharp corners. </p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
@@ -1042,10 +1042,10 @@ Sharpness "puckers" the horizontal corners of the Effect, or draws them as sharp
 </div>
 <h4 id="hardness">Hardness</h4>
 <p>Hardness changes the way the Effect blends with other shading. An Hardness of 1 means the Effect will have hard edges and move like a decal. A lower hardness means the Effect will blend with the shading more, creating a smooth effect not unlike what you see with SDF modeling or metaballs. It's difficult to describe, so please compare and contrast what happens when this Effect is moved with an hardness of .1, .3, and 1:
-<a href="../img/sr/sr-hardness.gif"><img src="../img/sr/sr-hardness.gif" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/sr-hardness.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-hardness.gif" width="100%"/></a></p>
 <p>For hard highlights or shadows, such as a "eyelight" (a highlight in the eyes), Rembrandt triangle, or an under-the-nose shadow, you will want a higher value. For more generalized shading, a lower value will work better. </p>
 <h4 id="bulge">Bulge</h4>
-<p><a href="../img/sr/sr-bulge.gif"><img src="../img/sr/sr-bulge.gif" width="100%"/></a>
+<p><a class="glightbox" href="../img/sr/sr-bulge.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-bulge.gif" width="100%"/></a>
 Bulge thickens one end of the Effect, creating a pear-shaped effect. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1053,9 +1053,9 @@ Bulge thickens one end of the Effect, creating a pear-shaped effect. </p>
 </div>
 <h4 id="bend">Bend</h4>
 <p>Bend thickens the effect similar to Bulge, but it applies on the opposite diagonal axis.
-<a href="../img/sr/sr-bend.jpeg"><img src="../img/sr/sr-bend.jpeg" width="100%"/></a>
+<a class="glightbox" href="../img/sr/sr-bend.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-bend.jpeg" width="100%"/></a>
 It's very difficult to explain Bulge and Bend, but they work well in combination to create a variety of effects. For example:
-<a href="../img/sr/sr-bulge-and-bend.jpeg"><img src="../img/sr/sr-bulge-and-bend.jpeg" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/sr-bulge-and-bend.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/sr-bulge-and-bend.jpeg" width="100%"/></a></p>
 <h4 id="mode">Mode</h4>
 <p>This changes how the Effect is combined with other shading. There are 5 modes:</p>
 <ul>
@@ -1077,9 +1077,9 @@ It's very difficult to explain Bulge and Bend, but they work well in combination
 </li>
 </ul>
 <p>This example mainly shows the difference between <strong>Lighten</strong> and <strong>Add</strong>:</p>
-<p><a href="../img/sr/qsrw-7.gif"><img src="../img/sr/qsrw-7.gif" width="100%"/></a></p>
+<p><a class="glightbox" href="../img/sr/qsrw-7.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/qsrw-7.gif" width="100%"/></a></p>
 <p>This next example shows the different modes when Hardness is set to full 1.0 strength:
-<a href="../img/sr/qsrw-8.gif"><img src="../img/sr/qsrw-8.gif" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/qsrw-8.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/qsrw-8.gif" width="100%"/></a></p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>The correct mode for an Effect varies. For example, combining multiple Effects with <strong>Subtract</strong> or <strong>Add</strong> mode will generally give you an all black or all white result as values end up in some strange range like [-2,-1]. I recommend using <strong>Lighten</strong> and <strong>Multiply</strong> as your first choices, and experimenting with other modes as desired. </p>
@@ -1088,16 +1088,44 @@ It's very difficult to explain Bulge and Bend, but they work well in combination
 <p>When stacking multiple Effects, you will go outside of a normalized range of [0,1]. Clamping it constrains it to the [0,1] range. Clamping is turned on by default, since things behave more intuitively when it is turned on. You can toggle it per Effect with the Clamp checkbox. </p>
 <h3 id="effect-rotation">Effect Rotation</h3>
 <p>The rotation of the empty has a <strong>major</strong> effect on the shape of the Effect. 
-<a href="../img/sr/qsrw-9.gif"><img src="../img/sr/qsrw-9.gif" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/qsrw-9.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/qsrw-9.gif" width="100%"/></a></p>
 <p>If you're struggling to get the shape you want, try rotating the empty. </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Effect rotation is tied to correspondence, so you can vary the shape based on light rotation. </p>
 </div>
+<h3 id="presets">Presets</h3>
+<p>To help quickly get a desired effect, I've added some presets you can use. Note that these likely won't match the images below, as they're dependent on the form of the object. You'll need to tweak them, but they may be helpful starting points. </p>
+<h4 id="bean">Bean</h4>
+<p><a class="glightbox" href="../img/sr/srp-bean.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-bean.jpeg" width="100%"/></a>
+Useful for "pringling". </p>
+<h4 id="bowl">Bowl</h4>
+<p><a class="glightbox" href="../img/sr/srp-bowl.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-bowl.jpeg" width="100%"/></a>
+On a rounded form, gives a saucer or lens shaped curve with a flat top. </p>
+<h4 id="leaf">Leaf</h4>
+<p><a class="glightbox" href="../img/sr/srp-leaf.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-leaf.jpeg" width="100%"/></a>
+A pointed oval.</p>
+<h4 id="worm">Worm</h4>
+<p><a class="glightbox" href="../img/sr/srp-worm.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-worm.jpeg" width="100%"/></a>
+A thin bent line with rounded corners. The thickness stays consistent, unlike the Crescent preset, which arcs out from the corners.</p>
+<h4 id="crescent">Crescent</h4>
+<p><a class="glightbox" href="../img/sr/srp-crescent.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-crescent.jpeg" width="100%"/></a>
+A crescent with sharp corners- the subtraction of overlapping circles. </p>
+<h4 id="capsule">Capsule</h4>
+<p><a class="glightbox" href="../img/sr/srp-capsule.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-capsule.jpeg" width="100%"/></a></p>
+<h4 id="triangle">Triangle</h4>
+<p><a class="glightbox" href="../img/sr/srp-triangle.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-triangle.jpeg" width="100%"/></a>
+This makes a triangle under some circumstances but not all. Tweak as needed. </p>
+<h4 id="parabola">Parabola</h4>
+<p><a class="glightbox" href="../img/sr/srp-parabola.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-parabola.jpeg" width="100%"/></a>
+Not a true parabola, rather a triangle with curved corners.</p>
+<h4 id="butte">Butte</h4>
+<p><a class="glightbox" href="../img/sr/srp-butte.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srp-butte.jpeg" width="100%"/></a>
+A square extrusion that only works near diffuse lighting or another Effect.</p>
 <h3 id="expanded-effects">Expanded Effects</h3>
 <p>While I've built in these parameters, you can easily add more with additional nodes in your shader tree. Before adding more nodes, make sure you've experimented to make sure you can't get what you need with existing parameters. Extra nodes won't be appended over from scene to scene- only the default parameters can be moved from scene to scene. You'd need to recreate the extra nodes in your other scene. </p>
 <h3 id="effect-settings">Effect Settings</h3>
-<p><a href="../img/sr/edit-settings.jpeg"><img src="../img/sr/edit-settings.jpeg" width="100%"/></a>
+<p><a class="glightbox" href="../img/sr/edit-settings.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/edit-settings.jpeg" width="100%"/></a>
 The first three fields are for the empty object, light object, and affected material. </p>
 <h4 id="empty-object">Empty Object</h4>
 <p>Here you can change the empty object that the Effect uses. There's not generally a reason why you would do this, but you can.</p>
@@ -1882,6 +1910,70 @@ The first three fields are for the empty object, light object, and affected mate
         
 
         
+        <a href="#presets"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Presets
+        </a>
+        
+        
+        <a href="#bean"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Bean
+        </a>
+        
+        <a href="#bowl"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Bowl
+        </a>
+        
+        <a href="#leaf"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Leaf
+        </a>
+        
+        <a href="#worm"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Worm
+        </a>
+        
+        <a href="#crescent"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Crescent
+        </a>
+        
+        <a href="#capsule"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Capsule
+        </a>
+        
+        <a href="#triangle"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Triangle
+        </a>
+        
+        <a href="#parabola"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Parabola
+        </a>
+        
+        <a href="#butte"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Butte
+        </a>
+        
+        
+
+        
         <a href="#expanded-effects"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
@@ -1964,7 +2056,7 @@ The first three fields are for the empty object, light object, and affected mate
                 
                 <a href="https://github.com/asiffer/mkdocs-shadcn">shadcn theme</a> provided by
                 <a href="https://github.com/asiffer">@asiffer</a>
-                <img style = "margin-left:calc(50vw - 124px)" src = "https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal"/>
+                <img style = "margin-left:calc(50vw - 160px)" src = "https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal"/>
             </div>
             
         </div>

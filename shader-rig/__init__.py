@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
-    "author": "Joseph Hansen (code, implementation, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing), thorn (sanity checking and helpful reminders)",
-    "version": (1, 3, 128),
+    "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
+    "version": (1, 3, 132),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -14,6 +14,7 @@ from mathutils import Vector
 from . import (
     addremove_helpers,
     externaldata_helpers,
+    presets_helpers,
     hansens_float_packer,
     json_helpers,
     math_helpers,
@@ -47,8 +48,6 @@ from bpy.types import (
     UIList,
 )
 
-
-# -------------------------------- Definitions ------------------------------- #
 class SR_CorrelationItem(PropertyGroup):
     """A single correlation item."""
 
@@ -91,7 +90,7 @@ class SR_CorrelationItem(PropertyGroup):
 
 def get_blend_mode_items(self, _context):
     """Dynamically generate blend mode items for the EnumProperty."""
-    # This list of identifiers MUST match the order in setup_helpers.create_mode_mix_nodes
+    
     blend_mode_identifiers = ["LIGHTEN", "SUBTRACT", "MULTIPLY", "DARKEN", "ADD"]
 
     icon_map = {
@@ -114,7 +113,6 @@ def get_blend_mode_items(self, _context):
 
     return items
 
-
 def sr_rig_item_name_update(self, context):
     """When the rig item is renamed, rename the associated empty object."""
     if self.empty_object and self.name != self.empty_object.name:
@@ -129,6 +127,12 @@ class SR_RigItem(PropertyGroup):
         name="Effect Name",
         description="Name of the shading rig effect",
         update=sr_rig_item_name_update,
+    )
+
+    preset: EnumProperty(
+        name="Preset",
+        description="Load a predefined set of values for the effect",
+        items=presets_helpers.get_preset_items,
     )
 
     empty_object: PointerProperty(
@@ -291,6 +295,32 @@ class SR_UL_CorrelationList(UIList):
             layout.label(text="", icon="DOT")
 
 
+class SR_OT_ApplyPreset(bpy.types.Operator):
+    """Applies the selected preset to the active rig item."""
+    bl_idname = "shading_rig.apply_preset"
+    bl_label = "Apply Preset"
+    bl_description = "Apply the selected preset's values to the active effect"
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        if not scene.shading_rig_list:
+            return False
+        if scene.shading_rig_list_index >= len(scene.shading_rig_list):
+            return False
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        active_item = scene.shading_rig_list[scene.shading_rig_list_index]
+
+        if active_item.preset:
+            presets_helpers.apply_preset(active_item, active_item.preset)
+            self.report({"INFO"}, f"Applied preset: {active_item.preset}")
+
+        return {"FINISHED"}
+
+
 # --------------------------------- UI Panel --------------------------------- #
 class SR_PT_ShadingRigPanel(Panel):
     """Creates a Panel in the 3D Viewport's sidebar."""
@@ -446,6 +476,12 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "rotation")
                 col.prop(active_item, "mode")
                 col.prop(active_item, "clamp")
+                
+                preset_row = col.row(align=True)
+                preset_row.prop(active_item, "preset", text="")
+                preset_row.operator(SR_OT_ApplyPreset.bl_idname, text="Apply Preset")
+
+                col.separator()
 
                 if not active_item.added_to_material:
                     active_object = context.active_object
@@ -620,6 +656,7 @@ CLASSES = [
     addremove_helpers.SR_OT_RigList_Add,
     setup_helpers.SR_OT_AddEffectCoordinatesNode,
     visual_helpers.SR_OT_SetEmptyDisplayType,
+    SR_OT_ApplyPreset,
     setup_helpers.SR_OT_SetupObject,
     setup_helpers.SR_OT_AppendNodes,
     externaldata_helpers.SR_OT_SyncExternalData,

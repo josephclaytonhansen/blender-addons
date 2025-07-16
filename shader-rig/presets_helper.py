@@ -103,16 +103,6 @@ PRESETS = {
     
 }
 
-
-def get_preset_items(self, context):
-    """Generates the items for the preset EnumProperty."""
-    items = []
-    for identifier, settings in PRESETS.items():
-        name = settings.get("name", identifier.replace("_", " ").title())
-        items.append((identifier, name, f"Apply the {name} preset"))
-    return items
-
-
 def apply_preset(rig_item, preset_identifier):
     """Applies a preset's values to a given rig item."""
     if preset_identifier not in PRESETS:

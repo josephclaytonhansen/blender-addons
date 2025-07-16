@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig",
     "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
-    "version": (1, 3, 135),
+    "version": (1, 3, 138),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -14,7 +14,6 @@ from mathutils import Vector
 from . import (
     addremove_helpers,
     externaldata_helpers,
-    presets_helpers,
     hansens_float_packer,
     json_helpers,
     math_helpers,
@@ -230,7 +229,7 @@ class SR_RigItem(PropertyGroup):
     preset: EnumProperty(
         name="Preset",
         description="Load a predefined set of values for the effect",
-        items=presets_helpers.get_preset_items,
+        items=ui_helpers.get_preset_items,
     )
 
     clamp: BoolProperty(

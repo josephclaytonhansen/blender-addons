@@ -1028,11 +1028,11 @@
 <h3 id="why-am-i-not-seeing-an-effect">Why am I not seeing an effect?</h3>
 <h4 id="reset-rotation">Reset Rotation</h4>
 <p>The most common problem I've encountered as people test this is that the Effect isn't showing. In 99% of cases I've observed, the problem is with <strong>rotation</strong> of the empty controlling the Effect. The first thing you should when troubleshooting is <strong>reset the rotation of the Empty</strong> (you can do this with Alt + R):
-<a href="../img/sr/qsrw-10.gif"><img src="../img/sr/qsrw-10.gif" width="100%"/></a>
+<a class="glightbox" href="../img/sr/qsrw-10.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/qsrw-10.gif" width="100%"/></a>
 Here, my Effect was not showing up. I reset the rotation, and it shows up. </p>
 <h4 id="check-distance-from-object">Check Distance from Object</h4>
 <p>If that doesn't do it, move the empty closer to your object. The distance from the object matters:
-<a href="../img/sr/qsrw-11.gif"><img src="../img/sr/qsrw-11.gif" width="100%"/></a>
+<a class="glightbox" href="../img/sr/qsrw-11.gif" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/qsrw-11.gif" width="100%"/></a>
 Keep your effects close to your object for best results. </p>
 <h4 id="check-parameters">Check Parameters</h4>
 <p>Increase the Hardness. At lower values, the Effect may not always show up.</p>
@@ -1044,8 +1044,8 @@ Keep your effects close to your object for best results. </p>
 <p>Don't!</p>
 </div>
 <p>There are things you can play with in the shader and <strong>things you cannot</strong>. Anything between the two red "<strong>Do not touch this!</strong>" frames, you must not alter in any way!</p>
-<p><a href="../img/sr/touch-this.jpeg"><img src="../img/sr/touch-this.jpeg" width="100%"/></a>
-<a href="../img/sr/touch-this2.jpeg"><img src="../img/sr/touch-this2.jpeg" width="100%"/></a></p>
+<p><a class="glightbox" href="../img/sr/touch-this.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/touch-this.jpeg" width="100%"/></a>
+<a class="glightbox" href="../img/sr/touch-this2.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/touch-this2.jpeg" width="100%"/></a></p>
 <p>You can change, modify, rename, or do whatever with the "<strong>You Can Touch This</strong>" nodes. You cannot in any way alter the red "<strong>Do not touch this!</strong>" node after it. Don't look at it. Don't think about it. Expunge it entirely from your mind and memory. If you modify one of these forbidden nodes or any of the nodes <em>in-between</em> the two forbidden nodes, <em>you will break everything permanently.</em> The only way to fix this is to manually remove these nodes, delete the Effect, and recreate it.</p>
 <p>One last time, just for safety: <strong>don't touch anything between and including red "Do Not Touch This!" nodes!!</strong></p>
 <h3 id="i-add-another-effect-and-suddenly-everything-turns-whiteblack">I add another effect and suddenly everything turns white/black!</h3>
@@ -1060,17 +1060,17 @@ Keep your effects close to your object for best results. </p>
 <p>Some values only show up when you scale or rotate the effect. Reset your rotation, then rotate. Play around. </p>
 <h3 id="all-the-parameters-do-nothing">All the parameters do nothing?</h3>
 <p>You've most likely broken the custom properties on your object. This happens from time to time if you aggressively undo or otherwise screw with your data. You can tell really easily, pull up the custom properties on your object:
-<a href="../img/sr/srt-2.jpeg"><img src="../img/sr/srt-2.jpeg" width="100%"/></a>
+<a class="glightbox" href="../img/sr/srt-2.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srt-2.jpeg" width="100%"/></a>
 Adjust parameters:
-<a href="../img/sr/srt-1.jpeg"><img src="../img/sr/srt-1.jpeg" width="100%"/></a>
+<a class="glightbox" href="../img/sr/srt-1.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srt-1.jpeg" width="100%"/></a>
 If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.</p>
 <h3 id="my-effect-is-jumping-suddenly-between-correlations-as-i-rotate-the-light">My Effect is jumping suddenly between correlations as I rotate the light?</h3>
 <p>The reason for this behavior is explained in <a href="../shading-rig-correlations/">Correlations</a>. Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. </p>
 <h3 id="i-deleted-the-shadingrigbase_00x-material-from-my-object-now-i-cannot-get-the-effects-to-show-up">I deleted the <code>ShadingRigBase_00x</code> material from my object, now I cannot get the Effects to show up!</h3>
 <p>Make sure whatever material you are using has the two required nodes (see <a href="../shading-rig-material-tricks/">Material Tricks</a>). Note that it's the node <em>name</em>, not the node <em>label</em> that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 
-<a href="../img/sr/srt-3.jpeg"><img src="../img/sr/srt-3.jpeg" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/srt-3.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srt-3.jpeg" width="100%"/></a></p>
 <p>This will <strong>not</strong> work:
-<a href="img/sr/srt-34.jpeg"><img src="../img/sr/srt-4.jpeg" width="100%"/></a></p>
+<a class="glightbox" href="../img/sr/srt-4.jpeg" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img src="../img/sr/srt-4.jpeg" width="100%"/></a></p>
 <h3 id="i-get-a-popup-error-attributeerror-nonetype-object-has-no-attribute-get-when-i-try-to-addeditremove-an-effect">I get a popup error <code>AttributeError: 'NoneType' object has no attribute 'get'</code> when I try to add/edit/remove an effect!</h3>
 <p>Remember in the <strong>Quick Start</strong> when I said: </p>
 <div class="admonition danger">
@@ -1926,7 +1926,7 @@ If the custom property changes, everything is fine. Reset your rotation and scal
                 
                 <a href="https://github.com/asiffer/mkdocs-shadcn">shadcn theme</a> provided by
                 <a href="https://github.com/asiffer">@asiffer</a>
-                <img style = "margin-left:calc(50vw - 124px)" src = "https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal"/>
+                <img style = "margin-left:calc(50vw - 160px)" src = "https://img.shields.io/badge/Docs_written_by_humans-no_generative_AI-teal"/>
             </div>
             
         </div>

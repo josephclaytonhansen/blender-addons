@@ -1,8 +1,8 @@
 bl_info = {
-    "name": "Shading Rig",
-    "description": "Dynamic Art-directable Stylised Shading for 3D Characters",
+    "name": "Shading Rig + Cel Character Tools",
+    "description": "Dynamic Art-Directable Stylised Shading for 3D Characters, Stepped Cloth/Sim Interpolation",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
-    "version": (1, 3, 142),
+    "version": (1, 3, 168),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -13,20 +13,22 @@ from mathutils import Vector
 
 from . import (
     addremove_helpers,
+    cct_multikey,
+    cct_stepped_cloth_interpolation,
     externaldata_helpers,
     hansens_float_packer,
     json_helpers,
     math_helpers,
+    node_helpers,
     setup_helpers,
     update_helpers,
     visual_helpers,
-    node_helpers,
 )
 
 PRESETS = {
     "BEAN": {
         "name": "Bean",
-        "elongation": .95,
+        "elongation": 0.95,
         "sharpness": 0,
         "hardness": 0.40,
         "bulge": -1.0,
@@ -70,7 +72,7 @@ PRESETS = {
     },
     "CAPSULE": {
         "name": "Capsule",
-        "elongation": .88,
+        "elongation": 0.88,
         "sharpness": 0.06,
         "hardness": 0.46,
         "bulge": -1.0,
@@ -81,7 +83,7 @@ PRESETS = {
     },
     "CRESCENT": {
         "name": "Crescent",
-        "elongation": .92,
+        "elongation": 0.92,
         "sharpness": 1.00,
         "hardness": 1.00,
         "bulge": -1.0,
@@ -92,9 +94,9 @@ PRESETS = {
     },
     "TRIANGLE": {
         "name": "Triangle",
-        "elongation": .60,
-        "sharpness": .98,
-        "hardness": .25,
+        "elongation": 0.60,
+        "sharpness": 0.98,
+        "hardness": 0.25,
         "bulge": -0.92,
         "bend": -0.8,
         "mode": "LIGHTEN",
@@ -103,9 +105,9 @@ PRESETS = {
     },
     "PARABOLA": {
         "name": "Parabola",
-        "elongation": .78,
-        "sharpness": .58,
-        "hardness": .25,
+        "elongation": 0.78,
+        "sharpness": 0.58,
+        "hardness": 0.25,
         "bulge": -0.92,
         "bend": -0.8,
         "mode": "LIGHTEN",
@@ -114,17 +116,17 @@ PRESETS = {
     },
     "BUTTE": {
         "name": "Butte",
-        "elongation": .78,
-        "sharpness": .58,
-        "hardness": .25,
+        "elongation": 0.78,
+        "sharpness": 0.58,
+        "hardness": 0.25,
         "bulge": -0.92,
         "bend": -0.8,
         "mode": "ADD",
         "clamp": True,
         "rotation": 9,
     },
-    
 }
+
 
 def get_preset_items(self, context):
     """Generates the items for the preset EnumProperty."""
@@ -133,6 +135,7 @@ def get_preset_items(self, context):
         name = settings.get("name", identifier.replace("_", " ").title())
         items.append((identifier, name, f"Apply the {name} preset"))
     return items
+
 
 def apply_preset(rig_item, preset_identifier):
     """Applies a preset's values to a given rig item."""
@@ -146,8 +149,10 @@ def apply_preset(rig_item, preset_identifier):
         if hasattr(rig_item, prop):
             setattr(rig_item, prop, value)
 
+
 class SR_OT_ApplyPreset(bpy.types.Operator):
     """Applies the selected preset to the active rig item."""
+
     bl_idname = "shading_rig.apply_preset"
     bl_label = "Apply Preset"
     bl_description = "Apply the selected preset's values to the active effect"
@@ -170,6 +175,7 @@ class SR_OT_ApplyPreset(bpy.types.Operator):
             self.report({"INFO"}, f"Applied preset: {active_item.preset}")
 
         return {"FINISHED"}
+
 
 bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 # this has to be globally assigned to work consistently
@@ -194,6 +200,7 @@ from bpy.types import (
     PropertyGroup,
     UIList,
 )
+
 
 class SR_CorrelationItem(PropertyGroup):
     """A single correlation item."""
@@ -259,6 +266,7 @@ def get_blend_mode_items(self, _context):
         items.append((identifier, name, description, icon, i))
 
     return items
+
 
 def sr_rig_item_name_update(self, context):
     """When the rig item is renamed, rename the associated empty object."""
@@ -386,7 +394,7 @@ class SR_RigItem(PropertyGroup):
         default=True,
         update=update_helpers.property_update_sync,
     )
-    
+
     rotation: IntProperty(
         name="Spin",
         description="Rotate the Effect around its center",
@@ -451,7 +459,7 @@ class SR_PT_ShadingRigPanel(Panel):
     bl_idname = "SR_PT_shading_rig_panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Shading Rig"
+    bl_category = "SR + CCT"
 
     def draw(self, context):
         layout = self.layout
@@ -598,7 +606,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 col.prop(active_item, "rotation")
                 col.prop(active_item, "mode")
                 col.prop(active_item, "clamp")
-                
+
                 preset_row = col.row(align=True)
                 preset_row.prop(active_item, "preset", text="")
                 preset_row.operator(SR_OT_ApplyPreset.bl_idname, text="Apply Preset")
@@ -787,6 +795,18 @@ CLASSES = [
     addremove_helpers.SR_OT_Correlation_Remove,
     addremove_helpers.SR_OT_RigList_Remove,
     SR_PT_ShadingRigPanel,
+    cct_stepped_cloth_interpolation.OBJECT_OT_interpolate_bake,
+    # MultiKey classes
+    cct_multikey.ShapeKeyItem,
+    cct_multikey.MultiKeyProperties,
+    cct_multikey.MULTIKEY_OT_SetAllValues,
+    cct_multikey.MULTIKEY_OT_SetAllTo,
+    cct_multikey.MULTIKEY_OT_GetCurrentFrame,
+    cct_multikey.MULTIKEY_OT_AddKeyframes,
+    cct_multikey.MULTIKEY_OT_ClearNames,
+    cct_multikey.MULTIKEY_OT_ClearAllNames,
+    cct_multikey.MULTIKEY_OT_UpdateRows,
+    cct_multikey.MULTIKEY_PT_Panel,
 ]
 
 
@@ -794,6 +814,11 @@ def register():
     for cls in CLASSES:
         bpy.utils.register_class(cls)
 
+    bpy.types.PHYSICS_PT_cloth_cache.append(
+        cct_stepped_cloth_interpolation.draw_cloth_func
+    )
+
+    # Shading Rig properties
     bpy.types.Scene.shading_rig_list = CollectionProperty(
         type=SR_RigItem,
         name="Shading Rig List",
@@ -803,6 +828,16 @@ def register():
         default=0,
         min=0,
     )
+
+    # MultiKey properties
+    bpy.types.Scene.multikey_props = PointerProperty(
+        type=cct_multikey.MultiKeyProperties
+    )
+
+    # Add MultiKey handlers
+
+    if cct_multikey.update_frame_handler not in bpy.app.handlers.frame_change_pre:
+        bpy.app.handlers.frame_change_pre.append(cct_multikey.update_frame_handler)
 
     bpy.types.Scene.shading_rig_default_material = PointerProperty(
         name="Default Material",
@@ -842,21 +877,35 @@ def register():
 
 
 def unregister():
+    # Remove MultiKey handlers
+
+    if cct_multikey.update_frame_handler in bpy.app.handlers.frame_change_pre:
+        bpy.app.handlers.frame_change_pre.remove(cct_multikey.update_frame_handler)
+
+    # Remove Shading Rig properties
     del bpy.types.Scene.shading_rig_default_material
     del bpy.types.Scene.shading_rig_default_light
-
     del bpy.types.Scene.shading_rig_list
     del bpy.types.Scene.shading_rig_list_index
     del bpy.types.Scene.shading_rig_chararacter_name
+    del bpy.types.Scene.shading_rig_show_defaults
+    del bpy.types.Scene.shading_rig_corr_readonly
 
+    # Remove MultiKey properties
+    del bpy.types.Scene.multikey_props
+
+    # Remove handlers
     if update_shading_rig_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(update_shading_rig_handler)
 
     if load_handler in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_handler)
 
-    del bpy.types.Scene.shading_rig_show_defaults
-    del bpy.types.Scene.shading_rig_corr_readonly
+    # Remove cache functions
+    bpy.types.PHYSICS_PT_cloth_cache.remove(
+        cct_stepped_cloth_interpolation.draw_cloth_func
+    )
 
+    # Unregister all classes
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)

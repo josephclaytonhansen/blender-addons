@@ -9,10 +9,11 @@
 
 ## Shading Rig + Cel Character Tools
 
-### Customize light and shadow exactly how you want it
+### Shading Rig
+#### Customize light and shadow exactly how you want it
 [<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/srf-1.png" width="100%"/>](img/sr/srf-1.png)
 
-### What is Shading Rig?
+#### What is Shading Rig?
 > Shading Rig is a new framework for art-directing dynamic 3D toon shading. It lets artists add illustrative details and animate how they respond to lighting changes in real time...  we achieve this with a "rig" of shadow editing primitives designed based on fundamental artistic shading principles. These primitives can be animated to achieve highly stylised shading under dynamic lighting.
 
 > [Lohit Petikam et al.](https://lohit.dev/ShadingRig/)
@@ -22,11 +23,18 @@
 
 At Real-Time Live! SIGGRAPH 2021, Lohit Petikam and his team presented a shader rig for cel shaded characters.  However, this presentation was almost entirely theory and lacked technical or practical implementation. A functional implementation has never been made until now. I've both _implemented_ and _improved_ the original ideas presented in the paper, approaching it from an art-direction perspective and coming up with creative solutions to make sure it is production-usable. Much of the math in the paper didn't end up working outside of specific test cases, so I've significantly reworked major portions. The final result is wholly unique and extremely powerful.
 
-### Automatic smooth blending for a more natural look
+#### Automatic smooth blending for a more natural look
 [<img src="https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif" width="100%"/>](https://josephclaytonhansen.github.io/blender-addons/img/sr/sr-hardness.gif)
 
-### Shape effects with precision
+#### Shape effects with precision
 [<img src="https://i.postimg.cc/rwF0Xwgr/srf-2.png" width="100%"/>](https://i.postimg.cc/rwF0Xwgr/srf-2.png)
+
+### Cel Character Tools
+#### Stepped Cloth Interpolation
+Interpolate cloth simulation with a stepped interpolation. You control the stepping range. Animate cloth in a way that looks like traditional animation.
+
+#### MultiKey
+MultiKey allows you to manipulate shapekeys on multiple objects at once. If you have a face with separate eyebrow objects, for example, you can adjust a "Blink" shapekey on the face and eyebrows at the same time.
 
 Studio or professional users **must** purchase seat licenses of Shading Rig + Cel Character Tools. Licensing terms below.
 
@@ -34,14 +42,8 @@ Studio or professional users **must** purchase seat licenses of Shading Rig + Ce
 ### audio-2-face-weight-import
 Used with NVIDIA Audio2Face; adds a A2F JSON file as a NLA track (or animation layer) in Blender.
 
-### cloth-sim-on-2s
-Interpolates a baked (on-disk cache) cloth sim to be animated on twos.
-
 ### delete-object-with-children
 As written, replaces the default deletion behavior, instead deleting the children of a parent when deleting the parent. I don't use it, but apparently it's a Maya thing, made it for a co-worker
-
-### multikey
-Allows for adjusting and animating same-named shapekeys on multiple objects at once; for example, to make a "blink" key that uses Head, Eyebrows, and Eyelashes objects.
 
 ### qcb
 Makes corrective blendshapes based on the angle or distance between two bone transform values- essentially a quick and dirty RBF node setup

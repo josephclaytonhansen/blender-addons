@@ -42,6 +42,7 @@ def serialize_rig_list_to_json(rig_list):
                 {
                     "name": corr.name,
                     "light_rotation": list(corr.light_rotation),
+                    "light_position": list(corr.light_position),
                     "empty_position": list(corr.empty_position),
                     "empty_rotation": list(corr.empty_rotation),
                     "empty_scale": list(corr.empty_scale),
@@ -119,6 +120,7 @@ def sync_json_to_scene(scene):
             new_corr = new_rig.correlations.add()
             new_corr.name = corr_data["name"]
             new_corr.light_rotation = corr_data["light_rotation"]
+            new_corr.light_position = corr_data["light_position"]
             new_corr.empty_position = corr_data["empty_position"]
             new_corr.empty_rotation = corr_data["empty_rotation"]
             new_corr.empty_scale = corr_data["empty_scale"]

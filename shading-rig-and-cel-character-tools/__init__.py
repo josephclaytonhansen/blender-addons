@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Dynamic Art-Directable Stylised Shading for 3D Characters, Stepped Cloth/Sim Interpolation",
-    "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), Nick Ewing (testing and docs), thorn (sanity checking, testing), Grace Green (proofreading)",
-    "version": (1, 3, 168),
+    "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing)",
+    "version": (1, 3, 177),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -183,7 +183,7 @@ bpy.app.driver_namespace["hansens_float_packer"] = hansens_float_packer
 # seems like this only works immediately after you install
 # an addon. Definitely a bug
 
-_previous_light_rotations = {}
+_previous_light_transforms = {}
 
 from bpy.props import (
     BoolProperty,
@@ -213,6 +213,14 @@ class SR_CorrelationItem(PropertyGroup):
         unit="ROTATION",
         size=3,
         description="Stored rotation of the light object",
+    )
+    
+    light_position: FloatVectorProperty(
+        name="Light Position",
+        subtype="TRANSLATION",
+        unit="LENGTH",
+        size=3,
+        description="Stored position of the light object",
     )
 
     empty_position: FloatVectorProperty(
@@ -679,6 +687,7 @@ class SR_PT_ShadingRigPanel(Panel):
 
                 col = corr_box.column(align=True)
                 col.enabled = not scene.shading_rig_corr_readonly
+                col.prop(active_corr, "light_position", text="Light Position")
                 col.prop(active_corr, "light_rotation", text="Light Rotation")
                 col.prop(active_corr, "empty_position", text="Empty Position")
                 col.prop(active_corr, "empty_scale", text="Empty Scale")
@@ -756,25 +765,34 @@ def update_shading_rig_handler(scene, depsgraph):
             continue
 
         current_light_rotation = eval_light_obj.rotation_euler
+        current_light_position = eval_light_obj.location
         light_obj_key = light_obj.name_full
 
-        prev_rot = _previous_light_rotations.get(light_obj_key)
-        if prev_rot:
-            v_prev = Vector(prev_rot)
-            v_curr = Vector(current_light_rotation)
-            if (v_prev - v_curr).length < 1e-5:
+        prev_transform = _previous_light_transforms.get(light_obj_key)
+        if prev_transform:
+            # make a 6 digit list combining XYZ rotation and XYZ position
+            rot_pos = list(prev_transform[0]) + list(prev_transform[1])
+            # check the distance between the two 6 digit lists
+            curr_rot_pos = list(current_light_rotation) + list(current_light_position)
+            if all(
+                abs(a - b) < 1e-5 for a, b in zip(rot_pos, curr_rot_pos)
+            ):
+                print("No significant change in light transform; skipping update.")
                 continue
 
         weighted_pos, weighted_scale, weighted_rotation = (
             math_helpers.calculateWeightedEmptyPosition(
-                correlations, current_light_rotation
+                correlations, current_light_rotation, current_light_position
             )
         )
         empty_obj.location = weighted_pos
         empty_obj.scale = weighted_scale
         empty_obj.rotation_euler = weighted_rotation
 
-        _previous_light_rotations[light_obj_key] = current_light_rotation.copy()
+        if light_obj_key not in _previous_light_transforms:
+            _previous_light_transforms[light_obj_key] = [None, None]
+        _previous_light_transforms[light_obj_key][0] = current_light_rotation.copy()
+        _previous_light_transforms[light_obj_key][1] = current_light_position.copy()
 
 
 # ---------------------- Register and unregister classes --------------------- #

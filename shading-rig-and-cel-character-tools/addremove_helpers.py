@@ -177,6 +177,7 @@ class SR_OT_Correlation_Add(Operator):
             new_corr.name = f"Correlation_{scene.shading_rig_chararacter_name}_{len(active_rig_item.correlations):03d}"
 
             new_corr.light_rotation = light_obj.rotation_euler
+            new_corr.light_position = light_obj.location
             new_corr.empty_position = empty_obj.location
             new_corr.empty_scale = empty_obj.scale
             new_corr.empty_rotation = empty_obj.rotation_euler

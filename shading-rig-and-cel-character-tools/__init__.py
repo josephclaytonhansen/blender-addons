@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Dynamic Art-Directable Stylised Shading for 3D Characters, Stepped Cloth/Sim Interpolation",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing)",
-    "version": (1, 3, 185),
+    "version": (1, 3, 186),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",

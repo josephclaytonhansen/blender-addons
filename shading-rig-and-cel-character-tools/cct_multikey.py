@@ -400,7 +400,7 @@ class MULTIKEY_PT_Panel(Panel):
 
             row = layout.row(align=True)
             row.prop(
-                shape_key, "name", icon=icons["shape_key"], text=f"Key {chr(65+i)}"
+                shape_key, "name", icon=icons["shape_key"], text=""
             )
             row.prop(shape_key, "value", text="")
             row.prop(shape_key, "enabled", text="")

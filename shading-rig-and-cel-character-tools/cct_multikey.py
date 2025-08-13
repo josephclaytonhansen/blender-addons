@@ -14,8 +14,6 @@ from bpy.types import Operator, Panel, PropertyGroup
 # ------------------------------------------------------------------------
 MAX_SHAPE_KEYS = 52
 DEFAULT_ROWS = 6
-
-
 # ------------------------------------------------------------------------
 #    Helper Functions
 # ------------------------------------------------------------------------
@@ -24,7 +22,6 @@ def get_collections_callback(scene, context):
     items = []
 
     try:
-        # Always ensure we have at least one item to prevent enum errors
         if len(bpy.data.collections) == 0:
             items.append(("NONE", "No Collections Found", "Create a collection first"))
         else:
@@ -382,7 +379,7 @@ class MULTIKEY_PT_Panel(Panel):
             "shape_key": "SHAPEKEY_DATA" if props.show_icons else "NONE",
             "collection": "OUTLINER_OB_GROUP_INSTANCE" if props.show_icons else "NONE",
             "keyframe": "KEY_HLT" if props.show_icons else "NONE",
-            "settings": "FILE_REFRESH" if props.show_icons else "NONE",
+            "settings": "FILE_REFRESH",
         }
 
         # Clear buttons
@@ -393,7 +390,9 @@ class MULTIKEY_PT_Panel(Panel):
         # Number of rows
         row = layout.row(align=True)
         row.prop(props, "num_rows")
-        row.operator("multikey.update_rows", icon=icons["settings"], text="")
+        if len(props.shape_keys) < props.num_rows:
+            row.operator("multikey.update_rows", icon=icons["settings"], text="")
+        
 
         # Shape key rows - only show existing items
         for i in range(min(props.num_rows, len(props.shape_keys))):
@@ -406,26 +405,12 @@ class MULTIKEY_PT_Panel(Panel):
             row.prop(shape_key, "value", text="")
             row.prop(shape_key, "enabled", text="")
 
-        # Show message if we need more items
-        if len(props.shape_keys) < props.num_rows:
-            layout.label(
-                text=f"Click 'Update Rows' to add {props.num_rows - len(props.shape_keys)} more keys",
-                icon="INFO",
-            )
-
         layout.separator()
 
         # Collection selection
         layout.prop(props, "collection", icon=icons["collection"])
 
         layout.separator()
-
-        # Quick set buttons
-        row = layout.row(align=True)
-        op = row.operator("multikey.set_all_values", text="Set All to 0")
-        op.value = 0.0
-        op = row.operator("multikey.set_all_values", text="Set All to 1")
-        op.value = 1.0
 
         # Custom set all
         row = layout.row(align=True)

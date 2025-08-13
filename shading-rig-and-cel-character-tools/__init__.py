@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Dynamic Art-Directable Stylised Shading for 3D Characters, Stepped Cloth/Sim Interpolation",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing)",
-    "version": (1, 3, 186),
+    "version": (1, 3, 199),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -206,8 +206,10 @@ class ToggleSilhouetteViewOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def draw_toggle_button(self, context):
+    addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
     layout = self.layout
-    layout.prop(context.scene, "is_silhouette_view", text="Matte", toggle=True, icon='MOD_MASK')
+    if addon_prefs.show_matte_button:
+        layout.operator(ToggleSilhouetteViewOperator.bl_idname, text="Toggle Matte", icon='MOD_MASK')
 
 class SR_OT_ApplyPreset(bpy.types.Operator):
     """Applies the selected preset to the active rig item."""
@@ -258,8 +260,33 @@ from bpy.types import (
     Panel,
     PropertyGroup,
     UIList,
+    AddonPreferences
 )
 
+class SRCCT_Preferences(AddonPreferences):
+    bl_idname = 'shading-rig-and-cel-character-tools'
+    
+    show_icons: BoolProperty(
+        name="Show Icons",
+        description="Display icons in UI panels",
+        default=True,
+    )
+    shading_rig_corr_readonly: BoolProperty(
+        name="Read-Only Correlations",
+        description="Make shading rig correlations read-only",
+        default=True,
+    )
+    show_matte_button: BoolProperty(
+        name="Show Matte Button",
+        description="Display a header button to toggle silhouette view in the UI",
+        default=True,
+    )
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "show_icons", text="Show Icons in UI")
+        layout.prop(self, "shading_rig_corr_readonly", text="Read-Only Correlations")
+        layout.prop(self, "show_matte_button", text="Show Matte Button in Header")
 
 class SR_CorrelationItem(PropertyGroup):
     """A single correlation item."""
@@ -531,6 +558,7 @@ class SR_PT_ShadingRigPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
+        addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
 
         box = layout.box()
         row = box.row()
@@ -556,26 +584,24 @@ class SR_PT_ShadingRigPanel(Panel):
             row = col.row(align=True)
             row.label(text="", icon="MATERIAL")
             row.prop(scene, "shading_rig_default_material", text="")
-            col.separator()
-            col.prop(scene, "shading_rig_corr_readonly")
 
         layout.separator()
 
         box = layout.box()
         col = box.column(align=True)
 
-        col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND")
+        col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND" if addon_prefs.show_icons else "NONE")
 
         if len(scene.shading_rig_list) <= 0:
             col.operator(
                 externaldata_helpers.SR_OT_SyncExternalData.bl_idname,
-                icon="FILE_REFRESH",
+                icon="FILE_REFRESH" if addon_prefs.show_icons else "NONE",
             )
             col.operator(
-                externaldata_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH"
+                externaldata_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH" if addon_prefs.show_icons else "NONE"
             )
 
-        col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA")
+        col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA" if addon_prefs.show_icons else "NONE")
 
         layout.separator()
 
@@ -619,10 +645,10 @@ class SR_PT_ShadingRigPanel(Panel):
                 row.label(text="", icon="EMPTY_DATA")
                 row.prop(active_item, "empty_object", text="")
                 row = col.row(align=True)
-                row.label(text="", icon="LIGHT")
+                row.label(text="", icon="LIGHT" if addon_prefs.show_icons else "NONE")
                 row.prop(active_item, "light_object", text="")
                 row = col.row(align=True)
-                row.label(text="", icon="MATERIAL")
+                row.label(text="", icon="MATERIAL" if addon_prefs.show_icons else "NONE")
                 row.prop(active_item, "material", text="")
 
                 row = col.row(align=True)
@@ -745,7 +771,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 corr_box.prop(active_corr, "name", text="Name")
 
                 col = corr_box.column(align=True)
-                col.enabled = not scene.shading_rig_corr_readonly
+                col.enabled = not addon_prefs.shading_rig_corr_readonly
                 col.prop(active_corr, "light_position", text="Light Position")
                 col.prop(active_corr, "light_rotation", text="Light Rotation")
                 col.prop(active_corr, "empty_position", text="Empty Position")
@@ -856,6 +882,7 @@ def update_shading_rig_handler(scene, depsgraph):
 
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
+    SRCCT_Preferences,
     SR_CorrelationItem,
     SR_RigItem,
     SR_UL_RigList,
@@ -946,12 +973,6 @@ def register():
 
     bpy.app.handlers.load_post.append(load_handler)
 
-    bpy.types.Scene.shading_rig_corr_readonly = BoolProperty(
-        name="Read-Only Correlations",
-        description="Make stored correlation values read-only",
-        default=True,
-    )
-
     bpy.packing_algorithm = hansens_float_packer.packing_algorithm
     
     # Silhouette view
@@ -978,7 +999,6 @@ def unregister():
     del bpy.types.Scene.shading_rig_list_index
     del bpy.types.Scene.shading_rig_chararacter_name
     del bpy.types.Scene.shading_rig_show_defaults
-    del bpy.types.Scene.shading_rig_corr_readonly
 
     # Remove MultiKey properties
     del bpy.types.Scene.multikey_props

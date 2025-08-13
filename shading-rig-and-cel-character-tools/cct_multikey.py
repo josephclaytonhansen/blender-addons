@@ -184,11 +184,6 @@ class MultiKeyProperties(PropertyGroup):
         max=1.0,
     )
 
-    show_icons: BoolProperty(
-        name="Show Icons", description="Show/hide icons in the interface", default=True
-    )
-
-
 # ------------------------------------------------------------------------
 #    Operators
 # ------------------------------------------------------------------------
@@ -372,13 +367,14 @@ class MULTIKEY_PT_Panel(Panel):
     def draw(self, context):
         layout = self.layout
         props = context.scene.multikey_props
+        addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
 
         # Icon configuration
         icons = {
-            "trash": "TRASH" if props.show_icons else "NONE",
-            "shape_key": "SHAPEKEY_DATA" if props.show_icons else "NONE",
-            "collection": "OUTLINER_OB_GROUP_INSTANCE" if props.show_icons else "NONE",
-            "keyframe": "KEY_HLT" if props.show_icons else "NONE",
+            "trash": "TRASH" if addon_prefs.show_icons else "NONE",
+            "shape_key": "SHAPEKEY_DATA" if addon_prefs.show_icons else "NONE",
+            "collection": "OUTLINER_OB_GROUP_INSTANCE" if addon_prefs.show_icons else "NONE",
+            "keyframe": "KEY_HLT" if addon_prefs.show_icons else "NONE",
             "settings": "FILE_REFRESH",
         }
 
@@ -427,10 +423,6 @@ class MULTIKEY_PT_Panel(Panel):
         layout.operator("multikey.add_keyframes", icon=icons["keyframe"])
 
         layout.separator()
-
-        # Settings
-        layout.prop(props, "show_icons", text="Show Icons")
-
 
 # ------------------------------------------------------------------------
 #    Handler Functions

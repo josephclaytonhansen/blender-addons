@@ -1,9 +1,9 @@
 # Shading Rig Quick Start
 ## Definitions
-Shading Rig affects materials through **Effects**, which are connected to Lights through **Correlations**.
+Shading Rig affects materials through **Effects**, which are connected to Lights through **Links**.
 
 - **Effects** are empties that you use to art-direct your shading. They are the building blocks of your shading rig.
-- **Correlations** define how Effects respond to lighting changes. A correlation connects a Light rotation to an Effect position and scale. 
+- **Links** define how Effects respond to lighting changes. A correlation connects a Light rotation to an Effect position and scale. 
 ## Panel Overview
 Shading Rig is designed to be easy to use. However, it is a complex addon. Taking a moment to familiarize yourself with the panel will help you get a better workflow. The panel is arranged in the order in which you generally do things- move from top to bottom as you work on your shading rig.
 <img src="../img/sr/start-panel.jpeg" width="250"/>
@@ -62,8 +62,8 @@ Wow! The Effect!
 
 You can start playing around with the Effect immediately — it updates in realtime. You can move it around, rotate it, scale it, and change the parameters in the **Active Effect Settings**. 
 
-### Step 6: Add Correlations
-In **Section 4**, the Correlations list, you have a + button. This adds a new correlation. Before you click it, though, here's how correlations work. 
+### Step 6: Add Links
+In **Section 4**, the Links list, you have a + button. This adds a new correlation. Before you click it, though, here's how correlations work. 
 
 When you click the + button, the current Light rotation and the current Effect position/scale are saved as a 1:1 pair. If you have two correlations, the Effect will move between the two positions as the light rotates between the two rotations. If you have more correlations, the Effect will move between all of them as the light rotates through all of them. 
 

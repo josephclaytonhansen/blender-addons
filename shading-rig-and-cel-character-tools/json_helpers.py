@@ -38,7 +38,7 @@ def serialize_rig_list_to_json(rig_list):
             "empty_object_name": empty_object_name,
             "light_object_name": light_object_name,
             "material_name": material_name,
-            "correlations": [
+            "links": [
                 {
                     "name": corr.name,
                     "light_rotation": list(corr.light_rotation),
@@ -47,7 +47,7 @@ def serialize_rig_list_to_json(rig_list):
                     "empty_rotation": list(corr.empty_rotation),
                     "empty_scale": list(corr.empty_scale),
                 }
-                for corr in rig.correlations
+                for corr in rig.links
             ],
         }
         data.append(rig_data)
@@ -115,9 +115,9 @@ def sync_json_to_scene(scene):
             if material:
                 new_rig.material = material
 
-        # Rebuild correlations
-        for corr_data in rig_data["correlations"]:
-            new_corr = new_rig.correlations.add()
+        # Rebuild links
+        for corr_data in rig_data["links"]:
+            new_corr = new_rig.links.add()
             new_corr.name = corr_data["name"]
             new_corr.light_rotation = corr_data["light_rotation"]
             new_corr.light_position = corr_data["light_position"]

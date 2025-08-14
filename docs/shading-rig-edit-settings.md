@@ -132,7 +132,7 @@ Note that if you change the material, you need to re-attach the Effect to the ma
 This sets the viewport display shape of the Effect's empty. This will not affect the shape of the empty in any way — it is just a way to help visually distinguish between different Effects.
 
 ### Parent Object
-In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Correlations here — just set the Parent Object to the character's object. 
+In order for an Effect to properly work on a character, it needs to track the character's rotation and position. I've provided the functionality to do this without breaking Links here — just set the Parent Object to the character's object. 
 
 WARNING: Please don't parent an Effect directly to something — it won't work and you will be sad. Use the Parent Object field to set up this relationship exclusively. 
 

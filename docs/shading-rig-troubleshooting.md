@@ -54,7 +54,7 @@ Adjust parameters:
 If the custom property changes, everything is fine. Reset your rotation and scale down your empty. If it doesn't change, you've broken something. The simplest fix is to simply remove the custom property, remove the effects, and redo.
 
 ## My Effect is jumping suddenly between correlations as I rotate the light?
-The reason for this behavior is explained in [Correlations](shading-rig-correlations.md). Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. 
+The reason for this behavior is explained in [Links](shading-rig-correlations.md). Try removing some of your correlations and use less correlations. The more correlations, the more likely jumpiness is. 
 
 ## I deleted the `ShadingRigBase_00x` material from my object, now I cannot get the Effects to show up!
 Make sure whatever material you are using has the two required nodes (see [Material Tricks](shading-rig-material-tricks.md)). Note that it's the node *name*, not the node *label* that matters. It's easy to get tripped up by this, because the name isn't displayed in the Shader Editor. For example, this will work: 

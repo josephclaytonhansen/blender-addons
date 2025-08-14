@@ -29,6 +29,7 @@ class SR_OT_RigList_Add(Operator):
         scene = context.scene
         cursor_location = scene.cursor.location
         rig_list = scene.shading_rig_list
+        addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
 
         new_item = rig_list.add()
 
@@ -59,9 +60,10 @@ class SR_OT_RigList_Add(Operator):
             if any(s.material == new_item.material for s in obj.material_slots):
                 objects_with_material.append(obj)
 
-        print(
-            f"Objects with material '{new_item.material.name}': {len(objects_with_material)} found."
-        )
+        if addon_prefs.debug_mode:
+            print(
+                f"Objects with material '{new_item.material.name}': {len(objects_with_material)} found."
+            )
 
         rig_index = len(rig_list) - 1
 

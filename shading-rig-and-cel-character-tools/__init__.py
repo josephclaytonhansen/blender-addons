@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 225),
+    "version": (1, 3, 260),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -128,7 +128,6 @@ PRESETS = {
     },
 }
 
-
 def get_preset_items(self, context):
     """Generates the items for the preset EnumProperty."""
     items = []
@@ -152,6 +151,9 @@ def apply_preset(rig_item, preset_identifier):
 
 previous_settings = {}
 is_silhouette_view = False
+
+bpy.types.Scene.active_corr = None
+bpy.types.Scene.previous_corr = None
 
 # --------------------------------- Operators -------------------------------- #
 def toggle_silhouette_view(self, context):
@@ -272,22 +274,35 @@ class SRCCT_Preferences(AddonPreferences):
         description="Display icons in UI panels",
         default=True,
     )
-    shading_rig_corr_readonly: BoolProperty(
-        name="Read-Only Links",
-        description="Make shading rig links read-only",
-        default=True,
+    debug_mode: BoolProperty(
+        name="Debug Mode",
+        description="Extensive debug console logging (for testing)",
+        default=False,
+    )
+    shading_rig_precise_editing: BoolProperty(
+        name="Precise Numerical Link Editing",
+        default=False,
     )
     show_matte_button: BoolProperty(
         name="Show Matte Button",
         description="Display a header button to toggle silhouette view in the UI",
         default=True,
     )
+    show_multikey: BoolProperty(
+        name="Show Multi-Key Tools",
+        description="Display tools for multi-object shapekey editing",
+        default=True,
+    )
     
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "show_icons", text="Show Icons in UI")
-        layout.prop(self, "shading_rig_corr_readonly", text="Read-Only Links")
-        layout.prop(self, "show_matte_button", text="Show Matte Button in Header")
+        row = layout.row()
+        row.prop(self, "show_icons", text="Show Icons in UI")
+        row.prop(self, "debug_mode", text="Debug Mode")
+        layout.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
+        row = layout.row()
+        row.prop(self, "show_matte_button", text="Show Matte Button in Header")
+        row.prop(self, "show_multikey", text="Show Multi-Key Tools")
 
 class SR_LinkItem(PropertyGroup):
     """A single link item."""
@@ -776,7 +791,7 @@ class SR_PT_ShadingRigPanel(Panel):
             
             col.operator(
                     sr_edit_mode.SR_OT_ToggleEditMode.bl_idname,
-                    text="Enter Live Mode" if not bpy.types.Scene.is_evaluating_shading_rig else "Enter Edit Mode",
+                    text="Save Changes" if not bpy.types.Scene.is_evaluating_shading_rig else "Enter Edit Mode",
                     icon = tem_icon,
                     emboss=True,
                     depress=not bpy.types.Scene.is_evaluating_shading_rig,
@@ -787,18 +802,18 @@ class SR_PT_ShadingRigPanel(Panel):
                 and len(active_item.links) > 0
             ):
                 active_corr = active_item.links[active_item.correlations_index]
+                bpy.types.Scene.active_corr = active_corr
 
                 corr_box = box.box()
                 corr_box.prop(active_corr, "name", text="Name")
 
-                col = corr_box.column(align=True)
-                col.enabled = not addon_prefs.shading_rig_corr_readonly
-                col.prop(active_corr, "light_position", text="Light Position")
-                col.prop(active_corr, "light_rotation", text="Light Rotation")
-                col.prop(active_corr, "empty_position", text="Empty Position")
-                col.prop(active_corr, "empty_scale", text="Empty Scale")
-                col.prop(active_corr, "empty_rotation", text="Empty Rotation")
-
+                if not bpy.types.Scene.is_evaluating_shading_rig and addon_prefs.shading_rig_precise_editing:
+                    col = corr_box.column(align=True)
+                    col.prop(active_corr, "light_position", text="Light Position")
+                    col.prop(active_corr, "light_rotation", text="Light Rotation")
+                    col.prop(active_corr, "empty_position", text="Empty Position")
+                    col.prop(active_corr, "empty_scale", text="Empty Scale")
+                    col.prop(active_corr, "empty_rotation", text="Empty Rotation")
 
 @bpy.app.handlers.persistent
 def load_handler(dummy):
@@ -807,10 +822,11 @@ def load_handler(dummy):
         # As long as the addon is installed,
         # this should allow appending between files
 
-
 @bpy.app.handlers.persistent
 def update_shading_rig_handler(scene, depsgraph):
+    addon_prefs = bpy.context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
     if bpy.types.Scene.is_evaluating_shading_rig:
+        # We're in live mode- update the empties to match the lights
         """
         Handles automatic updates for the Shading Rig system.
         1. Detects renames of Empty objects and syncs shader node names.
@@ -822,9 +838,10 @@ def update_shading_rig_handler(scene, depsgraph):
         for rig_item in scene.shading_rig_list:
             empty_obj = rig_item.empty_object
             if not empty_obj:
-                print(
-                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Empty object assigned."
-                )
+                if addon_prefs.debug_mode:
+                    print(
+                        f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Empty object assigned."
+                    )
                 continue
 
             current_empty_name = empty_obj.name
@@ -851,21 +868,19 @@ def update_shading_rig_handler(scene, depsgraph):
             if rig_item.last_empty_name != current_empty_name:
                 rig_item.last_empty_name = current_empty_name
 
+            # Check for light object and links after rename handling
             light_obj = rig_item.light_object
             links = rig_item.links
-            if not light_obj:
+            if not light_obj and addon_prefs.debug_mode:
                 print(
                     f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Light object assigned."
                 )
                 continue
-            if len(links) == 0:
-                print(
-                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no links found."
-                )
+            if len(links) == 0 and addon_prefs.debug_mode:
                 continue
 
             eval_light_obj = light_obj.evaluated_get(depsgraph)
-            if not eval_light_obj:
+            if not eval_light_obj and addon_prefs.debug_mode:
                 print(
                     f"Shading Rig Debug: Skipping rig '{rig_item.name}' - could not get evaluated light object from depsgraph."
                 )
@@ -881,26 +896,149 @@ def update_shading_rig_handler(scene, depsgraph):
                 rot_pos = list(prev_transform[0]) + list(prev_transform[1])
                 # check the distance between the two 6 digit lists
                 curr_rot_pos = list(current_light_rotation) + list(current_light_position)
+                # Use a more reasonable threshold for detecting changes (0.001 instead of 1e-5)
                 if all(
-                    abs(a - b) < 1e-5 for a, b in zip(rot_pos, curr_rot_pos)
+                    abs(a - b) < 0.001 for a, b in zip(rot_pos, curr_rot_pos)
                 ):
-                    print("No significant change in light transform; skipping update.")
                     continue
 
-            weighted_pos, weighted_scale, weighted_rotation = (
-                math_helpers.calculateWeightedEmptyPosition(
-                    links, current_light_rotation, current_light_position
+            try:
+                weighted_pos, weighted_scale, weighted_rotation = (
+                    math_helpers.calculateWeightedEmptyPosition(
+                        links, current_light_rotation, current_light_position
+                    )
                 )
-            )
-            empty_obj.location = weighted_pos
-            empty_obj.scale = weighted_scale
-            empty_obj.rotation_euler = weighted_rotation
+                    
+                empty_obj.location = weighted_pos
+                empty_obj.scale = weighted_scale
+                empty_obj.rotation_euler = weighted_rotation
 
-            if light_obj_key not in _previous_light_transforms:
-                _previous_light_transforms[light_obj_key] = [None, None]
-            _previous_light_transforms[light_obj_key][0] = current_light_rotation.copy()
-            _previous_light_transforms[light_obj_key][1] = current_light_position.copy()
+                if light_obj_key not in _previous_light_transforms:
+                    _previous_light_transforms[light_obj_key] = [None, None]
+                _previous_light_transforms[light_obj_key][0] = current_light_rotation.copy()
+                _previous_light_transforms[light_obj_key][1] = current_light_position.copy()
+                
+            except Exception as e:
+                if addon_prefs.debug_mode:
+                    print(f"Shading Rig Debug: Error in calculateWeightedEmptyPosition: {e}")
+                continue
+            
+    else:
+        # We're in edit mode- we're tweaking light/empty Links
+        # When in edit mode, clicking a shading rig Link from the enum list should snap
+        # the light and empty values to those saved values
+        
+        # Check if we have a valid active rig and correlation
+        if (scene.shading_rig_list_index < 0 or 
+            scene.shading_rig_list_index >= len(scene.shading_rig_list)):
+            return
+            
+        rig_item = scene.shading_rig_list[scene.shading_rig_list_index]
+        if (rig_item.correlations_index < 0 or 
+            rig_item.correlations_index >= len(rig_item.links)):
+            return
+            
+        active_corr = rig_item.links[rig_item.correlations_index]
+        previous_active_corr = bpy.types.Scene.previous_corr
+        
+        # Check if the active correlation has changed (user clicked different link)
+        correlation_changed = False
+        
+        if previous_active_corr is None:
+            correlation_changed = True
+            if addon_prefs.debug_mode:
+                print("Shading Rig Debug: First time setup, loading correlation values")
+        elif active_corr != previous_active_corr:
+            correlation_changed = True
+            if addon_prefs.debug_mode:
+                print(f"Shading Rig Debug: Correlation changed from {previous_active_corr.name if previous_active_corr else 'None'} to {active_corr.name}")
+        
+        if correlation_changed:
+            # SAVE the previous correlation's data before switching (if there was one)
+            if previous_active_corr and rig_item.light_object and rig_item.empty_object:
+                try:
+                    # Get current object transforms
+                    current_light_pos = rig_item.light_object.location.copy()
+                    current_light_rot = rig_item.light_object.rotation_euler.copy()
+                    current_empty_pos = rig_item.empty_object.location.copy()
+                    current_empty_scale = rig_item.empty_object.scale.copy()
+                    current_empty_rot = rig_item.empty_object.rotation_euler.copy()
+                    
+                    if addon_prefs.debug_mode:
+                        print(f"Shading Rig Debug: Saving PREVIOUS correlation '{previous_active_corr.name}' - Light pos: {current_light_pos}")
+                        print(f"Shading Rig Debug:  Saving PREVIOUS correlation '{previous_active_corr.name}' - Empty pos: {current_empty_pos}")
+                    
+                    # Save current transforms to the PREVIOUS correlation
+                    previous_active_corr.light_position = current_light_pos
+                    previous_active_corr.light_rotation = current_light_rot
+                    previous_active_corr.empty_position = current_empty_pos
+                    previous_active_corr.empty_scale = current_empty_scale
+                    previous_active_corr.empty_rotation = current_empty_rot
+                    
+                except Exception as e:
+                    if addon_prefs.debug_mode:
+                        print(f"Shading Rig Debug: Error saving previous correlation: {e}")
+            
+            # LOAD the new correlation's values
+            try:
+                if addon_prefs.debug_mode:
+                    print(f"Shading Rig Debug: Loading NEW correlation '{active_corr.name}' - Light pos: {active_corr.light_position}")
+                    print(f"Shading Rig Debug: Loading NEW correlation '{active_corr.name}' - Empty pos: {active_corr.empty_position}")
+                
+                if rig_item.light_object:
+                    rig_item.light_object.location = active_corr.light_position
+                    rig_item.light_object.rotation_euler = active_corr.light_rotation
 
+                if rig_item.empty_object:
+                    rig_item.empty_object.location = active_corr.empty_position
+                    rig_item.empty_object.scale = active_corr.empty_scale
+                    rig_item.empty_object.rotation_euler = active_corr.empty_rotation
+                    
+                # Update the references
+                bpy.types.Scene.previous_corr = active_corr
+                bpy.types.Scene.active_corr = active_corr
+                
+                if addon_prefs.debug_mode:
+                    print(f"Shading Rig Debug: Successfully loaded correlation '{active_corr.name}' values to objects")
+                
+                # Sync to JSON after correlation change
+                json_helpers.sync_scene_to_json(scene)
+                
+                if addon_prefs.debug_mode:
+                    print("Shading Rig Debug: Successfully synced to JSON after correlation change")
+                
+            except Exception as e:
+                if addon_prefs.debug_mode:
+                    print(f"Shading Rig Debug: Error loading new correlation: {e}")
+        else:
+            # No correlation change - just update the current correlation with any object changes
+            # But only if the objects have actually moved significantly
+            if active_corr and rig_item.light_object and rig_item.empty_object:
+                try:
+                    current_light_pos = rig_item.light_object.location
+                    current_empty_pos = rig_item.empty_object.location
+                    
+                    # Only save if there's a significant change from stored values
+                    light_moved = any(abs(a - b) > 0.01 for a, b in zip(current_light_pos, active_corr.light_position))
+                    empty_moved = any(abs(a - b) > 0.01 for a, b in zip(current_empty_pos, active_corr.empty_position))
+                    
+                    if light_moved or empty_moved:
+                        if addon_prefs.debug_mode:
+                            print(f"Detected significant movement, updating correlation '{active_corr.name}'")
+                        
+                        active_corr.light_position = rig_item.light_object.location.copy()
+                        active_corr.light_rotation = rig_item.light_object.rotation_euler.copy()
+                        active_corr.empty_position = rig_item.empty_object.location.copy()
+                        active_corr.empty_scale = rig_item.empty_object.scale.copy()
+                        active_corr.empty_rotation = rig_item.empty_object.rotation_euler.copy()
+                        
+                        # Sync to JSON after movement
+                        json_helpers.sync_scene_to_json(scene)
+                        
+                except Exception as e:
+                    if addon_prefs.debug_mode:
+                        print(f"Shading Rig Debug: Error updating current correlation: {e}")
+        
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
     SRCCT_Preferences,

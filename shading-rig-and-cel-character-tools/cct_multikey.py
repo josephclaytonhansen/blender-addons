@@ -368,6 +368,8 @@ class MULTIKEY_PT_Panel(Panel):
         layout = self.layout
         props = context.scene.multikey_props
         addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+        if not addon_prefs.show_multikey:
+            return
 
         # Icon configuration
         icons = {
@@ -421,8 +423,6 @@ class MULTIKEY_PT_Panel(Panel):
         row.operator("multikey.get_current_frame", text="", icon="TIME")
 
         layout.operator("multikey.add_keyframes", icon=icons["keyframe"])
-
-        layout.separator()
 
 # ------------------------------------------------------------------------
 #    Handler Functions

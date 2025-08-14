@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 202),
+    "version": (1, 3, 225),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -21,6 +21,7 @@ from . import (
     setup_helpers,
     update_helpers,
     visual_helpers,
+    sr_edit_mode,
     cct_multikey,
     cct_stepped_cloth_interpolation,
 )
@@ -272,8 +273,8 @@ class SRCCT_Preferences(AddonPreferences):
         default=True,
     )
     shading_rig_corr_readonly: BoolProperty(
-        name="Read-Only Correlations",
-        description="Make shading rig correlations read-only",
+        name="Read-Only Links",
+        description="Make shading rig links read-only",
         default=True,
     )
     show_matte_button: BoolProperty(
@@ -285,13 +286,13 @@ class SRCCT_Preferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "show_icons", text="Show Icons in UI")
-        layout.prop(self, "shading_rig_corr_readonly", text="Read-Only Correlations")
+        layout.prop(self, "shading_rig_corr_readonly", text="Read-Only Links")
         layout.prop(self, "show_matte_button", text="Show Matte Button in Header")
 
-class SR_CorrelationItem(PropertyGroup):
-    """A single correlation item."""
+class SR_LinkItem(PropertyGroup):
+    """A single link item."""
 
-    name: StringProperty(name="Name", default="New Correlation")
+    name: StringProperty(name="Name", default="New Link")
 
     light_rotation: FloatVectorProperty(
         name="Light Rotation",
@@ -504,9 +505,9 @@ class SR_RigItem(PropertyGroup):
         default=True,
     )
 
-    correlations: CollectionProperty(type=SR_CorrelationItem)
+    links: CollectionProperty(type=SR_LinkItem)
 
-    correlations_index: IntProperty(name="Selected Correlation Index", default=0)
+    correlations_index: IntProperty(name="Selected Link Index", default=0)
 
     last_empty_name: StringProperty(
         name="Last Empty Name",
@@ -529,8 +530,8 @@ class SR_UL_RigList(UIList):
             layout.label(text="", icon="OBJECT_DATA")
 
 
-class SR_UL_CorrelationList(UIList):
-    """UIList for displaying the list of correlations for a rig."""
+class SR_UL_LinkList(UIList):
+    """UIList for displaying the list of links for a rig."""
 
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
@@ -739,33 +740,53 @@ class SR_PT_ShadingRigPanel(Panel):
                         )
 
             box = layout.box()
-            box.label(text="Correlations")
+            box.label(text="Links")
             row = box.row()
             row.template_list(
-                "SR_UL_CorrelationList",
+                "SR_UL_LinkList",
                 "",
                 active_item,
-                "correlations",
+                "links",
                 active_item,
                 "correlations_index",
             )
             col = row.column(align=True)
             col.operator(
-                addremove_helpers.SR_OT_Correlation_Add.bl_idname,
+                addremove_helpers.SR_OT_Link_Add.bl_idname,
                 icon="ADD",
                 text="",
             )
             col.operator(
-                addremove_helpers.SR_OT_Correlation_Remove.bl_idname,
+                addremove_helpers.SR_OT_Link_Remove.bl_idname,
                 icon="REMOVE",
                 text="",
             )
+            
+            row = layout.row(align=True)
+            col = row.column(align=True)
+            
+            if addon_prefs.show_icons:
+                if bpy.types.Scene.is_evaluating_shading_rig:
+                    tem_icon = "EDITMODE_HLT"
+                else:
+                    tem_icon = "OBJECT_DATAMODE"
+            else:
+                tem_icon = "NONE"
+                    
+            
+            col.operator(
+                    sr_edit_mode.SR_OT_ToggleEditMode.bl_idname,
+                    text="Enter Live Mode" if not bpy.types.Scene.is_evaluating_shading_rig else "Enter Edit Mode",
+                    icon = tem_icon,
+                    emboss=True,
+                    depress=not bpy.types.Scene.is_evaluating_shading_rig,
+                )
 
             if (
                 active_item.correlations_index >= 0
-                and len(active_item.correlations) > 0
+                and len(active_item.links) > 0
             ):
-                active_corr = active_item.correlations[active_item.correlations_index]
+                active_corr = active_item.links[active_item.correlations_index]
 
                 corr_box = box.box()
                 corr_box.prop(active_corr, "name", text="Name")
@@ -789,104 +810,105 @@ def load_handler(dummy):
 
 @bpy.app.handlers.persistent
 def update_shading_rig_handler(scene, depsgraph):
-    """
-    Handles automatic updates for the Shading Rig system.
-    1. Detects renames of Empty objects and syncs shader node names.
-    2. Interpolates Empty transform based on Light rotation.
-    """
-    # realistically, though, something is almost certain
-    # to break if you rename an effect...
-    # I'll probably fix that at some point
-    for rig_item in scene.shading_rig_list:
-        empty_obj = rig_item.empty_object
-        if not empty_obj:
-            print(
-                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Empty object assigned."
-            )
-            continue
-
-        current_empty_name = empty_obj.name
-        if rig_item.last_empty_name and rig_item.last_empty_name != current_empty_name:
-            old_empty_name = rig_item.last_empty_name
-
-            if rig_item.material and rig_item.material.node_tree:
-                node_tree = rig_item.material.node_tree
-
-                old_shading_node_name = f"ShadingRigEffect_{old_empty_name}"
-                new_shading_node_name = f"ShadingRigEffect_{current_empty_name}"
-                shading_node = node_tree.nodes.get(old_shading_node_name)
-                if shading_node:
-                    shading_node.name = new_shading_node_name
-                    shading_node.label = new_shading_node_name
-
-                old_mix_node_name = f"MixRGB_{old_empty_name}"
-                new_mix_node_name = f"MixRGB_{current_empty_name}"
-                mix_node = node_tree.nodes.get(old_mix_node_name)
-                if mix_node:
-                    mix_node.name = new_mix_node_name
-                    mix_node.label = new_mix_node_name
-
-        if rig_item.last_empty_name != current_empty_name:
-            rig_item.last_empty_name = current_empty_name
-
-        light_obj = rig_item.light_object
-        correlations = rig_item.correlations
-        if not light_obj:
-            print(
-                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Light object assigned."
-            )
-            continue
-        if len(correlations) == 0:
-            print(
-                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no correlations found."
-            )
-            continue
-
-        eval_light_obj = light_obj.evaluated_get(depsgraph)
-        if not eval_light_obj:
-            print(
-                f"Shading Rig Debug: Skipping rig '{rig_item.name}' - could not get evaluated light object from depsgraph."
-            )
-            continue
-
-        current_light_rotation = eval_light_obj.rotation_euler
-        current_light_position = eval_light_obj.location
-        light_obj_key = light_obj.name_full
-
-        prev_transform = _previous_light_transforms.get(light_obj_key)
-        if prev_transform:
-            # make a 6 digit list combining XYZ rotation and XYZ position
-            rot_pos = list(prev_transform[0]) + list(prev_transform[1])
-            # check the distance between the two 6 digit lists
-            curr_rot_pos = list(current_light_rotation) + list(current_light_position)
-            if all(
-                abs(a - b) < 1e-5 for a, b in zip(rot_pos, curr_rot_pos)
-            ):
-                print("No significant change in light transform; skipping update.")
+    if bpy.types.Scene.is_evaluating_shading_rig:
+        """
+        Handles automatic updates for the Shading Rig system.
+        1. Detects renames of Empty objects and syncs shader node names.
+        2. Interpolates Empty transform based on Light rotation.
+        """
+        # realistically, though, something is almost certain
+        # to break if you rename an effect...
+        # I'll probably fix that at some point
+        for rig_item in scene.shading_rig_list:
+            empty_obj = rig_item.empty_object
+            if not empty_obj:
+                print(
+                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Empty object assigned."
+                )
                 continue
 
-        weighted_pos, weighted_scale, weighted_rotation = (
-            math_helpers.calculateWeightedEmptyPosition(
-                correlations, current_light_rotation, current_light_position
+            current_empty_name = empty_obj.name
+            if rig_item.last_empty_name and rig_item.last_empty_name != current_empty_name:
+                old_empty_name = rig_item.last_empty_name
+
+                if rig_item.material and rig_item.material.node_tree:
+                    node_tree = rig_item.material.node_tree
+
+                    old_shading_node_name = f"ShadingRigEffect_{old_empty_name}"
+                    new_shading_node_name = f"ShadingRigEffect_{current_empty_name}"
+                    shading_node = node_tree.nodes.get(old_shading_node_name)
+                    if shading_node:
+                        shading_node.name = new_shading_node_name
+                        shading_node.label = new_shading_node_name
+
+                    old_mix_node_name = f"MixRGB_{old_empty_name}"
+                    new_mix_node_name = f"MixRGB_{current_empty_name}"
+                    mix_node = node_tree.nodes.get(old_mix_node_name)
+                    if mix_node:
+                        mix_node.name = new_mix_node_name
+                        mix_node.label = new_mix_node_name
+
+            if rig_item.last_empty_name != current_empty_name:
+                rig_item.last_empty_name = current_empty_name
+
+            light_obj = rig_item.light_object
+            links = rig_item.links
+            if not light_obj:
+                print(
+                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no Light object assigned."
+                )
+                continue
+            if len(links) == 0:
+                print(
+                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - no links found."
+                )
+                continue
+
+            eval_light_obj = light_obj.evaluated_get(depsgraph)
+            if not eval_light_obj:
+                print(
+                    f"Shading Rig Debug: Skipping rig '{rig_item.name}' - could not get evaluated light object from depsgraph."
+                )
+                continue
+
+            current_light_rotation = eval_light_obj.rotation_euler
+            current_light_position = eval_light_obj.location
+            light_obj_key = light_obj.name_full
+
+            prev_transform = _previous_light_transforms.get(light_obj_key)
+            if prev_transform:
+                # make a 6 digit list combining XYZ rotation and XYZ position
+                rot_pos = list(prev_transform[0]) + list(prev_transform[1])
+                # check the distance between the two 6 digit lists
+                curr_rot_pos = list(current_light_rotation) + list(current_light_position)
+                if all(
+                    abs(a - b) < 1e-5 for a, b in zip(rot_pos, curr_rot_pos)
+                ):
+                    print("No significant change in light transform; skipping update.")
+                    continue
+
+            weighted_pos, weighted_scale, weighted_rotation = (
+                math_helpers.calculateWeightedEmptyPosition(
+                    links, current_light_rotation, current_light_position
+                )
             )
-        )
-        empty_obj.location = weighted_pos
-        empty_obj.scale = weighted_scale
-        empty_obj.rotation_euler = weighted_rotation
+            empty_obj.location = weighted_pos
+            empty_obj.scale = weighted_scale
+            empty_obj.rotation_euler = weighted_rotation
 
-        if light_obj_key not in _previous_light_transforms:
-            _previous_light_transforms[light_obj_key] = [None, None]
-        _previous_light_transforms[light_obj_key][0] = current_light_rotation.copy()
-        _previous_light_transforms[light_obj_key][1] = current_light_position.copy()
-
+            if light_obj_key not in _previous_light_transforms:
+                _previous_light_transforms[light_obj_key] = [None, None]
+            _previous_light_transforms[light_obj_key][0] = current_light_rotation.copy()
+            _previous_light_transforms[light_obj_key][1] = current_light_position.copy()
 
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
     SRCCT_Preferences,
-    SR_CorrelationItem,
+    SR_LinkItem,
     SR_RigItem,
     SR_UL_RigList,
-    SR_UL_CorrelationList,
+    SR_UL_LinkList,
+    sr_edit_mode.SR_OT_ToggleEditMode,
     addremove_helpers.SR_OT_RigList_Add,
     setup_helpers.SR_OT_AddEffectCoordinatesNode,
     visual_helpers.SR_OT_SetEmptyDisplayType,
@@ -895,8 +917,8 @@ CLASSES = [
     setup_helpers.SR_OT_AppendNodes,
     externaldata_helpers.SR_OT_SyncExternalData,
     externaldata_helpers.SR_OT_ClearCombinedData,
-    addremove_helpers.SR_OT_Correlation_Add,
-    addremove_helpers.SR_OT_Correlation_Remove,
+    addremove_helpers.SR_OT_Link_Add,
+    addremove_helpers.SR_OT_Link_Remove,
     addremove_helpers.SR_OT_RigList_Remove,
     SR_PT_ShadingRigPanel,
     cct_stepped_cloth_interpolation.OBJECT_OT_interpolate_bake,
@@ -919,6 +941,11 @@ CLASSES = [
 def register():
     for cls in CLASSES:
         bpy.utils.register_class(cls)
+    
+    bpy.types.Scene.is_evaluating_shading_rig = True
+    # Toggle between "Add Mode" and "Edit Mode" for the shading rig
+    # not unlike A2F, but it really just means; Edit Mode pauses dependency graph
+    # evaluation so you can make tweaks to existing linkages
 
     bpy.types.PHYSICS_PT_cloth_cache.append(
         cct_stepped_cloth_interpolation.draw_cloth_func
@@ -940,8 +967,7 @@ def register():
         type=cct_multikey.MultiKeyProperties
     )
 
-    # Add MultiKey handlers
-
+    # MultiKey handlers
     if cct_multikey.update_frame_handler not in bpy.app.handlers.frame_change_pre:
         bpy.app.handlers.frame_change_pre.append(cct_multikey.update_frame_handler)
 
@@ -983,8 +1009,6 @@ def register():
         update=toggle_silhouette_view
     )
     bpy.types.VIEW3D_HT_header.append(draw_toggle_button)
-    
-
 
 def unregister():    
     # Remove MultiKey handlers

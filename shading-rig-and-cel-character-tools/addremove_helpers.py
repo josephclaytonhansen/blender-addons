@@ -116,12 +116,12 @@ class SR_OT_RigList_Add(Operator):
         return {"FINISHED"}
 
 
-class SR_OT_Correlation_Add(Operator):
-    """Add a new correlation to the active rig."""
+class SR_OT_Link_Add(Operator):
+    """Add a new link to the active rig."""
 
     bl_idname = "shading_rig.correlation_add"
-    bl_label = "Add Correlation"
-    bl_description = "Add a new correlation to the active rig"
+    bl_label = "Add Link"
+    bl_description = "Add a new link to the active rig"
 
     @classmethod
     def poll(cls, context):
@@ -173,8 +173,8 @@ class SR_OT_Correlation_Add(Operator):
                 )
                 return {"CANCELLED"}
 
-            new_corr = active_rig_item.correlations.add()
-            new_corr.name = f"Correlation_{scene.shading_rig_chararacter_name}_{len(active_rig_item.correlations):03d}"
+            new_corr = active_rig_item.links.add()
+            new_corr.name = f"Link_{scene.shading_rig_chararacter_name}_{len(active_rig_item.links):03d}"
 
             new_corr.light_rotation = light_obj.rotation_euler
             new_corr.light_position = light_obj.location
@@ -182,24 +182,24 @@ class SR_OT_Correlation_Add(Operator):
             new_corr.empty_scale = empty_obj.scale
             new_corr.empty_rotation = empty_obj.rotation_euler
 
-            active_rig_item.correlations_index = len(active_rig_item.correlations) - 1
+            active_rig_item.correlations_index = len(active_rig_item.links) - 1
 
             self.report({"INFO"}, f"Stored pose in '{new_corr.name}'.")
 
         except Exception as e:
-            self.report({"ERROR"}, "Failed to add correlation. " + str(e))
+            self.report({"ERROR"}, "Failed to add link. " + str(e))
             return {"CANCELLED"}
 
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
 
 
-class SR_OT_Correlation_Remove(Operator):
-    """Remove the selected correlation from the active effect."""
+class SR_OT_Link_Remove(Operator):
+    """Remove the selected link from the active effect."""
 
     bl_idname = "shading_rig.correlation_remove"
-    bl_label = "Remove Correlation"
-    bl_description = "Remove the selected correlation from the active effect"
+    bl_label = "Remove Link"
+    bl_description = "Remove the selected link from the active effect"
 
     @classmethod
     def poll(cls, context):
@@ -214,7 +214,7 @@ class SR_OT_Correlation_Remove(Operator):
         active_rig_item = scene.shading_rig_list[
             json_helpers.get_shading_rig_list_index()
         ]
-        return len(active_rig_item.correlations) > 0
+        return len(active_rig_item.links) > 0
 
     def execute(self, context):
         scene = context.scene
@@ -223,18 +223,18 @@ class SR_OT_Correlation_Remove(Operator):
         ]
         index = active_rig_item.correlations_index
 
-        if index >= len(active_rig_item.correlations):
+        if index >= len(active_rig_item.links):
             return {"CANCELLED"}
 
-        removed_name = active_rig_item.correlations[index].name
-        active_rig_item.correlations.remove(index)
+        removed_name = active_rig_item.links[index].name
+        active_rig_item.links.remove(index)
 
         if index > 0:
             active_rig_item.correlations_index = index - 1
         else:
             active_rig_item.correlations_index = 0
 
-        self.report({"INFO"}, f"Removed correlation '{removed_name}' from effect.")
+        self.report({"INFO"}, f"Removed link '{removed_name}' from effect.")
         json_helpers.sync_scene_to_json(context.scene)
         return {"FINISHED"}
 

@@ -1,4 +1,4 @@
-from . import json_helpers
+from . import json_helpers, sr_presets
 import bpy
 
 def property_update_sync(self, context):
@@ -8,6 +8,29 @@ def property_update_sync(self, context):
     """
     json_helpers.sync_scene_to_json(context.scene)
 
+def apply_preset(rig_item, preset_identifier):
+    """Applies a preset's values to a given rig item."""
+    if preset_identifier not in sr_presets.PRESETS:
+        print(f"Shading Rig Error: Preset '{preset_identifier}' not found.")
+        return
+
+    preset_values = sr_presets.PRESETS[preset_identifier]
+
+    for prop, value in preset_values.items():
+        if hasattr(rig_item, prop):
+            setattr(rig_item, prop, value)
+
+def update_preset(self, context):
+    addon_prefs = bpy.context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+    if addon_prefs.auto_apply_sr_presets:
+        scene = context.scene
+        active_item = scene.shading_rig_list[scene.shading_rig_list_index]
+
+        if active_item.preset:
+            apply_preset(active_item, active_item.preset)
+    
+    json_helpers.sync_scene_to_json(context.scene)
+    
 def update_parent_object(self, context):
     """Create or update a child of constraint on the empty object, to parent_object"""
     active_rig_item = self

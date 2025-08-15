@@ -110,7 +110,8 @@ class JSONimportPanel(Panel):
         row.label(text="Select Object with face Blendshapes")
 
         row = layout.row()
-        row.label(text="Active object is: " + obj.name)
+        if obj:
+            row.label(text="Active object is: " + obj.name)
         
         if "imported_files" in context.scene:
             row = layout.row()

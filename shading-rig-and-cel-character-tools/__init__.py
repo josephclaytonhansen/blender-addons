@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 265),
+    "version": (1, 3, 282),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -68,7 +68,7 @@ def draw_toggle_button(self, context):
     addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
     layout = self.layout
     if addon_prefs.show_matte_button:
-        layout.operator(ToggleSilhouetteViewOperator.bl_idname, text="Toggle Matte", icon='MOD_MASK')
+        layout.operator(ToggleSilhouetteViewOperator.bl_idname, text="Silhouette", icon='MOD_MASK')
 
 class SR_OT_ApplyPreset(bpy.types.Operator):
     """Applies the selected preset to the active rig item."""
@@ -140,7 +140,7 @@ class SRCCT_Preferences(AddonPreferences):
         default=False,
     )
     show_matte_button: BoolProperty(
-        name="Show Matte Button",
+        name="Show Silhouette Button",
         description="Display a header button to toggle silhouette view in the UI",
         default=True,
     )
@@ -150,15 +150,24 @@ class SRCCT_Preferences(AddonPreferences):
         default=True,
     )
     
+    auto_apply_sr_presets: BoolProperty(
+        name="Auto Apply Shading Rig Presets",
+        description="Automatically apply presets when changing the preset dropdown",
+        default=True,
+    )
+    
     def draw(self, context):
         layout = self.layout
+        layout.label(text="General Settings")
         row = layout.row()
         row.prop(self, "show_icons", text="Show Icons in UI")
         row.prop(self, "debug_mode", text="Debug Mode")
-        layout.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
-        row = layout.row()
-        row.prop(self, "show_matte_button", text="Show Matte Button in Header")
+        row.prop(self, "show_matte_button", text="Show Silhouette Button in Header")
         row.prop(self, "show_multikey", text="Show Multi-Key Tools")
+        layout.label(text="Shading Rig Settings")
+        row = layout.row()
+        layout.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
+        layout.prop(self, "auto_apply_sr_presets", text="Auto Apply Shading Rig Presets")     
 
 class SR_LinkItem(PropertyGroup):
     """A single link item."""
@@ -351,7 +360,7 @@ class SR_RigItem(PropertyGroup):
         name="Preset",
         description="Load a predefined set of values for the effect",
         items=get_preset_items,
-        update=update_helpers.property_update_sync,
+        update=update_helpers.update_preset,
     )
 
     clamp: BoolProperty(
@@ -448,23 +457,46 @@ class SR_PT_ShadingRigPanel(Panel):
             split = row.split(factor=0.5)
             splitcol1 = split.column(align=True)
             splitcol2 = split.column(align=True)
-            splitcol1.label(text="Character Name")
+            splitcol1.label(text="Rig Name")
             splitcol2.prop(scene, "shading_rig_chararacter_name", text="")
-            row = col.row(align=True)
-            row.label(text="", icon="LIGHT")
-            row.prop(scene, "shading_rig_default_light", text="")
-            row = col.row(align=True)
-            row.label(text="", icon="MATERIAL")
-            row.prop(scene, "shading_rig_default_material", text="")
+            
+            if scene.shading_rig_chararacter_name and scene.shading_rig_chararacter_name != "":
+                row = col.row(align=True)
+                row.label(text="", icon="LIGHT")
+                row.prop(scene, "shading_rig_default_light", text="")
+            
+            if scene.shading_rig_default_light != None and "ShadingRigEffect" in bpy.data.node_groups:
+                row = col.row(align=True)
+                row.label(text="", icon="MATERIAL")
+                row.prop(scene, "shading_rig_default_material", text="")
 
         layout.separator()
 
         box = layout.box()
         col = box.column(align=True)
+        
+        if "ShadingRigEffect" not in bpy.data.node_groups:
+            col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND" if addon_prefs.show_icons else "NONE")
+            
+        if not scene.shading_rig_chararacter_name or scene.shading_rig_chararacter_name == "":
+            col.label(text="Set a rig name", icon="INFO" if addon_prefs.show_icons else "NONE")
+        else:
+            if context.active_object and context.active_object.type == "MESH":
+                if scene.shading_rig_default_light == None:
+                    col.label(text="Set a default light", icon="INFO" if addon_prefs.show_icons else "NONE")
+                else:
+                    col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA" if addon_prefs.show_icons else "NONE")
+                    if len(scene.shading_rig_list) <= 0:
+                        col.operator("shading_rig.list_add", icon="ADD" if addon_prefs.show_icons else "NONE")
+            else:
+                col.label(text="Select a mesh object", icon="INFO" if addon_prefs.show_icons else "NONE")
 
-        col.operator(setup_helpers.SR_OT_AppendNodes.bl_idname, icon="APPEND_BLEND" if addon_prefs.show_icons else "NONE")
-
+            
         if len(scene.shading_rig_list) <= 0:
+            layout.separator()
+
+            box = layout.box()
+            col = box.column(align=True)
             col.operator(
                 externaldata_helpers.SR_OT_SyncExternalData.bl_idname,
                 icon="FILE_REFRESH" if addon_prefs.show_icons else "NONE",
@@ -472,8 +504,6 @@ class SR_PT_ShadingRigPanel(Panel):
             col.operator(
                 externaldata_helpers.SR_OT_ClearCombinedData.bl_idname, icon="TRASH" if addon_prefs.show_icons else "NONE"
             )
-
-        col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA" if addon_prefs.show_icons else "NONE")
 
         layout.separator()
 
@@ -557,7 +587,7 @@ class SR_PT_ShadingRigPanel(Panel):
                 split = row.split(factor=0.5)
                 splitcol1 = split.column(align=True)
                 splitcol2 = split.column(align=True)
-                splitcol1.label(text="Parent Object")
+                splitcol1.label(text="Child Of")
                 splitcol2.prop(active_item, "parent_object", text="")
 
                 col.separator()
@@ -574,7 +604,8 @@ class SR_PT_ShadingRigPanel(Panel):
 
                 preset_row = col.row(align=True)
                 preset_row.prop(active_item, "preset", text="")
-                preset_row.operator(SR_OT_ApplyPreset.bl_idname, text="Apply Preset")
+                if not addon_prefs.auto_apply_sr_presets:
+                    preset_row.operator(SR_OT_ApplyPreset.bl_idname, text="Apply Preset")
 
                 col.separator()
 
@@ -592,13 +623,13 @@ class SR_PT_ShadingRigPanel(Panel):
                             or active_object.dimensions.z > 2.0
                         ):
                             col.label(
-                                text="Active object is too large for shading rig effects to work properly.",
+                                text="Active object is too large for shading rig effects to work well.",
                             )
                             col.label(
-                                text="You must scale down your object, add the effect, and then rescale."
+                                text="You must scale down your object."
                             )
                             col.label(
-                                text="Shading Rig works best on human-sized characters."
+                                text="Shading Rig works best on roughly human-sized characters."
                             )
                         else:
                             col.operator(

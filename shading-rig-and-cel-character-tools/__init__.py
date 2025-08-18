@@ -2,14 +2,15 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 282),
-    "blender": (4, 1, 0),
+    "version": (1, 3, 295),
+    "blender": (4, 2, 0),
     "location": "Shading Rig",
     "category": "NPR",
 }
 
 import bpy
 from mathutils import Vector
+import webbrowser
 
 from . import (
     sr_presets,
@@ -59,6 +60,7 @@ bpy.types.Scene.previous_corr = None
 class ToggleSilhouetteViewOperator(bpy.types.Operator):
     bl_idname = "wm.toggle_silhouette_view"
     bl_label = "Toggle Silhouette View"
+    bl_description = "Toggle the silhouette view (all objects are white against a black background)"
     
     def execute(self, context):
         cct_silhouette_view_helper.toggle_silhouette_view(self, context)
@@ -137,6 +139,7 @@ class SRCCT_Preferences(AddonPreferences):
     )
     shading_rig_precise_editing: BoolProperty(
         name="Precise Numerical Link Editing",
+        description="Change the light and empty values numerically in the UI",
         default=False,
     )
     show_matte_button: BoolProperty(
@@ -153,21 +156,50 @@ class SRCCT_Preferences(AddonPreferences):
     auto_apply_sr_presets: BoolProperty(
         name="Auto Apply Shading Rig Presets",
         description="Automatically apply presets when changing the preset dropdown",
-        default=True,
+        default=False,
     )
     
     def draw(self, context):
         layout = self.layout
         layout.label(text="General Settings")
-        row = layout.row()
+        row = layout.row(align=True)
         row.prop(self, "show_icons", text="Show Icons in UI")
         row.prop(self, "debug_mode", text="Debug Mode")
-        row.prop(self, "show_matte_button", text="Show Silhouette Button in Header")
+        row = layout.row(align=True)
+        row.prop(self, "show_matte_button", text="Silhouette Button in Header")
         row.prop(self, "show_multikey", text="Show Multi-Key Tools")
         layout.label(text="Shading Rig Settings")
-        row = layout.row()
-        layout.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
-        layout.prop(self, "auto_apply_sr_presets", text="Auto Apply Shading Rig Presets")     
+        row = layout.row(align=True)
+        row.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
+        row.prop(self, "auto_apply_sr_presets", text="Auto Apply Shading Rig Presets")
+        layout.label(text="Documentation and Tutorials")
+        row = layout.row(align=True)
+        row.operator(
+            SR_OT_OpenDocumentation.bl_idname,
+            text="Shading Rig Documentation",
+            icon="URL",
+        )
+        row.operator(
+            SR_OT_OpenMultikeyDocumentation.bl_idname,
+            text="MultiKey Documentation",
+            icon="URL",
+        )
+
+class SR_OT_OpenDocumentation(bpy.types.Operator):
+    bl_idname = "wm.open_shading_rig_documentation"
+    bl_label = "Shading Rig Documentation"
+    bl_description = "Open the Shading Rig documentation in your web browser"
+    def execute(self, context):
+        webbrowser.open('https://josephclaytonhansen.github.io/blender-addons/shading-rig-quick-start/')
+        return {'FINISHED'}
+
+class SR_OT_OpenMultikeyDocumentation(bpy.types.Operator):
+    bl_idname = "wm.open_multikey_documentation"
+    bl_label = "Multikey Documentation"
+    bl_description = "Open the MultiKey documentation in your web browser"
+    def execute(self, context):
+        webbrowser.open('https://josephclaytonhansen.github.io/blender-addons/multikey-quick-start/')
+        return {'FINISHED'}
 
 class SR_LinkItem(PropertyGroup):
     """A single link item."""
@@ -261,7 +293,7 @@ class SR_RigItem(PropertyGroup):
 
     empty_object: PointerProperty(
         name="Empty Object",
-        description="The Empty object that acts as a controller or origin point",
+        description="The Empty object that acts as a controller for the effect",
         type=bpy.types.Object,
         poll=lambda self, obj: obj.type == "EMPTY",
     )
@@ -277,7 +309,7 @@ class SR_RigItem(PropertyGroup):
         name="Parent Object",
         description="The object to which the Empty will be parented",
         type=bpy.types.Object,
-        poll=lambda self, obj: obj.type in {"MESH", "CURVE", "EMPTY"},
+        poll=lambda self, obj: obj.type in {"MESH", "CURVE", "EMPTY", "ARMATURE", "LIGHT", "CAMERA"},
         update=update_helpers.update_parent_object,
     )
 
@@ -296,6 +328,7 @@ class SR_RigItem(PropertyGroup):
 
     elongation: FloatProperty(
         name="Elongation",
+        description="Controls the stretching of the shading effect",
         default=0.0,
         min=0,
         max=1,
@@ -305,6 +338,7 @@ class SR_RigItem(PropertyGroup):
 
     sharpness: FloatProperty(
         name="Sharpness",
+        description="Controls the pointedness of the shading effect",
         default=0.0,
         min=0,
         max=1.0,
@@ -315,6 +349,7 @@ class SR_RigItem(PropertyGroup):
     hardness: FloatProperty(
         name="Hardness",
         default=0.5,
+        description="Controls the amount of blending with existing shading",
         min=0,
         max=1.0,
         step=0.02,
@@ -464,11 +499,6 @@ class SR_PT_ShadingRigPanel(Panel):
                 row = col.row(align=True)
                 row.label(text="", icon="LIGHT")
                 row.prop(scene, "shading_rig_default_light", text="")
-            
-            if scene.shading_rig_default_light != None and "ShadingRigEffect" in bpy.data.node_groups:
-                row = col.row(align=True)
-                row.label(text="", icon="MATERIAL")
-                row.prop(scene, "shading_rig_default_material", text="")
 
         layout.separator()
 
@@ -481,13 +511,13 @@ class SR_PT_ShadingRigPanel(Panel):
         if not scene.shading_rig_chararacter_name or scene.shading_rig_chararacter_name == "":
             col.label(text="Set a rig name", icon="INFO" if addon_prefs.show_icons else "NONE")
         else:
+            if scene.shading_rig_default_light == None:
+                col.label(text="Set a default light", icon="INFO" if addon_prefs.show_icons else "NONE")
+
             if context.active_object and context.active_object.type == "MESH":
-                if scene.shading_rig_default_light == None:
-                    col.label(text="Set a default light", icon="INFO" if addon_prefs.show_icons else "NONE")
-                else:
-                    col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA" if addon_prefs.show_icons else "NONE")
-                    if len(scene.shading_rig_list) <= 0:
-                        col.operator("shading_rig.list_add", icon="ADD" if addon_prefs.show_icons else "NONE")
+                col.operator(setup_helpers.SR_OT_SetupObject.bl_idname, icon="MATERIAL_DATA" if addon_prefs.show_icons else "NONE")
+                if len(scene.shading_rig_list) <= 0:
+                    col.operator("shading_rig.list_add", icon="ADD" if addon_prefs.show_icons else "NONE")
             else:
                 col.label(text="Select a mesh object", icon="INFO" if addon_prefs.show_icons else "NONE")
 
@@ -620,22 +650,17 @@ class SR_PT_ShadingRigPanel(Panel):
                         if (
                             active_object.dimensions.x > 2.0
                             or active_object.dimensions.y > 2.0
-                            or active_object.dimensions.z > 2.0
                         ):
                             col.label(
-                                text="Active object is too large for shading rig effects to work well.",
-                            )
-                            col.label(
-                                text="You must scale down your object."
+                                text="Active object may be too large for shading rig effects.",
                             )
                             col.label(
                                 text="Shading Rig works best on roughly human-sized characters."
                             )
-                        else:
-                            col.operator(
-                                setup_helpers.SR_OT_AddEffectCoordinatesNode.bl_idname,
-                                icon="NODETREE",
-                            )
+                        col.operator(
+                            setup_helpers.SR_OT_AddEffectCoordinatesNode.bl_idname,
+                            icon="NODETREE",
+                        )
                     else:
                         col.label(
                             text="Select a set-up mesh object",
@@ -929,6 +954,8 @@ def update_shading_rig_handler(scene, depsgraph):
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
     SRCCT_Preferences,
+    SR_OT_OpenDocumentation,
+    SR_OT_OpenMultikeyDocumentation,
     SR_LinkItem,
     SR_RigItem,
     SR_UL_RigList,

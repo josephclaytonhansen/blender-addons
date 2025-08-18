@@ -1,8 +1,8 @@
 bl_info = {
     "name": "Shading Rig + Cel Character Tools",
-    "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer",
+    "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer, Render Notification",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 295),
+    "version": (1, 3, 296),
     "blender": (4, 2, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -11,6 +11,8 @@ bl_info = {
 import bpy
 from mathutils import Vector
 import webbrowser
+from bpy.app.handlers import persistent
+import aud
 
 from . import (
     sr_presets,
@@ -159,6 +161,17 @@ class SRCCT_Preferences(AddonPreferences):
         default=False,
     )
     
+    sound: bpy.props.BoolProperty(
+        name = "Play render complete notification sound",
+        default = False
+    )
+    
+    sound_path: bpy.props.StringProperty(
+        name = "Path to sound file",
+        subtype = "FILE_PATH",
+        options = {"LIBRARY_EDITABLE"},
+        maxlen = 1024)
+    
     def draw(self, context):
         layout = self.layout
         layout.label(text="General Settings")
@@ -172,6 +185,12 @@ class SRCCT_Preferences(AddonPreferences):
         row = layout.row(align=True)
         row.prop(self, "shading_rig_precise_editing", text="Precise Numerical Link Editing")
         row.prop(self, "auto_apply_sr_presets", text="Auto Apply Shading Rig Presets")
+        layout.separator()
+        layout.label(text="Render Complete Notification")
+        row = layout.row()
+        row.prop(self, "sound", text="Play Sound")
+        row.prop(self, "sound_path", text="Sound File Path", icon='FILE_SOUND')
+        layout.separator()
         layout.label(text="Documentation and Tutorials")
         row = layout.row(align=True)
         row.operator(
@@ -950,6 +969,19 @@ def update_shading_rig_handler(scene, depsgraph):
                 except Exception as e:
                     if addon_prefs.debug_mode:
                         print(f"Shading Rig Debug: Error updating current correlation: {e}")
+
+@persistent
+def render_post(self):
+    sound = bpy.context.preferences.addons['shading-rig-and-cel-character-tools'].preferences.sound
+    if bpy.context.scene.frame_current == bpy.context.scene.frame_end or bpy.context.scene.frame_start == bpy.context.scene.frame_end:
+        if sound:
+            device = aud.Device()
+            sound = aud.Sound(bpy.context.preferences.addons['shading-rig-and-cel-character-tools'].preferences.sound_path)
+            handle = device.play(sound)
+            sound_buffered = aud.Sound.cache(sound)
+            handle_buffered = device.play(sound_buffered)
+
+bpy.app.handlers.render_post.append(render_post)
         
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
@@ -1098,3 +1130,6 @@ def unregister():
     # Remove silhouette view
     del bpy.types.Scene.is_silhouette_view
     bpy.types.VIEW3D_HT_header.remove(draw_toggle_button)
+    
+    if render_post in bpy.app.handlers.render_post:
+        bpy.app.handlers.render_post.remove(render_post)

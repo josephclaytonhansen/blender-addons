@@ -430,6 +430,26 @@ class MULTIKEY_OT_SetJawboneForShapeKey(Operator):
         return {"FINISHED"}
 
 
+class MULTIKEY_OT_AddCorrespondence(Operator):
+    """Add a new jawbone correspondence row"""
+
+    bl_idname = "multikey.add_correspondence"
+    bl_label = "Add Correspondence"
+    bl_description = "Add a new shape key to jawbone correspondence row"
+
+    def execute(self, context):
+        props = context.scene.multikey_props
+
+        if len(props.shape_keys) >= MAX_SHAPE_KEYS:
+            self.report({"WARNING"}, "Maximum number of correspondences reached")
+            return {"CANCELLED"}
+
+        props.shape_keys.add()
+        props.num_rows = max(props.num_rows, len(props.shape_keys))
+
+        return {"FINISHED"}
+
+
 class MULTIKEY_OT_ClearNames(Operator):
     """Clear names of disabled shape keys"""
 
@@ -591,19 +611,24 @@ class MULTIKEY_PT_Panel(Panel):
 
         jawbone_box.separator()
         jawbone_box.label(text="Correspondences")
+        jawbone_box.operator(
+            "multikey.add_correspondence", text="Add Correspondence", icon="ADD"
+        )
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
 
             row = jawbone_box.row(align=True)
             row.prop(shape_key, "name", text="")
-            row.prop(shape_key, "jawbone_location", text="Loc")
-            row.prop(shape_key, "jawbone_rotation", text="Rot")
             op = row.operator(
                 "multikey.set_jawbone_for_shape_key",
                 text="Set Jawbone",
                 icon="BONE_DATA",
             )
             op.shape_key_index = i
+
+            row = jawbone_box.row(align=True)
+            row.prop(shape_key, "jawbone_location", text="Loc")
+            row.prop(shape_key, "jawbone_rotation", text="Rot")
 
         layout.separator()
 

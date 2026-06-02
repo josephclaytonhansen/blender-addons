@@ -584,12 +584,6 @@ class MULTIKEY_PT_Panel(Panel):
         layout.operator("multikey.clear_all_names", icon=icons["trash"])
         layout.separator()
 
-        # Number of rows
-        row = layout.row(align=True)
-        row.prop(props, "num_rows")
-        if len(props.shape_keys) < props.num_rows:
-            row.operator("multikey.update_rows", icon=icons["settings"], text="")
-
         # Shape key rows - only show existing items
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
@@ -619,20 +613,11 @@ class MULTIKEY_PT_Panel(Panel):
 
         jawbone_box.separator()
         jawbone_box.label(text="Correspondences")
-        jawbone_box.operator(
-            "multikey.add_correspondence", text="Add Correspondence", icon="ADD"
-        )
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
 
             row = jawbone_box.row(align=True)
             row.prop(shape_key, "name", text="Shape Key")
-
-            row = jawbone_box.row(align=True)
-            row.prop(shape_key, "jawbone_location", text="Loc")
-            row.prop(shape_key, "jawbone_rotation", text="Rot")
-
-            row = jawbone_box.row(align=True)
             op = row.operator(
                 "multikey.set_jawbone_for_shape_key",
                 text="Set Jawbone",

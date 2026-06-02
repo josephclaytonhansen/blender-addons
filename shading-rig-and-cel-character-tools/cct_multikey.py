@@ -160,6 +160,19 @@ def update_jawbone_settings(self, context):
         apply_jawbone_pose_from_shape_keys(props)
 
 
+def ensure_shape_key_rows(props, target_count=None):
+    """Make sure the backing collection has enough rows for the UI."""
+    desired_count = (
+        props.num_rows if target_count is None else min(target_count, MAX_SHAPE_KEYS)
+    )
+
+    while len(props.shape_keys) < desired_count:
+        props.shape_keys.add()
+
+    while len(props.shape_keys) > MAX_SHAPE_KEYS:
+        props.shape_keys.remove(len(props.shape_keys) - 1)
+
+
 def apply_shape_key_to_collection(
     key_name, value, collection_name, frame=None, enabled=True
 ):
@@ -522,14 +535,7 @@ class MULTIKEY_OT_UpdateRows(Operator):
 
     def execute(self, context):
         props = context.scene.multikey_props
-
-        # Ensure we have enough shape key items
-        while len(props.shape_keys) < props.num_rows:
-            props.shape_keys.add()
-
-        # Remove excess items if user reduced the number
-        while len(props.shape_keys) > MAX_SHAPE_KEYS:
-            props.shape_keys.remove(len(props.shape_keys) - 1)
+        ensure_shape_key_rows(props)
 
         return {"FINISHED"}
 
@@ -559,6 +565,8 @@ class MULTIKEY_PT_Panel(Panel):
         ].preferences
         if not addon_prefs.show_multikey:
             return
+
+        ensure_shape_key_rows(props)
 
         # Icon configuration
         icons = {
@@ -618,17 +626,19 @@ class MULTIKEY_PT_Panel(Panel):
             shape_key = props.shape_keys[i]
 
             row = jawbone_box.row(align=True)
-            row.prop(shape_key, "name", text="")
+            row.prop(shape_key, "name", text="Shape Key")
+
+            row = jawbone_box.row(align=True)
+            row.prop(shape_key, "jawbone_location", text="Loc")
+            row.prop(shape_key, "jawbone_rotation", text="Rot")
+
+            row = jawbone_box.row(align=True)
             op = row.operator(
                 "multikey.set_jawbone_for_shape_key",
                 text="Set Jawbone",
                 icon="BONE_DATA",
             )
             op.shape_key_index = i
-
-            row = jawbone_box.row(align=True)
-            row.prop(shape_key, "jawbone_location", text="Loc")
-            row.prop(shape_key, "jawbone_rotation", text="Rot")
 
         layout.separator()
 

@@ -4,7 +4,9 @@ from bpy.props import (
     CollectionProperty,
     EnumProperty,
     FloatProperty,
+    FloatVectorProperty,
     IntProperty,
+    PointerProperty,
     StringProperty,
 )
 from bpy.types import Operator, Panel, PropertyGroup
@@ -14,6 +16,8 @@ from bpy.types import Operator, Panel, PropertyGroup
 # ------------------------------------------------------------------------
 MAX_SHAPE_KEYS = 52
 DEFAULT_ROWS = 6
+
+
 # ------------------------------------------------------------------------
 #    Helper Functions
 # ------------------------------------------------------------------------
@@ -58,26 +62,102 @@ def get_collection_name_from_enum(collection_enum_value):
         return None
 
 
+def get_jawbone_pose_bone(props):
+    """Return the selected jaw pose bone, if the armature and bone are valid."""
+    armature = getattr(props, "jawbone_armature", None)
+    bone_name = getattr(props, "jawbone_bone_name", "").strip()
+
+    if not armature or armature.type != "ARMATURE" or not bone_name:
+        return None
+
+    pose = getattr(armature, "pose", None)
+    if not pose:
+        return None
+
+    return pose.bones.get(bone_name)
+
+
+def capture_jawbone_rest_pose(props):
+    """Store the current jawbone pose as the rest pose reference."""
+    pose_bone = get_jawbone_pose_bone(props)
+    if not pose_bone:
+        return False
+
+    props.jawbone_rest_location = pose_bone.location.copy()
+    props.jawbone_rest_rotation = pose_bone.rotation_euler.copy()
+    return True
+
+
+def apply_jawbone_pose_from_shape_keys(props):
+    """Blend the selected jawbone toward the stored correspondences."""
+    if not getattr(props, "update_jawbone", False):
+        return
+
+    pose_bone = get_jawbone_pose_bone(props)
+    if not pose_bone:
+        return
+
+    rest_location = props.jawbone_rest_location
+    rest_rotation = props.jawbone_rest_rotation
+
+    location_offset = [0.0, 0.0, 0.0]
+    rotation_offset = [0.0, 0.0, 0.0]
+
+    for shape_key in props.shape_keys:
+        if not shape_key.enabled or not shape_key.name:
+            continue
+
+        influence = shape_key.value
+        for axis in range(3):
+            location_offset[axis] += (
+                shape_key.jawbone_location[axis] - rest_location[axis]
+            ) * influence
+            rotation_offset[axis] += (
+                shape_key.jawbone_rotation[axis] - rest_rotation[axis]
+            ) * influence
+
+    pose_bone.location = [
+        rest_location[0] + location_offset[0],
+        rest_location[1] + location_offset[1],
+        rest_location[2] + location_offset[2],
+    ]
+    pose_bone.rotation_euler = [
+        rest_rotation[0] + rotation_offset[0],
+        rest_rotation[1] + rotation_offset[1],
+        rest_rotation[2] + rotation_offset[2],
+    ]
+
+
 def update_shape_key_live(self, context):
     """Update callback for live preview of shape keys"""
     props = context.scene.multikey_props
-    if not props.collection or props.collection == "NONE":
-        return
+    collection_name = get_collection_name_from_enum(props.collection)
 
     # Find which shape key this belongs to
     for i, shape_key in enumerate(props.shape_keys):
         if shape_key == self:
-            if shape_key.enabled and shape_key.name:
-                collection_name = get_collection_name_from_enum(props.collection)
-                if collection_name:
-                    apply_shape_key_to_collection(
-                        shape_key.name,
-                        shape_key.value,
-                        collection_name,
-                        frame=None,
-                        enabled=True,
-                    )
+            if collection_name and shape_key.enabled and shape_key.name:
+                apply_shape_key_to_collection(
+                    shape_key.name,
+                    shape_key.value,
+                    collection_name,
+                    frame=None,
+                    enabled=True,
+                )
             break
+
+    apply_jawbone_pose_from_shape_keys(props)
+
+
+def update_jawbone_settings(self, context):
+    """Refresh the stored jawbone rest pose and reapply the mapping."""
+    props = context.scene.multikey_props
+
+    if not props.update_jawbone:
+        return
+
+    if capture_jawbone_rest_pose(props):
+        apply_jawbone_pose_from_shape_keys(props)
 
 
 def apply_shape_key_to_collection(
@@ -154,11 +234,62 @@ class ShapeKeyItem(PropertyGroup):
         update=update_shape_key_live,
     )
 
+    jawbone_location: FloatVectorProperty(
+        name="Jawbone Location",
+        description="Jawbone location saved for this shape key",
+        subtype="TRANSLATION",
+        size=3,
+        default=(0.0, 0.0, 0.0),
+    )
+
+    jawbone_rotation: FloatVectorProperty(
+        name="Jawbone Rotation",
+        description="Jawbone rotation saved for this shape key",
+        subtype="EULER",
+        size=3,
+        default=(0.0, 0.0, 0.0),
+    )
+
 
 class MultiKeyProperties(PropertyGroup):
     """Main properties for the addon"""
 
     shape_keys: CollectionProperty(type=ShapeKeyItem)
+
+    jawbone_armature: PointerProperty(
+        name="Jawbone Armature",
+        description="Armature containing the jaw bone",
+        type=bpy.types.Object,
+        poll=lambda self, obj: obj.type == "ARMATURE",
+        update=update_jawbone_settings,
+    )
+
+    jawbone_bone_name: StringProperty(
+        name="Jawbone Bone",
+        description="Pose bone controlled by the stored shape key correspondences",
+        default="",
+        update=update_jawbone_settings,
+    )
+
+    update_jawbone: BoolProperty(
+        name="Update Jawbone",
+        description="Lerp the jawbone as shape key values change",
+        default=False,
+        update=update_jawbone_settings,
+    )
+
+    jawbone_rest_location: FloatVectorProperty(
+        name="Jawbone Rest Location",
+        size=3,
+        default=(0.0, 0.0, 0.0),
+    )
+
+    jawbone_rest_rotation: FloatVectorProperty(
+        name="Jawbone Rest Rotation",
+        subtype="EULER",
+        size=3,
+        default=(0.0, 0.0, 0.0),
+    )
 
     collection: EnumProperty(
         name="Collection",
@@ -183,6 +314,7 @@ class MultiKeyProperties(PropertyGroup):
         min=0.0,
         max=1.0,
     )
+
 
 # ------------------------------------------------------------------------
 #    Operators
@@ -259,7 +391,42 @@ class MULTIKEY_OT_AddKeyframes(Operator):
                     shape_key.name, shape_key.value, collection_name, props.frame, True
                 )
 
+        if props.update_jawbone:
+            apply_jawbone_pose_from_shape_keys(props)
+            pose_bone = get_jawbone_pose_bone(props)
+            if pose_bone:
+                pose_bone.keyframe_insert("location", frame=props.frame)
+                pose_bone.keyframe_insert("rotation_euler", frame=props.frame)
+
         self.report({"INFO"}, f"Added keyframes at frame {props.frame}")
+        return {"FINISHED"}
+
+
+class MULTIKEY_OT_SetJawboneForShapeKey(Operator):
+    """Save the current jawbone pose for a shape key row"""
+
+    bl_idname = "multikey.set_jawbone_for_shape_key"
+    bl_label = "Set Jawbone For Selected Shapekey"
+    bl_description = "Save the current jawbone pose for the selected shape key"
+
+    shape_key_index: IntProperty(default=0)
+
+    def execute(self, context):
+        props = context.scene.multikey_props
+
+        if self.shape_key_index < 0 or self.shape_key_index >= len(props.shape_keys):
+            self.report({"WARNING"}, "Invalid shape key row")
+            return {"CANCELLED"}
+
+        pose_bone = get_jawbone_pose_bone(props)
+        if not pose_bone:
+            self.report({"WARNING"}, "Select a jawbone armature and bone first")
+            return {"CANCELLED"}
+
+        shape_key = props.shape_keys[self.shape_key_index]
+        shape_key.jawbone_location = pose_bone.location.copy()
+        shape_key.jawbone_rotation = pose_bone.rotation_euler.copy()
+
         return {"FINISHED"}
 
 
@@ -367,7 +534,9 @@ class MULTIKEY_PT_Panel(Panel):
     def draw(self, context):
         layout = self.layout
         props = context.scene.multikey_props
-        addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+        addon_prefs = context.preferences.addons[
+            "shading-rig-and-cel-character-tools"
+        ].preferences
         if not addon_prefs.show_multikey:
             return
 
@@ -375,7 +544,9 @@ class MULTIKEY_PT_Panel(Panel):
         icons = {
             "trash": "TRASH" if addon_prefs.show_icons else "NONE",
             "shape_key": "SHAPEKEY_DATA" if addon_prefs.show_icons else "NONE",
-            "collection": "OUTLINER_OB_GROUP_INSTANCE" if addon_prefs.show_icons else "NONE",
+            "collection": (
+                "OUTLINER_OB_GROUP_INSTANCE" if addon_prefs.show_icons else "NONE"
+            ),
             "keyframe": "KEY_HLT" if addon_prefs.show_icons else "NONE",
             "settings": "FILE_REFRESH",
         }
@@ -390,16 +561,13 @@ class MULTIKEY_PT_Panel(Panel):
         row.prop(props, "num_rows")
         if len(props.shape_keys) < props.num_rows:
             row.operator("multikey.update_rows", icon=icons["settings"], text="")
-        
 
         # Shape key rows - only show existing items
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
 
             row = layout.row(align=True)
-            row.prop(
-                shape_key, "name", icon=icons["shape_key"], text=""
-            )
+            row.prop(shape_key, "name", icon=icons["shape_key"], text="")
             row.prop(shape_key, "value", text="")
             row.prop(shape_key, "enabled", text="")
 
@@ -407,6 +575,35 @@ class MULTIKEY_PT_Panel(Panel):
 
         # Collection selection
         layout.prop(props, "collection", icon=icons["collection"])
+
+        layout.separator()
+
+        jawbone_box = layout.box()
+        jawbone_box.label(text="Jawbone")
+        jawbone_box.prop(props, "jawbone_armature")
+        if props.jawbone_armature:
+            jawbone_box.prop_search(
+                props, "jawbone_bone_name", props.jawbone_armature.data, "bones"
+            )
+        else:
+            jawbone_box.prop(props, "jawbone_bone_name")
+        jawbone_box.prop(props, "update_jawbone")
+
+        jawbone_box.separator()
+        jawbone_box.label(text="Correspondences")
+        for i in range(min(props.num_rows, len(props.shape_keys))):
+            shape_key = props.shape_keys[i]
+
+            row = jawbone_box.row(align=True)
+            row.prop(shape_key, "name", text="")
+            row.prop(shape_key, "jawbone_location", text="Loc")
+            row.prop(shape_key, "jawbone_rotation", text="Rot")
+            op = row.operator(
+                "multikey.set_jawbone_for_shape_key",
+                text="Set Jawbone",
+                icon="BONE_DATA",
+            )
+            op.shape_key_index = i
 
         layout.separator()
 
@@ -423,6 +620,7 @@ class MULTIKEY_PT_Panel(Panel):
         row.operator("multikey.get_current_frame", text="", icon="TIME")
 
         layout.operator("multikey.add_keyframes", icon=icons["keyframe"])
+
 
 # ------------------------------------------------------------------------
 #    Handler Functions

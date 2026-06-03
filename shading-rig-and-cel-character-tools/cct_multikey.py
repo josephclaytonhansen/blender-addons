@@ -103,7 +103,8 @@ def apply_jawbone_pose_from_shape_keys(props):
     location_offset = [0.0, 0.0, 0.0]
     rotation_offset = [0.0, 0.0, 0.0]
 
-    for shape_key in props.shape_keys:
+    active_count = min(props.num_rows, len(props.shape_keys))
+    for shape_key in list(props.shape_keys)[:active_count]:
         if not shape_key.enabled or not shape_key.name:
             continue
 
@@ -194,37 +195,21 @@ def apply_shape_key_to_collection(
         return
 
     collection = bpy.data.collections[collection_name]
-    original_selection = list(bpy.context.selected_objects)
 
-    try:
-        # Clear selection
-        for obj in bpy.context.selected_objects:
-            obj.select_set(False)
+    for obj in collection.all_objects:
+        if not hasattr(obj.data, "shape_keys") or not obj.data.shape_keys:
+            continue
 
-        # Process objects in collection
-        for obj in collection.all_objects:
-            if not hasattr(obj.data, "shape_keys") or not obj.data.shape_keys:
-                continue
+        if not hasattr(obj.data.shape_keys, "key_blocks"):
+            continue
 
-            if not hasattr(obj.data.shape_keys, "key_blocks"):
-                continue
+        for shape_key in obj.data.shape_keys.key_blocks:
+            if shape_key.name == key_name:
+                shape_key.value = value
 
-            # Find and update the shape key
-            for shape_key in obj.data.shape_keys.key_blocks:
-                if shape_key.name == key_name:
-                    shape_key.value = value
-
-                    # Add keyframe if frame is specified
-                    if frame is not None:
-                        shape_key.keyframe_insert("value", frame=frame)
-                    break
-
-    finally:
-        # Restore original selection
-        for obj in bpy.context.selected_objects:
-            obj.select_set(False)
-        for obj in original_selection:
-            obj.select_set(True)
+                if frame is not None:
+                    shape_key.keyframe_insert("value", frame=frame)
+                break
 
 
 # ------------------------------------------------------------------------
@@ -454,6 +439,37 @@ class MULTIKEY_OT_SetJawboneForShapeKey(Operator):
         return {"FINISHED"}
 
 
+class MULTIKEY_OT_CaptureRestPose(Operator):
+    """Store the current jawbone position as the rest (neutral) pose"""
+
+    bl_idname = "multikey.capture_rest_pose"
+    bl_label = "Capture Rest Pose"
+    bl_description = (
+        "Store the current jawbone position as the rest pose. "
+        "Pose the bone in its natural neutral position before clicking."
+    )
+
+    def execute(self, context):
+        props = context.scene.multikey_props
+
+        if not props.jawbone_armature:
+            self.report({"WARNING"}, "No jawbone armature selected")
+            return {"CANCELLED"}
+
+        if not props.jawbone_bone_name.strip():
+            self.report({"WARNING"}, "No jawbone bone selected")
+            return {"CANCELLED"}
+
+        if capture_jawbone_rest_pose(props):
+            self.report({"INFO"}, "Rest pose captured")
+            return {"FINISHED"}
+        else:
+            self.report(
+                {"WARNING"}, "Could not find pose bone — check armature and bone name"
+            )
+            return {"CANCELLED"}
+
+
 class MULTIKEY_OT_AddCorrespondence(Operator):
     """Add a new jawbone correspondence row"""
 
@@ -562,7 +578,7 @@ class MULTIKEY_PT_Panel(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "SR + CCT"
-    bl_context = "objectmode"
+    # No bl_context restriction — panel is accessible in Object Mode and Pose Mode
 
     @classmethod
     def poll(cls, context):
@@ -577,6 +593,10 @@ class MULTIKEY_PT_Panel(Panel):
         if not addon_prefs.show_multikey:
             return
 
+        # Ensure backing collection is populated (may be empty on first use)
+        if len(props.shape_keys) < props.num_rows:
+            ensure_shape_key_rows(props)
+
         # Icon configuration
         icons = {
             "trash": "TRASH" if addon_prefs.show_icons else "NONE",
@@ -585,15 +605,19 @@ class MULTIKEY_PT_Panel(Panel):
                 "OUTLINER_OB_GROUP_INSTANCE" if addon_prefs.show_icons else "NONE"
             ),
             "keyframe": "KEY_HLT" if addon_prefs.show_icons else "NONE",
-            "settings": "FILE_REFRESH",
         }
 
         # Clear buttons
-        layout.operator("multikey.clear_names", icon=icons["trash"])
-        layout.operator("multikey.clear_all_names", icon=icons["trash"])
+        row = layout.row(align=True)
+        row.operator("multikey.clear_names", icon=icons["trash"])
+        row.operator("multikey.clear_all_names", icon=icons["trash"])
         layout.separator()
 
-        # Shape key rows - only show existing items
+        # Row count control
+        layout.prop(props, "num_rows")
+        layout.separator()
+
+        # Shape key rows — only show populated entries
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
 
@@ -620,17 +644,26 @@ class MULTIKEY_PT_Panel(Panel):
             jawbone_box.prop(props, "jawbone_bone_name")
         jawbone_box.prop(props, "update_jawbone")
 
+        # Capture Rest Pose — only shown when armature and bone are set
+        if props.jawbone_armature and props.jawbone_bone_name.strip():
+            jawbone_box.operator(
+                "multikey.capture_rest_pose",
+                icon="ARMATURE_DATA" if addon_prefs.show_icons else "NONE",
+            )
+
         jawbone_box.separator()
         jawbone_box.label(text="Correspondences")
         for i in range(min(props.num_rows, len(props.shape_keys))):
             shape_key = props.shape_keys[i]
 
             row = jawbone_box.row(align=True)
-            row.prop(shape_key, "name", text="Shape Key")
-            op = row.operator(
+            row.prop(shape_key, "name", text="")
+            btn = row.row()
+            btn.enabled = bool(shape_key.name)
+            op = btn.operator(
                 "multikey.set_jawbone_for_shape_key",
-                text="Set Jawbone",
-                icon="BONE_DATA",
+                text="Set",
+                icon="BONE_DATA" if addon_prefs.show_icons else "NONE",
             )
             op.shape_key_index = i
 
@@ -656,8 +689,9 @@ class MULTIKEY_PT_Panel(Panel):
 # ------------------------------------------------------------------------
 def update_frame_handler(dummy):
     """Update frame property when frame changes"""
-    if bpy.context.scene and hasattr(bpy.context.scene, "multikey_props"):
-        props = bpy.context.scene.multikey_props
-        props.frame = bpy.context.scene.frame_current
+    scene = getattr(bpy.context, "scene", None)
+    if scene and hasattr(scene, "multikey_props"):
+        props = scene.multikey_props
+        props.frame = scene.frame_current
         if len(props.shape_keys) < props.num_rows:
             ensure_shape_key_rows(props)

@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer, Render Notification",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 305),
+    "version": (1, 3, 306),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -1092,8 +1092,6 @@ def render_post(self):
             handle_buffered = device.play(sound_buffered)
 
 
-bpy.app.handlers.render_post.append(render_post)
-
 # ---------------------- Register and unregister classes --------------------- #
 CLASSES = [
     SRCCT_Preferences,
@@ -1125,6 +1123,7 @@ CLASSES = [
     cct_multikey.MULTIKEY_OT_GetCurrentFrame,
     cct_multikey.MULTIKEY_OT_AddKeyframes,
     cct_multikey.MULTIKEY_OT_SetJawboneForShapeKey,
+    cct_multikey.MULTIKEY_OT_CaptureRestPose,
     cct_multikey.MULTIKEY_OT_AddCorrespondence,
     cct_multikey.MULTIKEY_OT_ClearNames,
     cct_multikey.MULTIKEY_OT_ClearAllNames,
@@ -1136,6 +1135,11 @@ CLASSES = [
 
 def register():
     for cls in CLASSES:
+        if hasattr(bpy.utils, "unregister_class"):
+            try:
+                bpy.utils.unregister_class(cls)
+            except Exception:
+                pass
         bpy.utils.register_class(cls)
 
     bpy.types.Scene.is_evaluating_shading_rig = True
@@ -1162,12 +1166,6 @@ def register():
     bpy.types.Scene.multikey_props = PointerProperty(
         type=cct_multikey.MultiKeyProperties
     )
-
-    for scene in bpy.data.scenes:
-        props = scene.multikey_props
-        if props.num_rows < cct_multikey.DEFAULT_ROWS:
-            props.num_rows = cct_multikey.DEFAULT_ROWS
-        cct_multikey.ensure_shape_key_rows(props)
 
     # MultiKey handlers
     if cct_multikey.update_frame_handler not in bpy.app.handlers.frame_change_pre:
@@ -1200,6 +1198,9 @@ def register():
     bpy.app.handlers.depsgraph_update_post.append(update_shading_rig_handler)
 
     bpy.app.handlers.load_post.append(load_handler)
+
+    if render_post not in bpy.app.handlers.render_post:
+        bpy.app.handlers.render_post.append(render_post)
 
     bpy.packing_algorithm = hansens_float_packer.packing_algorithm
 

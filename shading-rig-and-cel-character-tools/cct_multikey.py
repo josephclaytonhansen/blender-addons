@@ -165,12 +165,22 @@ def ensure_shape_key_rows(props, target_count=None):
     desired_count = (
         props.num_rows if target_count is None else min(target_count, MAX_SHAPE_KEYS)
     )
+    try:
+        while len(props.shape_keys) < desired_count:
+            props.shape_keys.add()
 
-    while len(props.shape_keys) < desired_count:
-        props.shape_keys.add()
+        while len(props.shape_keys) > MAX_SHAPE_KEYS:
+            props.shape_keys.remove(len(props.shape_keys) - 1)
+    except AttributeError:
+        # Blender can disallow Scene datablock writes in some UI/handler contexts.
+        return False
 
-    while len(props.shape_keys) > MAX_SHAPE_KEYS:
-        props.shape_keys.remove(len(props.shape_keys) - 1)
+    return True
+
+
+def update_num_rows(self, context):
+    """Keep backing rows aligned when the key count changes."""
+    ensure_shape_key_rows(self)
 
 
 def apply_shape_key_to_collection(
@@ -318,6 +328,7 @@ class MultiKeyProperties(PropertyGroup):
         default=DEFAULT_ROWS,
         min=1,
         max=MAX_SHAPE_KEYS,
+        update=update_num_rows,
     )
 
     all_value: FloatProperty(
@@ -566,8 +577,6 @@ class MULTIKEY_PT_Panel(Panel):
         if not addon_prefs.show_multikey:
             return
 
-        ensure_shape_key_rows(props)
-
         # Icon configuration
         icons = {
             "trash": "TRASH" if addon_prefs.show_icons else "NONE",
@@ -648,4 +657,7 @@ class MULTIKEY_PT_Panel(Panel):
 def update_frame_handler(dummy):
     """Update frame property when frame changes"""
     if bpy.context.scene and hasattr(bpy.context.scene, "multikey_props"):
-        bpy.context.scene.multikey_props.frame = bpy.context.scene.frame_current
+        props = bpy.context.scene.multikey_props
+        props.frame = bpy.context.scene.frame_current
+        if len(props.shape_keys) < props.num_rows:
+            ensure_shape_key_rows(props)

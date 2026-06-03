@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer, Render Notification",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 304),
+    "version": (1, 3, 305),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -1162,6 +1162,12 @@ def register():
     bpy.types.Scene.multikey_props = PointerProperty(
         type=cct_multikey.MultiKeyProperties
     )
+
+    for scene in bpy.data.scenes:
+        props = scene.multikey_props
+        if props.num_rows < cct_multikey.DEFAULT_ROWS:
+            props.num_rows = cct_multikey.DEFAULT_ROWS
+        cct_multikey.ensure_shape_key_rows(props)
 
     # MultiKey handlers
     if cct_multikey.update_frame_handler not in bpy.app.handlers.frame_change_pre:

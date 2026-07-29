@@ -21,7 +21,7 @@ def apply_preset(rig_item, preset_identifier):
             setattr(rig_item, prop, value)
 
 def update_preset(self, context):
-    addon_prefs = bpy.context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+    addon_prefs = bpy.context.preferences.addons[__package__].preferences
     if addon_prefs.auto_apply_sr_presets:
         scene = context.scene
         active_item = scene.shading_rig_list[scene.shading_rig_list_index]

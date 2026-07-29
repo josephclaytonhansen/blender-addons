@@ -76,7 +76,7 @@ class ToggleSilhouetteViewOperator(bpy.types.Operator):
 
 def draw_toggle_button(self, context):
     addon_prefs = context.preferences.addons[
-        "shading-rig-and-cel-character-tools"
+        __package__
     ].preferences
     layout = self.layout
     if addon_prefs.show_matte_button:
@@ -134,7 +134,7 @@ from bpy.types import Panel, PropertyGroup, UIList, AddonPreferences
 
 
 class SRCCT_Preferences(AddonPreferences):
-    bl_idname = "shading-rig-and-cel-character-tools"
+    bl_idname = __package__
 
     show_icons: BoolProperty(
         name="Show Icons",
@@ -513,7 +513,7 @@ class SR_PT_ShadingRigPanel(Panel):
         layout = self.layout
         scene = context.scene
         addon_prefs = context.preferences.addons[
-            "shading-rig-and-cel-character-tools"
+            __package__
         ].preferences
 
         box = layout.box()
@@ -809,7 +809,7 @@ def load_handler(dummy):
 @bpy.app.handlers.persistent
 def update_shading_rig_handler(scene, depsgraph):
     addon_prefs = bpy.context.preferences.addons[
-        "shading-rig-and-cel-character-tools"
+        __package__
     ].preferences
     if bpy.types.Scene.is_evaluating_shading_rig:
         # We're in live mode- update the empties to match the lights
@@ -1072,21 +1072,15 @@ def update_shading_rig_handler(scene, depsgraph):
 
 
 @persistent
-def render_post(self):
-    sound = bpy.context.preferences.addons[
-        "shading-rig-and-cel-character-tools"
-    ].preferences.sound
+def render_post(scene):
+    prefs = bpy.context.preferences.addons[__package__].preferences
     if (
         bpy.context.scene.frame_current == bpy.context.scene.frame_end
         or bpy.context.scene.frame_start == bpy.context.scene.frame_end
     ):
-        if sound:
+        if prefs.sound:
             device = aud.Device()
-            sound = aud.Sound(
-                bpy.context.preferences.addons[
-                    "shading-rig-and-cel-character-tools"
-                ].preferences.sound_path
-            )
+            sound = aud.Sound(prefs.sound_path)
             handle = device.play(sound)
             sound_buffered = aud.Sound.cache(sound)
             handle_buffered = device.play(sound_buffered)
@@ -1126,6 +1120,7 @@ CLASSES = [
     cct_multikey.MULTIKEY_OT_AddCorrespondence,
     cct_multikey.MULTIKEY_OT_ClearNames,
     cct_multikey.MULTIKEY_OT_ClearAllNames,
+    cct_multikey.MULTIKEY_OT_PreviewShapeKeys,
     cct_multikey.MULTIKEY_OT_UpdateRows,
     cct_multikey.MULTIKEY_PT_Panel,
     ToggleSilhouetteViewOperator,
@@ -1195,7 +1190,6 @@ def register():
     )
 
     bpy.app.handlers.depsgraph_update_post.append(update_shading_rig_handler)
-    bpy.app.handlers.depsgraph_update_post.append(cct_multikey.update_frame_handler)
 
     bpy.app.handlers.load_post.append(load_handler)
 
@@ -1234,7 +1228,6 @@ def unregister():
     # Remove handlers
     if update_shading_rig_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(update_shading_rig_handler)
-        bpy.app.handlers.depsgraph_update_post.remove(cct_multikey.update_frame_handler)
 
     if load_handler in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_handler)

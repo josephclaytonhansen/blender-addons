@@ -47,7 +47,7 @@ def getWeights(distances):
         for i in range(len(weights)):
             weights[i] /= total_weight
     
-    addon_prefs = bpy.context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+    addon_prefs = bpy.context.preferences.addons[__package__].preferences
     if addon_prefs.debug_mode:
         print(weights)
 

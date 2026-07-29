@@ -600,7 +600,7 @@ class MULTIKEY_PT_Panel(Panel):
         layout = self.layout
         props = context.scene.multikey_props
         addon_prefs = context.preferences.addons[
-            "shading-rig-and-cel-character-tools"
+            __package__
         ].preferences
         if not addon_prefs.show_multikey:
             return

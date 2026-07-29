@@ -29,7 +29,7 @@ class SR_OT_RigList_Add(Operator):
         scene = context.scene
         cursor_location = scene.cursor.location
         rig_list = scene.shading_rig_list
-        addon_prefs = context.preferences.addons["shading-rig-and-cel-character-tools"].preferences
+        addon_prefs = context.preferences.addons[__package__].preferences
 
         new_item = rig_list.add()
 

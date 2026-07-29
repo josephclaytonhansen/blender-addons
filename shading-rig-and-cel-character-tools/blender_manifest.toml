@@ -3,10 +3,10 @@
 id      = "SRCCT"
 version = "1.3.311"
 name    = "Shading Rig and Cel Character Tools"
-tagline = "Tagline your mom"
+tagline = "Shading Rig and Cel Character Tools"
 
 maintainer = "Joseph Hansen"
-website    = "yourmom.com"
+website    = "josephhansen.dev"
 
 type = "add-on"
 

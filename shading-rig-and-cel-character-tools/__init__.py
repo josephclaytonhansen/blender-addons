@@ -2,7 +2,7 @@ bl_info = {
     "name": "Shading Rig + Cel Character Tools",
     "description": "Art-Directable Stylised Shading, Riggable Animated Line Art, Stepped Cloth Interpolation, Multi-Shapekey, Silhouette Viewer, Render Notification",
     "author": "Joseph Hansen (code, implementation, docs, and improvements), Lohit Petikam et al (original research), thorn (sanity checking, testing). Special thanks to Cody Winchester for the ideas behind LineWorks, reworked by Joseph Hansen. Special thanks to Nick Ewing and Grace Green for docs proofreading and testing.",
-    "version": (1, 3, 306),
+    "version": (1, 3, 311),
     "blender": (4, 1, 0),
     "location": "Shading Rig",
     "category": "NPR",
@@ -1120,7 +1120,6 @@ CLASSES = [
     cct_multikey.MultiKeyProperties,
     cct_multikey.MULTIKEY_OT_SetAllValues,
     cct_multikey.MULTIKEY_OT_SetAllTo,
-    cct_multikey.MULTIKEY_OT_GetCurrentFrame,
     cct_multikey.MULTIKEY_OT_AddKeyframes,
     cct_multikey.MULTIKEY_OT_SetJawboneForShapeKey,
     cct_multikey.MULTIKEY_OT_CaptureRestPose,
@@ -1196,6 +1195,7 @@ def register():
     )
 
     bpy.app.handlers.depsgraph_update_post.append(update_shading_rig_handler)
+    bpy.app.handlers.depsgraph_update_post.append(cct_multikey.update_frame_handler)
 
     bpy.app.handlers.load_post.append(load_handler)
 
@@ -1234,6 +1234,7 @@ def unregister():
     # Remove handlers
     if update_shading_rig_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(update_shading_rig_handler)
+        bpy.app.handlers.depsgraph_update_post.remove(cct_multikey.update_frame_handler)
 
     if load_handler in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_handler)

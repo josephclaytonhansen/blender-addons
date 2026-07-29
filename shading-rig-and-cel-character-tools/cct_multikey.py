@@ -54,11 +54,12 @@ def get_collection_name_from_enum(collection_enum_value):
         # If it's a numeric string, get the collection by index
         if collection_enum_value.isdigit():
             index = int(collection_enum_value)
-            if index < len(bpy.data.collections):
-                return list(bpy.data.collections)[index].name
+            collections = list(bpy.data.collections)
+            if index < len(collections):
+                return collections[index].name
 
         return None
-    except:
+    except Exception:
         return None
 
 
@@ -82,6 +83,18 @@ def capture_jawbone_rest_pose(props):
     pose_bone = get_jawbone_pose_bone(props)
     if not pose_bone:
         return False
+    
+    # Ensure rotation mode is Euler XYZ so we can safely read/write rotation_euler
+    try:
+        pose_bone.rotation_mode = "XYZ"
+    except Exception:
+        pass
+
+    try:
+        pose_bone.lock_rotation = (False, True, False)
+    except Exception:
+        # Some Blender builds may expose lock flags differently; ignore if unavailable
+        pass
 
     props.jawbone_rest_location = pose_bone.location.copy()
     props.jawbone_rest_rotation = pose_bone.rotation_euler.copy()
@@ -208,7 +221,11 @@ def apply_shape_key_to_collection(
                 shape_key.value = value
 
                 if frame is not None:
-                    shape_key.keyframe_insert("value", frame=frame)
+                    try:
+                        shape_key.keyframe_insert("value", frame=frame)
+                    except Exception:
+                        # Some shape key datablocks in certain contexts may not accept keyframe insertion.
+                        pass
                 break
 
 
@@ -364,19 +381,6 @@ class MULTIKEY_OT_SetAllTo(Operator):
         return {"FINISHED"}
 
 
-class MULTIKEY_OT_GetCurrentFrame(Operator):
-    """Get the current frame"""
-
-    bl_idname = "multikey.get_current_frame"
-    bl_label = "Get Current Frame"
-    bl_description = "Set frame field to current frame"
-
-    def execute(self, context):
-        props = context.scene.multikey_props
-        props.frame = context.scene.frame_current
-        return {"FINISHED"}
-
-
 class MULTIKEY_OT_AddKeyframes(Operator):
     """Add keyframes for all enabled shape keys"""
 
@@ -386,6 +390,7 @@ class MULTIKEY_OT_AddKeyframes(Operator):
 
     def execute(self, context):
         props = context.scene.multikey_props
+        props.frame = context.scene.frame_current
         collection_name = get_collection_name_from_enum(props.collection)
 
         if not collection_name:
@@ -404,8 +409,14 @@ class MULTIKEY_OT_AddKeyframes(Operator):
             apply_jawbone_pose_from_shape_keys(props)
             pose_bone = get_jawbone_pose_bone(props)
             if pose_bone:
-                pose_bone.keyframe_insert("location", frame=props.frame)
-                pose_bone.keyframe_insert("rotation_euler", frame=props.frame)
+                try:
+                    pose_bone.keyframe_insert("location", frame=props.frame)
+                except Exception:
+                    pass
+                try:
+                    pose_bone.keyframe_insert("rotation_euler", frame=props.frame)
+                except Exception:
+                    pass
 
         self.report({"INFO"}, f"Added keyframes at frame {props.frame}")
         return {"FINISHED"}
@@ -582,7 +593,8 @@ class MULTIKEY_PT_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None
+        # Previously restricted to an active object; make visible whenever the sidebar is shown
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -675,12 +687,6 @@ class MULTIKEY_PT_Panel(Panel):
         row.operator("multikey.set_all_to", text="Set All To")
 
         layout.separator()
-
-        # Keyframe controls
-        row = layout.row(align=True)
-        row.prop(props, "frame")
-        row.operator("multikey.get_current_frame", text="", icon="TIME")
-
         layout.operator("multikey.add_keyframes", icon=icons["keyframe"])
 
 
@@ -695,3 +701,21 @@ def update_frame_handler(dummy):
         props.frame = scene.frame_current
         if len(props.shape_keys) < props.num_rows:
             ensure_shape_key_rows(props)
+
+        # Resolve collection name for this scene props. Older code referenced
+        # a variable `collection_name` that was out of scope; compute it here.
+        collection_name = get_collection_name_from_enum(props.collection)
+        if not collection_name:
+            # Nothing to apply if no collection is selected
+            return
+
+        for i in range(min(props.num_rows, len(props.shape_keys))):
+            shape_key = props.shape_keys[i]
+            if shape_key.enabled and shape_key.name:
+                apply_shape_key_to_collection(
+                    shape_key.name,
+                    shape_key.value,
+                    collection_name,
+                    frame=None,
+                    enabled=True,
+                )

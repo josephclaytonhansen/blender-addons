@@ -1,0 +1,17 @@
+ schema_version = "1.0.0"
+
+id      = "SRCCT"
+version = "1.3.311"
+name    = "Shading Rig and Cel Character Tools"
+tagline = "Tagline your mom"
+
+maintainer = "Joseph Hansen"
+website    = "yourmom.com"
+
+type = "add-on"
+
+blender_version_min = "4.1.0"
+
+license = ["SPDX:GPL-2.0-or-later"]
+
+tags = ["Scene"]
